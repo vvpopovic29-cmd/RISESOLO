@@ -62,6 +62,17 @@ module.exports = tseslint.config(
     },
   },
   {
+    // NestJS koristi `emitDecoratorMetadata` (reflection) za constructor
+    // injection - `import type` na klasu koja se injektuje brise vrednost iz
+    // kompajliranog JS-a i kvari DI u runtime-u. Zato je pravilo iskljuceno
+    // ovde (interfejsi i dalje koriste `type` modifier na @Inject() token
+    // parametrima - to ne zavisi od emitDecoratorMetadata).
+    files: ["apps/api/src/**/*.ts"],
+    rules: {
+      "@typescript-eslint/consistent-type-imports": "off",
+    },
+  },
+  {
     files: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/test/**"],
     languageOptions: {
       globals: {

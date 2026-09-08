@@ -3,20 +3,26 @@
 Gamifikovana fitness aplikacija (System RPG estetika, bez kopiranja tuđih
 zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 
-> **Faza 1 (trenutno stanje):** samo monorepo i razvojno okruženje - workspace,
-> deljeni tooling, environment validacija i health-check rute. Poslovne
-> funkcije (trening, ishrana, XP/Rank, community, ekonomija, oporavak) dolaze
-> u narednim fazama.
+> **Faza 2 (trenutno stanje):** Game Engine core - email autentifikacija
+> (JWT), player profil (XP/nivo/Hunter Rank/statistike) i osnovni Quest
+> CRUD sa dodelom nagrada. Perzistencija je jos in-memory (bez Prisma/
+> PostgreSQL konekcije - vidi "Poznata ograničenja"). Ostale poslovne
+> funkcije (trening, ishrana, community, oporavak, System AI) dolaze u
+> narednim fazama.
 
 ## Struktura
 
 ```
 apps/
-  api/      NestJS - REST API (Faza 1: samo health-check)
+  api/      NestJS - REST API
+    auth/     registracija/login, JWT izdavanje
+    player/   player profil, XP/nivo/rang (izvedeno), dodela poena statistike
+    quests/   quest CRUD + zavrsetak questa (dodeljuje XP/gold kroz game engine)
+    health/   health-check ruta
   mobile/   Expo (React Native + TypeScript + Expo Router + NativeWind)
 packages/
-  domain/        domain kernel (Brand/Result/assertNever) + granice bounded-context modula
-  validation/    deljene Zod seme, env-loader, health-check DTO
+  domain/        domain kernel (Brand/Result/assertNever) + gamification modul (XP kriva, rang, quest invarijante)
+  validation/    deljene Zod seme, env-loader, DTO ugovori (auth/player/quest/health)
   design-tokens/ boje (dark/light), spacing, tipografija + NativeWind preset
   api-client/    tipizovan fetch klijent sa runtime validacijom odgovora
 ```
@@ -56,7 +62,8 @@ pnpm --filter @risesolo/mobile start
 3. Sve `EXPO_PUBLIC_*` promenljive se ugrađuju u klijentski bundle u build-time.
 
 Environment se validira Zod semama pri startu:
-- `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`, `REDIS_URL`.
+- `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`,
+  `REDIS_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`.
 - `apps/mobile/src/config/env.ts` - `EXPO_PUBLIC_API_URL` (sa default vrednošću
   za lokalni razvoj ako promenljiva nije postavljena).
 
@@ -101,15 +108,22 @@ Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 1)
+## Poznata ograničenja (Faza 2)
 
-- Nema Prisma/PostgreSQL/Redis/BullMQ/Socket.IO konekcija - `DATABASE_URL` i
-  `REDIS_URL` postoje samo u env semi radi predvidljivog oblika za buduće faze.
+- Perzistencija je in-memory (`InMemoryUsersRepository`, `InMemoryPlayerRepository`,
+  `InMemoryQuestsRepository`) - podaci se gube na restart API procesa. Nema
+  Prisma/PostgreSQL/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL` i
+  `REDIS_URL` i dalje postoje samo u env semi radi predvidljivog oblika.
+  Svaki repozitorijum je definisan kao port (interfejs) upravo da bi zamena
+  in-memory implementacije Prisma adapterom u sledećoj fazi ne zahtevala
+  izmene servisa koji ga koriste.
 - Nema pune OpenAPI JSON generacije (Swagger) - DTO usklađenost se obezbeđuje
   deljenom Zod semom; uvodi se kada broj endpoint-a to opravda.
-- `packages/domain` sadrži samo kernel (bez poslovne logike) - bounded-context
-  moduli (training, nutrition, gamification, community, economy, recovery) se
-  dodaju u fazi kada se implementira odgovarajuća funkcija.
+- Ekonomija (gold sistem van quest nagrada), community, training, nutrition,
+  recovery i System AI moduli dolaze u narednim fazama.
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
   JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
-  i nije deo ovog pipeline-a.
+  i nije deo ovog pipeline-a. Mobile UI za Faza 2 funkcionalnost (auth ekrani,
+  player profil, quest lista) nije jos implementiran - API je testiran preko
+  e2e testova i moze se koristiti odmah preko `@risesolo/api-client` prosirenja
+  u sledecoj fazi.

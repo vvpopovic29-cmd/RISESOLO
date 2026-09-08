@@ -2,7 +2,7 @@
   "name": "@risesolo/domain",
   "version": "0.1.0",
   "private": true,
-  "description": "Domain kernel i granice bounded-context modula za RISESOLO (bez poslovne logike u Fazi 1)",
+  "description": "Domain kernel i gamification (XP/nivo/rang/questovi) modul za RISESOLO",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
