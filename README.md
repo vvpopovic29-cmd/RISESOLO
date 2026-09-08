@@ -5,10 +5,10 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 
 > **Faza 2 (trenutno stanje):** Game Engine core - email autentifikacija
 > (JWT), player profil (XP/nivo/Hunter Rank/statistike) i osnovni Quest
-> CRUD sa dodelom nagrada. Perzistencija je jos in-memory (bez Prisma/
-> PostgreSQL konekcije - vidi "Poznata ograničenja"). Ostale poslovne
-> funkcije (trening, ishrana, community, oporavak, System AI) dolaze u
-> narednim fazama.
+> CRUD sa dodelom nagrada, sa pravom PostgreSQL/Prisma perzistencijom
+> (podaci prezive restart procesa). Ostale poslovne funkcije (trening,
+> ishrana, community, oporavak, System AI) i mobile UI za ovu funkcionalnost
+> dolaze u narednim fazama.
 
 ## Struktura
 
@@ -19,6 +19,8 @@ apps/
     player/   player profil, XP/nivo/rang (izvedeno), dodela poena statistike
     quests/   quest CRUD + zavrsetak questa (dodeljuje XP/gold kroz game engine)
     health/   health-check ruta
+    prisma/   PrismaService/PrismaModule (globalni, konekcija ka PostgreSQL)
+    (uz src/, ima i sopstveni prisma/schema.prisma + prisma/migrations/)
   mobile/   Expo (React Native + TypeScript + Expo Router + NativeWind)
 packages/
   domain/        domain kernel (Brand/Result/assertNever) + gamification modul (XP kriva, rang, quest invarijante)
@@ -31,6 +33,8 @@ packages/
 
 - Node.js `>=20` (videti `.nvmrc`)
 - pnpm `12.3.4` (repo koristi `packageManager` polje - `corepack enable && corepack prepare pnpm@12.3.4 --activate`)
+- PostgreSQL `>=14` dostupan lokalno (ili u kontejneru) - vidi "Baza podataka
+  (PostgreSQL/Prisma)" ispod za tacne komande.
 
 ## Komande
 
@@ -56,10 +60,16 @@ pnpm --filter @risesolo/mobile start
 
 ## Environment
 
-1. Kopirati `.env.example` u `.env` u korenu repoa (koristi ga `apps/api`).
-2. Kopirati `apps/mobile/.env.example` u `apps/mobile/.env` (Expo CLI čita
+1. Kopirati `.env.example` u `.env` u korenu repoa (`apps/api` ga cita preko
+   `envFilePath: [".env", "../../.env"]` kada se pokrece sa `nest start`).
+2. Kopirati `.env.example` i u `apps/api/.env` - Prisma CLI (`prisma migrate`,
+   `prisma generate`, itd.) cita environment samo iz `.env` fajla pored
+   sopstvenog `package.json` (`apps/api/.env`), ne iz root `.env`-a niti iz
+   NestJS-ovog `ConfigModule`. Alternativa je prefiksovati svaku Prisma
+   komandu sa `DATABASE_URL=... ` (vidi "Baza podataka" ispod).
+3. Kopirati `apps/mobile/.env.example` u `apps/mobile/.env` (Expo CLI čita
    `.env` samo iz korena te aplikacije, ne iz korena monorepoa).
-3. Sve `EXPO_PUBLIC_*` promenljive se ugrađuju u klijentski bundle u build-time.
+4. Sve `EXPO_PUBLIC_*` promenljive se ugrađuju u klijentski bundle u build-time.
 
 Environment se validira Zod semama pri startu:
 - `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`,
@@ -69,6 +79,43 @@ Environment se validira Zod semama pri startu:
 
 Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 `@risesolo/validation`) i aplikacija se namerno ne podiže (fail-fast).
+
+## Baza podataka (PostgreSQL/Prisma)
+
+`apps/api` koristi Prisma (`apps/api/prisma/schema.prisma`) protiv prave
+PostgreSQL baze - `auth`, `player` i `quests` repozitorijumi (Faza 2) čitaju
+i pišu kroz `PrismaService` (`apps/api/src/prisma/`), ne in-memory.
+
+Lokalno podešavanje (jednom):
+
+```bash
+# Kreiraj lokalnog korisnika i dev/test baze koje ocekuje DATABASE_URL
+# (podesi po potrebi ako vec imas drugaciju PostgreSQL instancu/kredencijale).
+psql -U postgres -c "CREATE ROLE risesolo LOGIN PASSWORD 'risesolo' CREATEDB;"
+psql -U postgres -c "CREATE DATABASE risesolo OWNER risesolo;"
+psql -U postgres -c "CREATE DATABASE risesolo_test OWNER risesolo;"
+
+# Primeni postojece migracije (ne pravi nove) na obe baze
+pnpm --filter @risesolo/api exec prisma migrate deploy
+DATABASE_URL=postgresql://risesolo:risesolo@localhost:5432/risesolo_test \
+  pnpm --filter @risesolo/api exec prisma migrate deploy
+```
+
+`CREATEDB` privilegija je potrebna samo developeru koji kasnije pravi nove
+migracije (`prisma migrate dev` pravi privremenu "shadow" bazu); u CI/produkciji
+dovoljan je `prisma migrate deploy` bez te privilegije.
+
+Korisne komande (iz `apps/api`, ili `pnpm --filter @risesolo/api <script>` iz korena):
+
+```bash
+pnpm db:migrate         # prisma migrate dev - nova migracija iz izmena seme (lokalni razvoj)
+pnpm db:migrate:deploy  # prisma migrate deploy - primeni postojece migracije (CI/produkcija)
+pnpm db:generate        # prisma generate - regenerisi Prisma Client (pokrece se i automatski, postinstall)
+pnpm db:studio          # prisma studio - GUI za pregled podataka
+```
+
+`risesolo_test` je odvojena baza koju koristi `apps/api/test/game-engine.e2e-spec.ts`
+(brise svoje redove pre svakog testa) - da e2e testovi ne bi menjali dev podatke.
 
 ## Arhitektonska pravila (Faza 1 i nadalje)
 
@@ -101,26 +148,32 @@ Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
 - `apps/api` - Jest (jedinični `*.spec.ts` + e2e `*.e2e-spec.ts` preko Supertest).
+  Jedinični testovi servisa koriste in-memory implementacije repozitorijuma
+  (`InMemoryUsersRepository` i sl. - brzi test dvojnici iza istog port
+  interfejsa, ne runtime put) i ne zahtevaju bazu. `game-engine.e2e-spec.ts`
+  se povezuje na pravu PostgreSQL (`risesolo_test`) - vidi "Baza podataka"
+  iznad pre pokretanja `pnpm --filter @risesolo/api test`.
 - `apps/mobile` - `jest-expo` preset + `@testing-library/react-native`.
 
 ## CI
 
-`.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
-lint, typecheck i test - identično lokalnim komandama iznad.
+`.github/workflows/ci.yml` pokreće na svaki push/PR: install
+(`pnpm install --frozen-lockfile`), lint, typecheck, primenu Prisma migracija
+na `postgres:16` servisni kontejner (`prisma migrate deploy` protiv
+`risesolo_test`), i test - identično lokalnim komandama iznad.
 
 ## Poznata ograničenja (Faza 2)
 
-- Perzistencija je in-memory (`InMemoryUsersRepository`, `InMemoryPlayerRepository`,
-  `InMemoryQuestsRepository`) - podaci se gube na restart API procesa. Nema
-  Prisma/PostgreSQL/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL` i
-  `REDIS_URL` i dalje postoje samo u env semi radi predvidljivog oblika.
-  Svaki repozitorijum je definisan kao port (interfejs) upravo da bi zamena
-  in-memory implementacije Prisma adapterom u sledećoj fazi ne zahtevala
-  izmene servisa koji ga koriste.
+- Perzistencija (PostgreSQL/Prisma) postoji za `auth`/`player`/`quests`, ali
+  bez connection pooling-a (npr. PgBouncer) ili migracija koje se pokrecu kao
+  deo deploy pipeline-a izvan CI - relevantno tek kada se dodaje produkcioni
+  deploy.
 - Nema pune OpenAPI JSON generacije (Swagger) - DTO usklađenost se obezbeđuje
   deljenom Zod semom; uvodi se kada broj endpoint-a to opravda.
 - Ekonomija (gold sistem van quest nagrada), community, training, nutrition,
-  recovery i System AI moduli dolaze u narednim fazama.
+  recovery i System AI moduli dolaze u narednim fazama. Redis/BullMQ
+  konekcija jos nije uspostavljena - `REDIS_URL` i dalje postoji samo u env
+  semi radi predvidljivog oblika.
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
   JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
   i nije deo ovog pipeline-a. Mobile UI za Faza 2 funkcionalnost (auth ekrani,
