@@ -1,0 +1,21 @@
+{
+  "name": "@risesolo/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tipizovan fetch klijent za RISESOLO API, sa runtime validacijom odgovora preko deljenih Zod sema",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@risesolo/validation": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1"
+  }
+}

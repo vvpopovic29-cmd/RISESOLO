@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+dist-web/
+.turbo/
+coverage/
+
+# Expo / React Native
+.expo/
+.expo-shared/
+*.jsbundle
+android/
+ios/
+*.orig.*
+web-build/
+
+# NestJS
+apps/api/dist/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# TypeScript
+*.tsbuildinfo

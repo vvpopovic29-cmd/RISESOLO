@@ -1,0 +1,21 @@
+{
+  "name": "@risesolo/validation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deljene Zod seme i environment validacija za RISESOLO",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1"
+  }
+}
