@@ -5,6 +5,8 @@ export const apiEnvSchema = z.object({
   PORT: envPrimitives.port.default(3000),
   DATABASE_URL: envPrimitives.url,
   REDIS_URL: envPrimitives.url,
+  JWT_SECRET: envPrimitives.nonEmptyString,
+  JWT_EXPIRES_IN: envPrimitives.nonEmptyString.default("7d"),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
