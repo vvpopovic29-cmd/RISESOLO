@@ -5,6 +5,12 @@ export const apiEnvSchema = z.object({
   PORT: envPrimitives.port.default(3000),
   DATABASE_URL: envPrimitives.url,
   REDIS_URL: envPrimitives.url,
+  // Backend koristi service_role kljuc da bi mogao da pozove
+  // SECURITY DEFINER RPC funkcije (fn_grant_xp, fn_log_workout, ...) koje
+  // su namerno nedostupne anon/authenticated ulogama - videti
+  // supabase/migrations/. Ovaj kljuc se nikad ne sme proslediti klijentu.
+  SUPABASE_URL: envPrimitives.url,
+  SUPABASE_SERVICE_ROLE_KEY: envPrimitives.nonEmptyString,
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
