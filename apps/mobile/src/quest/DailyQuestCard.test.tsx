@@ -33,7 +33,7 @@ describe("DailyQuestCard", () => {
   it("prikazuje loading stanje pre nego sto se zahtev zavrsi", async () => {
     mockedUseApiClient.mockReturnValue({ listQuests: () => new Promise(() => {}) });
 
-    render(<DailyQuestCard />);
+    await render(<DailyQuestCard />);
 
     await waitFor(() => expect(screen.getByText(/Proveravam Daily Quest/i)).toBeTruthy());
   });
@@ -41,7 +41,7 @@ describe("DailyQuestCard", () => {
   it("prikazuje quest podatke kada aktivan Daily Quest postoji", async () => {
     mockedUseApiClient.mockReturnValue({ listQuests: () => Promise.resolve([baseQuest]) });
 
-    render(<DailyQuestCard />);
+    await render(<DailyQuestCard />);
 
     await waitFor(() => expect(screen.getByText("Zavrsi danasnji trening")).toBeTruthy());
     expect(screen.getByText(/\+500 XP/)).toBeTruthy();
@@ -54,7 +54,7 @@ describe("DailyQuestCard", () => {
       generateDailyQuest,
     });
 
-    render(<DailyQuestCard />);
+    await render(<DailyQuestCard />);
 
     await waitFor(() => expect(screen.getByText(/jos nemas Daily Quest/i)).toBeTruthy());
 
@@ -67,7 +67,7 @@ describe("DailyQuestCard", () => {
   it("prikazuje error stanje kada zahtev ne uspe", async () => {
     mockedUseApiClient.mockReturnValue({ listQuests: () => Promise.reject(new Error("network")) });
 
-    render(<DailyQuestCard />);
+    await render(<DailyQuestCard />);
 
     await waitFor(() => expect(screen.getByText(/Ne mogu da ucitam Quest/i)).toBeTruthy());
   });

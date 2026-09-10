@@ -40,7 +40,7 @@ describe("PlayerStatusCard", () => {
   it("prikazuje loading stanje pre nego sto se zahtev zavrsi", async () => {
     mockedUseApiClient.mockReturnValue({ getPlayer: () => new Promise(() => {}) });
 
-    render(<PlayerStatusCard />);
+    await render(<PlayerStatusCard />);
 
     await waitFor(() => expect(screen.getByText(/Ucitavanje Player statusa/i)).toBeTruthy());
   });
@@ -48,7 +48,7 @@ describe("PlayerStatusCard", () => {
   it("prikazuje Player podatke kada zahtev uspe", async () => {
     mockedUseApiClient.mockReturnValue({ getPlayer: () => Promise.resolve(basePlayer) });
 
-    render(<PlayerStatusCard />);
+    await render(<PlayerStatusCard />);
 
     await waitFor(() => expect(screen.getByText("Vukasin")).toBeTruthy());
     expect(screen.getByText("Rank D")).toBeTruthy();
@@ -59,7 +59,7 @@ describe("PlayerStatusCard", () => {
   it("prikazuje error stanje i dugme za ponovni pokusaj kada zahtev ne uspe", async () => {
     mockedUseApiClient.mockReturnValue({ getPlayer: () => Promise.reject(new Error("network")) });
 
-    render(<PlayerStatusCard />);
+    await render(<PlayerStatusCard />);
 
     await waitFor(() => expect(screen.getByText(/Ne mogu da ucitam Player status/i)).toBeTruthy());
     expect(screen.getByText(/Pokusaj ponovo/i)).toBeTruthy();
