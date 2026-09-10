@@ -7,8 +7,7 @@ import { PlayerModule } from "../player/player.module";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { JwtStrategy } from "./jwt.strategy";
-import { PrismaUsersRepository } from "./prisma-users.repository";
-import { USERS_REPOSITORY } from "./users.repository";
+import { InMemoryUsersRepository, USERS_REPOSITORY } from "./users.repository";
 
 @Module({
   imports: [
@@ -27,7 +26,7 @@ import { USERS_REPOSITORY } from "./users.repository";
   providers: [
     AuthService,
     JwtStrategy,
-    { provide: USERS_REPOSITORY, useClass: PrismaUsersRepository },
+    { provide: USERS_REPOSITORY, useClass: InMemoryUsersRepository },
   ],
 })
 export class AuthModule {}

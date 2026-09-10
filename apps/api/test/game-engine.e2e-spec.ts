@@ -4,19 +4,10 @@ import { Test, type TestingModule } from "@nestjs/testing";
 import request from "supertest";
 import { AuthModule } from "../src/auth/auth.module";
 import { PlayerModule } from "../src/player/player.module";
-import { PrismaModule } from "../src/prisma/prisma.module";
-import { PrismaService } from "../src/prisma/prisma.service";
 import { QuestsModule } from "../src/quests/quests.module";
-
-// Prisma cita DATABASE_URL direktno iz process.env (ne preko ConfigService),
-// pa mora biti postavljen pre nego sto se PrismaClient instancira. Odvojena
-// test baza (risesolo_test) - vidi README "Testiranje" - da e2e testovi ne
-// bi menjali lokalne dev podatke.
-process.env.DATABASE_URL ??= "postgresql://risesolo:risesolo@localhost:5432/risesolo_test";
 
 describe("Game engine (e2e)", () => {
   let app: INestApplication;
-  let prisma: PrismaService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -26,7 +17,6 @@ describe("Game engine (e2e)", () => {
           ignoreEnvFile: true,
           load: [() => ({ JWT_SECRET: "test-e2e-secret", JWT_EXPIRES_IN: "1h" })],
         }),
-        PrismaModule,
         AuthModule,
         PlayerModule,
         QuestsModule,
@@ -35,12 +25,6 @@ describe("Game engine (e2e)", () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-
-    prisma = moduleFixture.get(PrismaService);
-    // Redosled postuje FK ogranicenja (quests/player_profiles -> users).
-    await prisma.quest.deleteMany();
-    await prisma.playerProfile.deleteMany();
-    await prisma.user.deleteMany();
   });
 
   afterEach(async () => {

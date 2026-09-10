@@ -4,7 +4,6 @@ import { AuthModule } from "./auth/auth.module";
 import { validateApiEnv } from "./config/env";
 import { HealthModule } from "./health/health.module";
 import { PlayerModule } from "./player/player.module";
-import { PrismaModule } from "./prisma/prisma.module";
 import { QuestsModule } from "./quests/quests.module";
 
 @Module({
@@ -14,7 +13,6 @@ import { QuestsModule } from "./quests/quests.module";
       envFilePath: [".env", "../../.env"],
       validate: validateApiEnv,
     }),
-    PrismaModule,
     HealthModule,
     AuthModule,
     PlayerModule,
