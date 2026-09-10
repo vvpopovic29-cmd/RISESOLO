@@ -18,10 +18,29 @@ import { ZodValidationPipe } from "../../common/zod-validation.pipe";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- NestJS DI treba pravu (value) referencu za emitDecoratorMetadata
 import { NutritionService } from "./nutrition.service";
 
+/**
+ * Regex proverava samo oblik (YYYY-MM-DD); mora se dodatno proveriti da je
+ * mesec/dan zaista validan kalendarski datum - inace `new Date(...)` vraca
+ * Invalid Date koji kasnije (u nutrition.service.ts getUtcDayWindow)
+ * baca RangeError na .toISOString() i pretvara se u neuhvacen 500 umesto
+ * u citljivu 400 validacionu gresku.
+ */
+function isValidCalendarDate(value: string): boolean {
+  const [year, month, day] = value.split("-").map(Number);
+  if (year === undefined || month === undefined || day === undefined) {
+    return false;
+  }
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
+}
+
 const dailySummaryQuerySchema = z.object({
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "date mora biti u YYYY-MM-DD obliku")
+    .refine(isValidCalendarDate, "date mora biti validan kalendarski datum")
     .optional(),
 });
 type DailySummaryQuery = z.infer<typeof dailySummaryQuerySchema>;

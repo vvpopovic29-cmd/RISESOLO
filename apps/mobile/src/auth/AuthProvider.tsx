@@ -1,4 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase-client";
 
@@ -25,6 +34,18 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const sessionRef = useRef<Session | null>(session);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  // Stabilna referenca (ne zavisi od `session` state-a direktno, cita ref) -
+  // useApiClient() memoizuje ApiClient na [getAccessToken], pa bi nova
+  // referenca na svaku promenu sesije (npr. tihi token refresh na svakih
+  // ~sat vremena) izazvala nepotreban remount/refetch svih ekrana koji
+  // koriste useApiClient (PlayerStatusCard, DailyQuestCard).
+  const getAccessToken = useCallback(() => sessionRef.current?.access_token ?? null, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -54,11 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signOut() {
         await supabase.auth.signOut();
       },
-      getAccessToken() {
-        return session?.access_token ?? null;
-      },
+      getAccessToken,
     }),
-    [session, loading],
+    [session, loading, getAccessToken],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
