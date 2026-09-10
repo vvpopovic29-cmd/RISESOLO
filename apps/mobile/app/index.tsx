@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { Redirect } from "expo-router";
+import { Link, Redirect } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useAuth } from "../src/auth/AuthProvider";
 import { DailyQuestCard } from "../src/quest/DailyQuestCard";
@@ -33,6 +33,25 @@ export default function HomeScreen() {
 
         <PlayerStatusCard />
         <DailyQuestCard />
+
+        <View className="w-full max-w-sm flex-row gap-3">
+          <Link href="/workout/log" asChild>
+            <Pressable
+              testID="nav-workout-log"
+              className="flex-1 items-center rounded-md bg-accent px-4 py-3"
+            >
+              <Text className="font-semibold text-neutral-50">Zabelezi trening</Text>
+            </Pressable>
+          </Link>
+          <Link href="/nutrition" asChild>
+            <Pressable
+              testID="nav-nutrition"
+              className="flex-1 items-center rounded-md bg-info px-4 py-3"
+            >
+              <Text className="font-semibold text-neutral-50">Nutrition</Text>
+            </Pressable>
+          </Link>
+        </View>
 
         <View className="flex-row gap-3">
           <Pressable

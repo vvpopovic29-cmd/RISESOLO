@@ -58,7 +58,7 @@ describe("DailyQuestCard", () => {
 
     await waitFor(() => expect(screen.getByText(/jos nemas Daily Quest/i)).toBeTruthy());
 
-    fireEvent.press(screen.getByTestId("daily-quest-generate"));
+    await fireEvent.press(screen.getByTestId("daily-quest-generate"));
 
     await waitFor(() => expect(generateDailyQuest).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByText("Zavrsi danasnji trening")).toBeTruthy());

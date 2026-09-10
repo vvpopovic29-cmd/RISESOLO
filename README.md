@@ -148,10 +148,11 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
    (odgovor kontrolera) i `packages/api-client` (runtime validacija na
    klijentu). Puna OpenAPI JSON generacija je odložena za fazu kada bude
    više endpoint-a - videti "Poznata ograničenja" ispod.
-6. Health-check je upit (query), ne mutacija, pa demonstrira samo
-   loading/success/error stanja (`apps/mobile/src/health`); puni
-   loading/success/empty/error obrazac se primenjuje kada se uvedu prve
-   poslovne mutacije.
+6. Mobile hook-ovi vraćaju diskriminovani union
+   `{status: "loading" | "success" | "error" | ...}` (npr. `useDailyQuest`
+   dodaje `"empty"`, `useLogWorkout`/`useLogMeal`/`useLogWater` dodaju
+   `"idle"`/`"submitting"`); komponente granaju render po `status` polju
+   umesto po odvojenim boolean zastavicama.
 7. Dark tema je podrazumevana (`apps/mobile/app/_layout.tsx` postavlja
    `dark` na startu); Light tema je podržana preko NativeWind `dark:` varijanta.
 8. Animacije (kada se uvedu) moraju poštovati Reduce Motion.
@@ -205,10 +206,12 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 - System AI (analiza/coach/adaptivni trening/stagnation detection), Rank
   Examination, Class Evolution, Titles/Achievements, Dungeons/Bosses i
   community/guild sistemi nisu implementirani - namerno kasnije faze.
-- Mobile System Status ekran pokriva Player status + Daily Quest; nema još
-  ekrana za logovanje treninga, ishrane, ili Progressive Overload grafikone
-  (`api-client` metode za njih postoje - `logWorkout`, `logMeal`, `logWater`,
-  `getExerciseProgress` - ekrani dolaze u sledećoj fazi).
+- Mobile System Status ekran pokriva Player status + Daily Quest, sa
+  navigacijom ka ekranu za logovanje treninga (`/workout/log` - bira vežbu,
+  dodaje setove, šalje kroz `logWorkout`, prikazuje PR/XP rezultat) i ekranu
+  za Nutrition (`/nutrition` - dnevni pregled, brzi unos obroka/vode, editor
+  ciljeva). Nema još Progressive Overload grafikona (`getExerciseProgress`
+  postoji u `api-client`-u, ekran dolazi u sledećoj fazi).
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
   JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
   i nije deo ovog pipeline-a. `@react-native-async-storage/async-storage`
