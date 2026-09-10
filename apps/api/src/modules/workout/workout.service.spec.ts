@@ -3,13 +3,21 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createChainableMock } from "../../test/supabase-query-builder.mock";
 import type { PlayerRow } from "../player/player.types";
 import { WorkoutService } from "./workout.service";
-import type { ExerciseRow, LogWorkoutRpcResult, WorkoutRow, WorkoutSetRow } from "./workout.types";
+import type {
+  ExerciseAlternativeRow,
+  ExerciseRow,
+  LogWorkoutRpcResult,
+  WorkoutRow,
+  WorkoutSetRow,
+} from "./workout.types";
 
 const baseExerciseRow: ExerciseRow = {
   id: "e1",
   name: "Squat",
   muscle_groups: ["quadriceps", "glutes"],
   equipment: "barbell",
+  difficulty: "C",
+  instructions: "Spusti kukove unazad i nadole drzeci ledja ravnim.",
 };
 
 const baseWorkoutRow: WorkoutRow = {
@@ -53,19 +61,76 @@ const basePlayerRow: PlayerRow = {
 
 describe("WorkoutService", () => {
   describe("listExercises", () => {
-    it("vraca mapiranu listu vezbi", async () => {
-      const builder = createChainableMock({ data: [baseExerciseRow], error: null });
+    it("vraca mapiranu listu vezbi sa alternativama grupisanim po vezbi", async () => {
+      const alternativeRow: ExerciseAlternativeRow = {
+        exercise_id: "e1",
+        alternative_exercise_id: "e2",
+      };
+      const exercisesBuilder = createChainableMock({ data: [baseExerciseRow], error: null });
+      const alternativesBuilder = createChainableMock({ data: [alternativeRow], error: null });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(exercisesBuilder)
+        .mockReturnValueOnce(alternativesBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.listExercises();
+
+      expect(result).toEqual([
+        {
+          id: "e1",
+          name: "Squat",
+          muscleGroups: ["quadriceps", "glutes"],
+          equipment: "barbell",
+          difficulty: "C",
+          instructions: "Spusti kukove unazad i nadole drzeci ledja ravnim.",
+          alternativeExerciseIds: ["e2"],
+        },
+      ]);
+    });
+  });
+
+  describe("getExerciseProgress", () => {
+    it("vraca insufficient_data kada igrac nema treninge", async () => {
+      const builder = createChainableMock({ data: [], error: null });
       const supabase = {
         from: jest.fn(() => builder),
         rpc: jest.fn(),
       } as unknown as SupabaseClient;
       const service = new WorkoutService(supabase);
 
-      const result = await service.listExercises();
+      const result = await service.getExerciseProgress("p1", "e1");
 
-      expect(result).toEqual([
-        { id: "e1", name: "Squat", muscleGroups: ["quadriceps", "glutes"], equipment: "barbell" },
-      ]);
+      expect(result).toEqual({ exerciseId: "e1", sessions: [], trend: "insufficient_data" });
+    });
+
+    it("grupise serije po treningu hronoloski i racuna trend preko domain sloja", async () => {
+      const workoutsBuilder = createChainableMock({
+        data: [
+          { id: "w1", performed_at: "2026-01-01T10:00:00.000Z" },
+          { id: "w2", performed_at: "2026-01-08T10:00:00.000Z" },
+        ],
+        error: null,
+      });
+      const setsBuilder = createChainableMock({
+        data: [
+          { id: "s1", workout_id: "w1", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+          { id: "s2", workout_id: "w2", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 65 },
+        ],
+        error: null,
+      });
+      const from = jest.fn().mockReturnValueOnce(workoutsBuilder).mockReturnValueOnce(setsBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.getExerciseProgress("p1", "e1");
+
+      expect(result.exerciseId).toBe("e1");
+      expect(result.sessions).toHaveLength(2);
+      expect(result.sessions[0]?.workoutId).toBe("w1");
+      expect(result.sessions[1]?.workoutId).toBe("w2");
+      expect(result.trend).toBe("up");
     });
   });
 

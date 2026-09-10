@@ -6,23 +6,27 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > **Faza 1:** monorepo i razvojno okruženje - workspace, deljeni tooling,
 > environment validacija i health-check rute.
 >
-> **Faza 2 (trenutno stanje):** Gamification core - Player → Stats → XP →
-> Level → Daily Quest → Workout → Rewards, na Supabase Postgres (projekat
-> "RISESOLO"). Ostale poslovne funkcije (puna ishrana, System AI, Rank/Class
-> evolucija, Dungeons/Bosses, community/guild) dolaze u narednim fazama -
-> videti "Poznata ograničenja" ispod.
+> **Faza 2:** Gamification core - Player → Stats → XP → Level → Daily Quest →
+> Workout → Rewards, na Supabase Postgres (projekat "RISESOLO").
+>
+> **Faza 3 (trenutno stanje):** prošireni Exercise Database (difficulty,
+> uputstva, alternativne vežbe), Progressive Overload signal, Nutrition
+> System (kalorije/makroi/voda + Nutrition XP), i mobile Supabase Auth +
+> System Status ekran povezan na pravi API. Ostale poslovne funkcije (System
+> AI, Rank/Class evolucija, Dungeons/Bosses, community/guild) dolaze u
+> narednim fazama - videti "Poznata ograničenja" ispod.
 
 ## Struktura
 
 ```
 apps/
-  api/      NestJS - REST API (Faza 2: Player/Quest/Workout/Rewards)
+  api/      NestJS - REST API (Faza 3: + Nutrition, Progressive Overload)
   mobile/   Expo (React Native + TypeScript + Expo Router + NativeWind)
 packages/
-  domain/        domain kernel (Brand/Result/assertNever) + gamification (XP/Level formule)
-  validation/    deljene Zod seme, env-loader, health-check + gamification DTO
+  domain/        domain kernel (Brand/Result/assertNever) + gamification (XP/Level) + training (Progressive Overload)
+  validation/    deljene Zod seme, env-loader, gamification + nutrition DTO
   design-tokens/ boje (dark/light), spacing, tipografija + NativeWind preset
-  api-client/    tipizovan fetch klijent sa runtime validacijom odgovora
+  api-client/    tipizovan fetch klijent (auth header injection) sa runtime validacijom odgovora
 supabase/
   migrations/    SQL migracije (tabele, RLS politike, SECURITY DEFINER RPC funkcije)
 ```
@@ -65,7 +69,9 @@ Environment se validira Zod semama pri startu:
 - `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`, `REDIS_URL`,
   `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
 - `apps/mobile/src/config/env.ts` - `EXPO_PUBLIC_API_URL` (sa default vrednošću
-  za lokalni razvoj ako promenljiva nije postavljena).
+  za lokalni razvoj ako promenljiva nije postavljena), `EXPO_PUBLIC_SUPABASE_URL`,
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY` (Supabase Auth - anon/publishable ključ je
+  javan po dizajnu, RLS je stvarna kontrola pristupa).
 
 Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 `@risesolo/validation`) i aplikacija se namerno ne podiže (fail-fast).
@@ -74,7 +80,7 @@ Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 pozove SECURITY DEFINER RPC funkcije (videti "API i bezbednosni model"
 ispod), nikad se ne prosleđuje klijentu i ne komituje se stvarna vrednost.
 
-## API i bezbednosni model (Faza 2)
+## API i bezbednosni model
 
 Backend (`apps/api`) razgovara sa Supabase Postgres projektom preko
 service-role klijenta (`apps/api/src/supabase/supabase.module.ts`).
@@ -84,9 +90,11 @@ projekta (`apps/api/src/auth/`) - svaki zahtev mora nositi
 tokena, nikad iz request body-ja/query stringa.
 
 **Nijedna XP/Level/Coins/Stat Points vrednost ne dolazi sa klijenta.**
-Sve mutacije koje utiču na progres idu kroz `SECURITY DEFINER` RPC funkcije
-u `supabase/migrations/` (`fn_grant_xp`, `fn_grant_reward`,
-`fn_complete_daily_quest`, `fn_log_workout`, `fn_allocate_stat_points`) koje:
+Sve mutacije koje utiču na progres (uključujući Nutrition XP od Faze 3) idu
+kroz `SECURITY DEFINER` RPC funkcije u `supabase/migrations/` (`fn_grant_xp`,
+`fn_grant_reward`, `fn_complete_daily_quest`, `fn_log_workout`,
+`fn_allocate_stat_points`, `fn_log_meal`, `fn_log_water`,
+`fn_upsert_nutrition_targets`) koje:
 - atomski izračunavaju level-up (formula `XP = Level² × 100`, ista formula
   je duplirana i testirana u `packages/domain/src/gamification`),
 - su idempotentne (unique constraint na `xp_transactions`/`reward_transactions`
@@ -105,10 +113,29 @@ Ruta (sve zahtevaju autentifikaciju):
 | GET | `/quests` | Lista questova (opciono `?status=`) |
 | POST | `/quests/daily/generate` | Vraća/kreira današnji Daily Quest (idempotentno) |
 | POST | `/quests/:id/complete` | Završava quest čiji je progres dostigao cilj |
-| GET | `/exercises` | Katalog vežbi |
+| GET | `/exercises` | Katalog vežbi (difficulty, uputstva, alternative vežbe) |
+| GET | `/exercises/:id/progress` | Progressive Overload signal (Epley 1RM trend poslednje 2 sesije) |
 | POST | `/workouts` | Beleži trening (serije) - PR detekcija + XP + quest progres + streak |
 | GET | `/workouts` | Istorija treninga |
 | GET | `/workouts/:id` | Detalji treninga (sa serijama) |
+| GET | `/nutrition/targets` | Kalorijski/makro/vodeni ciljevi igrača |
+| PATCH | `/nutrition/targets` | Delimično ažuriranje ciljeva (izostavljeno polje ostaje nepromenjeno) |
+| POST | `/nutrition/meals` | Beleži obrok (+ Nutrition XP) |
+| POST | `/nutrition/water` | Beleži unos vode (+ Nutrition XP) |
+| GET | `/nutrition/summary` | Dnevni zbir obroka/vode nasuprot ciljevima (opciono `?date=YYYY-MM-DD`) |
+
+## Mobile Auth (Faza 3)
+
+`apps/mobile` koristi Supabase Auth (email/lozinka) preko
+`apps/mobile/src/auth/AuthProvider.tsx` - React Context koji drži sesiju,
+osvežava je automatski, i izlaže `getAccessToken()` koji
+`apps/mobile/src/api/use-api-client.ts` prosleđuje `@risesolo/api-client`
+za `Authorization` header na svakom pozivu. Sesija se čuva preko
+`@react-native-async-storage/async-storage` (ne `expo-secure-store` - taj
+ima ~2KB limit po stavci što može da preseče JWT/refresh token par,
+zvanična Supabase Expo preporuka je AsyncStorage). Neulogovan korisnik se
+preusmerava na `/sign-in` (`app/sign-in.tsx`); ulogovan vidi System Status
+ekran (`app/index.tsx`, Player status + Daily Quest karte).
 
 ## Arhitektonska pravila (Faza 1 i nadalje)
 
@@ -151,7 +178,7 @@ Ruta (sve zahtevaju autentifikaciju):
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 2)
+## Poznata ograničenja (Faza 3)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -162,19 +189,28 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   (`supabase gen types typescript`) je odloženo dok broj tabela to ne
   opravda.
 - Nema pune OpenAPI JSON generacije (Swagger) - DTO usklađenost se obezbeđuje
-  deljenom Zod semom (`packages/validation/src/contracts/gamification.ts`);
-  uvodi se kada broj endpoint-a to opravda.
+  deljenom Zod semom (`packages/validation/src/contracts/`); uvodi se kada
+  broj endpoint-a to opravda.
 - Questovi su trenutno samo sistemski (fiksan Daily Quest template preko
   `POST /quests/daily/generate`) - Weekly/Main/Side/Boss/Hidden/Penalty tipovi
   i pravi System AI generator questova dolaze u kasnijim fazama (videti
   `packages/domain/README.md`).
-- Nutrition, System AI (analiza/coach/adaptivni trening), Rank Examination,
-  Class Evolution, Titles/Achievements, Dungeons/Bosses i community/guild
-  sistemi nisu implementirani - ovo su namerno kasnije faze (Faza 3+ po
-  prioritetu iz projektne specifikacije: Training/Exercise DB → Nutrition →
-  System AI → Rank/Class/Titles/Dungeons).
-- Mobile app još nema ekrane za Player/Quest/Workout (Faza 1 UI je i dalje
-  samo health-check demo) - `packages/api-client` još ne pokriva nove rute.
+- Training Plans (Daily/Weekly split, Recovery Days, Deload, automatska
+  zamena vežbi) nisu implementirani - Faza 3 pokriva samo katalog vežbi +
+  ad-hoc workout logging + Progressive Overload signal (poredi poslednje 2
+  sesije; nema jos preporuka/prilagođavanja plana).
+- Nutrition XP je fiksan po logu (meal/water), bez "dnevni cilj ispunjen"
+  bonusa (izbegnuta idempotencija-po-danu komplikacija za sada) i bez Food
+  Scanner-a (kalorije/makroi se unose ručno).
+- System AI (analiza/coach/adaptivni trening/stagnation detection), Rank
+  Examination, Class Evolution, Titles/Achievements, Dungeons/Bosses i
+  community/guild sistemi nisu implementirani - namerno kasnije faze.
+- Mobile System Status ekran pokriva Player status + Daily Quest; nema još
+  ekrana za logovanje treninga, ishrane, ili Progressive Overload grafikone
+  (`api-client` metode za njih postoje - `logWorkout`, `logMeal`, `logWater`,
+  `getExerciseProgress` - ekrani dolaze u sledećoj fazi).
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
   JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
-  i nije deo ovog pipeline-a.
+  i nije deo ovog pipeline-a. `@react-native-async-storage/async-storage`
+  verzija je ručno pinovana (`npx expo install` kompatibilnost-provera nije
+  bila dostupna u razvojnom okruženju) - proveriti pre native builda.

@@ -6,7 +6,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { training } from "@risesolo/domain";
 import type {
+  ExerciseProgressResponse,
+  ExerciseProgressSession,
   ExerciseResponse,
   LogWorkoutInput,
   LogWorkoutResponse,
@@ -18,7 +21,13 @@ import {
   mapLogWorkoutResult,
   mapWorkoutRowToResponse,
 } from "./workout.mapper";
-import type { ExerciseRow, LogWorkoutRpcResult, WorkoutRow, WorkoutSetRow } from "./workout.types";
+import type {
+  ExerciseAlternativeRow,
+  ExerciseRow,
+  LogWorkoutRpcResult,
+  WorkoutRow,
+  WorkoutSetRow,
+} from "./workout.types";
 
 @Injectable()
 export class WorkoutService {
@@ -35,7 +44,98 @@ export class WorkoutService {
       throw new InternalServerErrorException(`Ucitavanje vezbi nije uspelo: ${error.message}`);
     }
 
-    return (data ?? []).map(mapExerciseRowToResponse);
+    const { data: alternatives, error: alternativesError } = await this.supabase
+      .from("exercise_alternatives")
+      .select("*")
+      .returns<ExerciseAlternativeRow[]>();
+
+    if (alternativesError) {
+      throw new InternalServerErrorException(
+        `Ucitavanje alternativnih vezbi nije uspelo: ${alternativesError.message}`,
+      );
+    }
+
+    const alternativesByExercise = groupAlternativesByExercise(alternatives ?? []);
+
+    return (data ?? []).map((row) =>
+      mapExerciseRowToResponse(row, alternativesByExercise.get(row.id) ?? []),
+    );
+  }
+
+  /**
+   * Progressive Overload signal za jednu vezbu - grupise serije po
+   * treningu (hronoloski), pa poredi poslednje dve sesije preko
+   * `@risesolo/domain` cistih funkcija (Epley 1RM procena). Servis samo
+   * dovlaci i grupise podatke; sam izracun trenda je u domain sloju.
+   */
+  async getExerciseProgress(
+    playerId: string,
+    exerciseId: string,
+  ): Promise<ExerciseProgressResponse> {
+    const { data: workouts, error: workoutsError } = await this.supabase
+      .from("workouts")
+      .select("id, performed_at")
+      .eq("player_id", playerId)
+      .order("performed_at", { ascending: true })
+      .returns<Array<Pick<WorkoutRow, "id" | "performed_at">>>();
+
+    if (workoutsError) {
+      throw new InternalServerErrorException(
+        `Ucitavanje treninga nije uspelo: ${workoutsError.message}`,
+      );
+    }
+
+    const workoutIds = (workouts ?? []).map((workout) => workout.id);
+    if (workoutIds.length === 0) {
+      return { exerciseId, sessions: [], trend: "insufficient_data" };
+    }
+
+    const { data: sets, error: setsError } = await this.supabase
+      .from("workout_sets")
+      .select("*")
+      .eq("exercise_id", exerciseId)
+      .in("workout_id", workoutIds)
+      .returns<WorkoutSetRow[]>();
+
+    if (setsError) {
+      throw new InternalServerErrorException(`Ucitavanje serija nije uspelo: ${setsError.message}`);
+    }
+
+    const setsByWorkoutId = new Map<string, WorkoutSetRow[]>();
+    for (const set of sets ?? []) {
+      const existing = setsByWorkoutId.get(set.workout_id) ?? [];
+      existing.push(set);
+      setsByWorkoutId.set(set.workout_id, existing);
+    }
+
+    const sessions: ExerciseProgressSession[] = [];
+    for (const workout of workouts ?? []) {
+      const workoutSets = setsByWorkoutId.get(workout.id);
+      if (!workoutSets || workoutSets.length === 0) {
+        continue;
+      }
+
+      sessions.push({
+        workoutId: workout.id,
+        performedAt: workout.performed_at,
+        sets: workoutSets.map((set) => ({
+          setNumber: set.set_number,
+          reps: set.reps,
+          weightKg: set.weight_kg,
+        })),
+        topEstimated1Rm: training.topEstimated1Rm(
+          workoutSets.map((set) => ({ weightKg: set.weight_kg, reps: set.reps })),
+        ),
+      });
+    }
+
+    const trend = training.computeProgressTrend(
+      sessions.map((session) =>
+        session.sets.map((set) => ({ weightKg: set.weightKg, reps: set.reps })),
+      ),
+    );
+
+    return { exerciseId, sessions, trend };
   }
 
   /**
@@ -110,4 +210,14 @@ export class WorkoutService {
 
     return mapWorkoutRowToResponse(workout, sets ?? []);
   }
+}
+
+function groupAlternativesByExercise(rows: ExerciseAlternativeRow[]): Map<string, string[]> {
+  const grouped = new Map<string, string[]>();
+  for (const row of rows) {
+    const existing = grouped.get(row.exercise_id) ?? [];
+    existing.push(row.alternative_exercise_id);
+    grouped.set(row.exercise_id, existing);
+  }
+  return grouped;
 }

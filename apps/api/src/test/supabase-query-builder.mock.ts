@@ -14,6 +14,7 @@ export interface ChainableQueryBuilderMock {
   update: jest.Mock;
   insert: jest.Mock;
   eq: jest.Mock;
+  in: jest.Mock;
   gte: jest.Mock;
   lt: jest.Mock;
   order: jest.Mock;
@@ -32,6 +33,7 @@ export function createChainableMock(result: SupabaseResult<unknown>): ChainableQ
     update: jest.fn(),
     insert: jest.fn(),
     eq: jest.fn(),
+    in: jest.fn(),
     gte: jest.fn(),
     lt: jest.fn(),
     order: jest.fn(),
@@ -44,6 +46,7 @@ export function createChainableMock(result: SupabaseResult<unknown>): ChainableQ
   builder.update.mockReturnValue(builder);
   builder.insert.mockReturnValue(builder);
   builder.eq.mockReturnValue(builder);
+  builder.in.mockReturnValue(builder);
   builder.gte.mockReturnValue(builder);
   builder.lt.mockReturnValue(builder);
   builder.order.mockReturnValue(builder);

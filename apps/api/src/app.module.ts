@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module";
 import { validateApiEnv } from "./config/env";
 import { HealthModule } from "./health/health.module";
+import { NutritionModule } from "./modules/nutrition/nutrition.module";
 import { PlayerModule } from "./modules/player/player.module";
 import { QuestModule } from "./modules/quest/quest.module";
 import { WorkoutModule } from "./modules/workout/workout.module";
@@ -21,6 +22,7 @@ import { SupabaseModule } from "./supabase/supabase.module";
     PlayerModule,
     QuestModule,
     WorkoutModule,
+    NutritionModule,
   ],
 })
 export class AppModule {}

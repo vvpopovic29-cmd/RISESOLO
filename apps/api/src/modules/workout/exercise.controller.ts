@@ -1,5 +1,6 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
-import type { ExerciseResponse } from "@risesolo/validation";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
+import type { ExerciseProgressResponse, ExerciseResponse } from "@risesolo/validation";
+import { CurrentPlayerId } from "../../auth/current-player-id.decorator";
 import { SupabaseAuthGuard } from "../../auth/supabase-auth.guard";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- NestJS DI treba pravu (value) referencu za emitDecoratorMetadata
 import { WorkoutService } from "./workout.service";
@@ -12,5 +13,13 @@ export class ExerciseController {
   @Get()
   list(): Promise<ExerciseResponse[]> {
     return this.workoutService.listExercises();
+  }
+
+  @Get(":id/progress")
+  getProgress(
+    @CurrentPlayerId() playerId: string,
+    @Param("id") id: string,
+  ): Promise<ExerciseProgressResponse> {
+    return this.workoutService.getExerciseProgress(playerId, id);
   }
 }

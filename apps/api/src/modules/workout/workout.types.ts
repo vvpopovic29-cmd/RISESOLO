@@ -1,3 +1,4 @@
+import type { ExerciseDifficulty } from "@risesolo/validation";
 import type { PlayerRow } from "../player/player.types";
 
 /** Videti supabase/migrations/..._gamification_core_schema.sql. */
@@ -6,6 +7,13 @@ export interface ExerciseRow {
   name: string;
   muscle_groups: string[];
   equipment: string | null;
+  difficulty: ExerciseDifficulty | null;
+  instructions: string | null;
+}
+
+export interface ExerciseAlternativeRow {
+  exercise_id: string;
+  alternative_exercise_id: string;
 }
 
 export interface WorkoutRow {

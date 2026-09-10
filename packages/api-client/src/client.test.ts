@@ -68,4 +68,130 @@ describe("createApiClient", () => {
     await client.getHealth();
     expect(calledUrl).toBe("http://localhost:3000/health");
   });
+
+  it("prilaze Authorization header na zasticene rute kada je getAccessToken prosledjen", async () => {
+    let capturedHeaders: Record<string, string> = {};
+    const fetchSpy: typeof fetch = (async (_url, init) => {
+      capturedHeaders = (init?.headers ?? {}) as Record<string, string>;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: "00000000-0000-0000-0000-000000000001",
+          displayName: "Vukasin",
+          level: 1,
+          xp: 0,
+          xpToNextLevel: 100,
+          statPointsAvailable: 0,
+          rank: "E",
+          class: null,
+          coins: 0,
+          hp: 100,
+          strength: 1,
+          agility: 1,
+          endurance: 1,
+          vitality: 1,
+          intelligence: 1,
+          currentStreak: 0,
+          longestStreak: 0,
+          lastActivityDate: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      } as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const client = createApiClient({
+      baseUrl: "http://localhost:3000",
+      fetchImpl: fetchSpy,
+      getAccessToken: () => "test-token",
+    });
+
+    await client.getPlayer();
+
+    expect(capturedHeaders.Authorization).toBe("Bearer test-token");
+  });
+
+  it("izostavlja Authorization header za health (authenticated: false) cak i sa getAccessToken", async () => {
+    let capturedHeaders: Record<string, string> = {};
+    const fetchSpy: typeof fetch = (async (_url, init) => {
+      capturedHeaders = (init?.headers ?? {}) as Record<string, string>;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ status: "ok", uptimeSeconds: 1, timestamp: new Date().toISOString() }),
+      } as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const client = createApiClient({
+      baseUrl: "http://localhost:3000",
+      fetchImpl: fetchSpy,
+      getAccessToken: () => "test-token",
+    });
+
+    await client.getHealth();
+
+    expect(capturedHeaders.Authorization).toBeUndefined();
+  });
+
+  it("prosledjuje query parametre (npr. listQuests sa status filterom)", async () => {
+    let calledUrl = "";
+    const fetchSpy: typeof fetch = (async (url: RequestInfo | URL) => {
+      calledUrl = String(url);
+      return { ok: true, status: 200, json: async () => [] } as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const client = createApiClient({ baseUrl: "http://localhost:3000", fetchImpl: fetchSpy });
+    await client.listQuests("completed");
+
+    expect(calledUrl).toBe("http://localhost:3000/quests?status=completed");
+  });
+
+  it("logWorkout salje POST sa telom i validira odgovor", async () => {
+    let capturedMethod = "";
+    let capturedBody = "";
+    const fetchSpy: typeof fetch = (async (_url, init) => {
+      capturedMethod = init?.method ?? "";
+      capturedBody = String(init?.body ?? "");
+      return {
+        ok: true,
+        status: 201,
+        json: async () => ({
+          workoutId: "00000000-0000-0000-0000-000000000002",
+          personalRecordsCount: 0,
+          newPersonalRecords: [],
+          player: {
+            id: "00000000-0000-0000-0000-000000000001",
+            displayName: "Vukasin",
+            level: 1,
+            xp: 500,
+            xpToNextLevel: 100,
+            statPointsAvailable: 0,
+            rank: "E",
+            class: null,
+            coins: 20,
+            hp: 100,
+            strength: 1,
+            agility: 1,
+            endurance: 1,
+            vitality: 1,
+            intelligence: 1,
+            currentStreak: 1,
+            longestStreak: 1,
+            lastActivityDate: "2026-01-01",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        }),
+      } as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const client = createApiClient({ baseUrl: "http://localhost:3000", fetchImpl: fetchSpy });
+    const input = { sets: [{ exerciseId: "e1", reps: 8, weightKg: 60 }] };
+    const result = await client.logWorkout(input);
+
+    expect(capturedMethod).toBe("POST");
+    expect(JSON.parse(capturedBody)).toEqual(input);
+    expect(result.workoutId).toBe("00000000-0000-0000-0000-000000000002");
+  });
 });

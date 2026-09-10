@@ -2,12 +2,18 @@ import type { ExerciseResponse, LogWorkoutResponse, WorkoutResponse } from "@ris
 import { mapPlayerRowToResponse } from "../player/player.mapper";
 import type { ExerciseRow, LogWorkoutRpcResult, WorkoutRow, WorkoutSetRow } from "./workout.types";
 
-export function mapExerciseRowToResponse(row: ExerciseRow): ExerciseResponse {
+export function mapExerciseRowToResponse(
+  row: ExerciseRow,
+  alternativeExerciseIds: string[] = [],
+): ExerciseResponse {
   return {
     id: row.id,
     name: row.name,
     muscleGroups: row.muscle_groups,
     equipment: row.equipment,
+    difficulty: row.difficulty,
+    instructions: row.instructions,
+    alternativeExerciseIds,
   };
 }
 

@@ -3,3 +3,4 @@ export { type Result, ok, err } from "./kernel/result";
 export { assertNever } from "./kernel/assert-never";
 
 export * as gamification from "./gamification";
+export * as training from "./training";

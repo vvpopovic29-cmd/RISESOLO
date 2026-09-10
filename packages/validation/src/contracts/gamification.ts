@@ -107,13 +107,39 @@ export const questResponseSchema = z.object({
 });
 export type QuestResponse = z.infer<typeof questResponseSchema>;
 
+export const exerciseDifficultySchema = z.enum(["E", "D", "C", "B", "A", "S"]);
+export type ExerciseDifficulty = z.infer<typeof exerciseDifficultySchema>;
+
 export const exerciseResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   muscleGroups: z.array(z.string()),
   equipment: z.string().nullable(),
+  difficulty: exerciseDifficultySchema.nullable(),
+  instructions: z.string().nullable(),
+  alternativeExerciseIds: z.array(z.string().uuid()),
 });
 export type ExerciseResponse = z.infer<typeof exerciseResponseSchema>;
+
+export const exerciseProgressSessionSchema = z.object({
+  workoutId: z.string().uuid(),
+  performedAt: z.string(),
+  sets: z.array(
+    z.object({ setNumber: z.number().int(), reps: z.number().int(), weightKg: z.number() }),
+  ),
+  topEstimated1Rm: z.number(),
+});
+export type ExerciseProgressSession = z.infer<typeof exerciseProgressSessionSchema>;
+
+export const progressTrendSchema = z.enum(["up", "down", "flat", "insufficient_data"]);
+export type ProgressTrend = z.infer<typeof progressTrendSchema>;
+
+export const exerciseProgressResponseSchema = z.object({
+  exerciseId: z.string().uuid(),
+  sessions: z.array(exerciseProgressSessionSchema),
+  trend: progressTrendSchema,
+});
+export type ExerciseProgressResponse = z.infer<typeof exerciseProgressResponseSchema>;
 
 export const workoutSetInputSchema = z.object({
   exerciseId: z.string().uuid(),
