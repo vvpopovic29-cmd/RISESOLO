@@ -39,15 +39,22 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > današnjem fokusu iz rasporeda (npr. "Zavrsi danasnji Push trening" umesto
 > generičkog naslova) umesto da ta dva sistema budu potpuno nepovezana.
 >
-> **Faza 9 (trenutno stanje):** Rank Examination - `players.rank` više nije
-> statično polje. Kada igrač ispunjava Level uslov za sledeći rang
+> **Faza 9:** Rank Examination - `players.rank` više nije statično polje.
+> Kada igrač ispunjava Level uslov za sledeći rang
 > (`gamification.RANK_LEVEL_REQUIREMENT` u `packages/domain`), može da
 > zatraži Rank Examination quest (`POST /quests/rank-exam/generate`, tip
 > `boss`) - kada ga završi (3 treninga u 7 dana, isti auto-progres
 > mehanizam kao svaki drugi `workout`-povezan quest), rang mu se promoviše.
-> Ostale poslovne funkcije (pravi analiza/coach System AI, Class evolucija,
-> Dungeons/Bosses, community/guild) dolaze u narednim fazama - videti
-> "Poznata ograničenja" ispod.
+>
+> **Faza 10 (trenutno stanje):** zatvorena prava mobilna praznina - `PATCH
+> /players/me` (ime/Class) i `POST /players/me/stat-points/allocate`
+> (trošenje Stat Points) su postojali na backendu od Faze 2, ali ih do sada
+> nijedan mobilni ekran nije pozivao. Novi Profil ekran (`/player-profile`)
+> pokriva oba: bira ime i Class preko chip-ova, i dodeljuje Stat Points po
+> statu preko +1 dugmadi; Class se sada prikazuje i na System Status
+> kartici. Ostale poslovne funkcije (pravi analiza/coach System AI, Class
+> Evolution, Dungeons/Bosses, community/guild) dolaze u narednim fazama -
+> videti "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -220,7 +227,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 9)
+## Poznata ograničenja (Faza 10)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -258,9 +265,12 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   "boss" quest koji promoviše `players.rank` na zavrsavanje - nema još
   ograničenja "jedan pokušaj dnevno"/kazne za neuspeh (quest jednostavno
   istekne posle 7 dana kao i svaki drugi, pa se novi Exam može odmah
-  ponovo zatražiti preko `fn_expire_stale_quests` sweep-a). Class
-  Evolution, Dungeons/Bosses i community/guild sistemi nisu implementirani
-  - namerno kasnije faze.
+  ponovo zatražiti preko `fn_expire_stale_quests` sweep-a). Class ostaje
+  slobodan izbor bez ikakvih uslova (Faza 10 dodaje samo UI za postojeći
+  slobodan-izbor endpoint) - prava Class Evolution (uslovljena
+  statovima/rangom/dostignućima, sa mogućnošću "zaključavanja" izbora)
+  nije implementirana. Dungeons/Bosses i community/guild sistemi takođe
+  nisu implementirani - namerno kasnije faze.
 - Achievements/Titles (Faza 4) su implementirani kao fiksan seed-ovan katalog
   (`supabase/migrations/..._achievements_system.sql`, ~17 achievement-a) sa
   automatskim otključavanjem preko `fn_evaluate_achievements` - nema još

@@ -56,6 +56,16 @@ describe("PlayerStatusCard", () => {
     expect(screen.getByText(/\+2 Stat Points dostupno/)).toBeTruthy();
   });
 
+  it("prikazuje Class kada je postavljena", async () => {
+    mockedUseApiClient.mockReturnValue({
+      getPlayer: () => Promise.resolve({ ...basePlayer, class: "strength_hunter" }),
+    });
+
+    await render(<PlayerStatusCard />);
+
+    await waitFor(() => expect(screen.getByText("Strength Hunter")).toBeTruthy());
+  });
+
   it("prikazuje error stanje i dugme za ponovni pokusaj kada zahtev ne uspe", async () => {
     mockedUseApiClient.mockReturnValue({ getPlayer: () => Promise.reject(new Error("network")) });
 

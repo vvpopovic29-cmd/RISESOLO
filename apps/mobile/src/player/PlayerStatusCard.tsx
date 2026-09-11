@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import { classLabels } from "./class-labels";
 import { usePlayer } from "./use-player";
 
 export function PlayerStatusCard() {
@@ -44,6 +45,10 @@ export function PlayerStatusCard() {
         </Text>
         <Text className="font-semibold text-premium">Rank {player.rank}</Text>
       </View>
+
+      {player.class ? (
+        <Text className="text-xs text-neutral-600">{classLabels[player.class]}</Text>
+      ) : null}
 
       <View className="flex-row items-baseline justify-between">
         <Text className="text-neutral-600">Level {player.level}</Text>
