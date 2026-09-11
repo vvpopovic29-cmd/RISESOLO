@@ -28,14 +28,20 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > izložen na `GET /exercises/:id/progress` kao `stagnationStatus` i prikazan
 > na mobilnom Progressive Overload ekranu sa konkretnim predlogom akcije.
 >
-> **Faza 7 (trenutno stanje):** Training Plans - nedeljni split (Push/Pull/Legs,
-> Upper/Lower, Full Body) po igraču; 7-dnevni raspored (pon..ned) se generiše
-> na backendu preko `training.generateWeeklySchedule` (ravnomerna
-> raspodela trening dana, ne zbijeni na početak nedelje) i prikazuje na
-> mobilnom Training Plan ekranu. Ostale poslovne funkcije (pravi
-> analiza/coach System AI, formalna Rank Examination/Class evolucija,
-> Dungeons/Bosses, community/guild) dolaze u narednim fazama - videti
-> "Poznata ograničenja" ispod.
+> **Faza 7:** Training Plans - nedeljni split (Push/Pull/Legs, Upper/Lower,
+> Full Body) po igraču; 7-dnevni raspored (pon..ned) se generiše na backendu
+> preko `training.generateWeeklySchedule` (ravnomerna raspodela trening
+> dana, ne zbijeni na početak nedelje) i prikazuje na mobilnom Training Plan
+> ekranu.
+>
+> **Faza 8 (trenutno stanje):** Daily Quest je sada svestan Training Plana -
+> kada igrač ima postavljen plan, `POST /quests/daily/generate` prilagođava
+> naslov/opis današnjem fokusu iz rasporeda (npr. "Zavrsi danasnji Push
+> trening" umesto generičkog naslova) umesto da ta dva sistema budu potpuno
+> nepovezana. Ostale poslovne funkcije (pravi analiza/coach System AI,
+> formalna Rank Examination/Class evolucija, Dungeons/Bosses,
+> community/guild) dolaze u narednim fazama - videti "Poznata ograničenja"
+> ispod.
 
 ## Struktura
 
@@ -133,7 +139,7 @@ Ruta (sve zahtevaju autentifikaciju):
 | PATCH | `/players/me` | Ažurira `displayName`/`class` |
 | POST | `/players/me/stat-points/allocate` | Troši Stat Points na izabrani atribut |
 | GET | `/quests` | Lista questova (opciono `?status=`) |
-| POST | `/quests/daily/generate` | Vraća/kreira današnji Daily Quest (idempotentno) |
+| POST | `/quests/daily/generate` | Vraća/kreira današnji Daily Quest (idempotentno; naslov/opis prati Training Plan fokus za danas ako postoji) |
 | POST | `/quests/weekly/generate` | Vraća/kreira ovonedeljni Weekly Quest (idempotentno po ISO nedelji) |
 | POST | `/quests/side/generate` | Vraća/kreira današnji Side Quest - Nutrition fokusiran (idempotentno) |
 | POST | `/quests/:id/complete` | Završava quest čiji je progres dostigao cilj |
@@ -207,7 +213,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 7)
+## Poznata ograničenja (Faza 8)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -227,12 +233,13 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   listQuests/generate poziva - nema cron job). Main/Boss/Hidden/Penalty tipovi
   i pravi System AI generator questova dolaze u kasnijim fazama (videti
   `packages/domain/README.md`).
-- Training Plans (Faza 7) pokrivaju samo split izbor + generisan 7-dnevni
-  raspored (`GET`/`PUT /training-plan`) - nema još Recovery Day logike
+- Training Plans (Faza 7-8) pokrivaju split izbor + generisan 7-dnevni
+  raspored (`GET`/`PUT /training-plan`), i Daily Quest sada prati današnji
+  fokus iz plana u naslovu/opisu (Faza 8) - i dalje nema Recovery Day logike
   (npr. upozorenje ako se trenira na "rest" dan), Deload nedelje, ni
-  automatske zamene vežbi/povezivanja plana sa Daily Quest generacijom
-  (Daily Quest je i dalje uvek "završi bar jedan trening", bez obzira na
-  today's planirani fokus iz plana).
+  automatske zamene vežbi. `target_count`/`linked_action` Daily Quest-a se
+  ne menjaju na osnovu plana (uvek "završi bar jedan trening"), samo
+  tekst.
 - Nutrition XP je fiksan po logu (meal/water), bez "dnevni cilj ispunjen"
   bonusa (izbegnuta idempotencija-po-danu komplikacija za sada) i bez Food
   Scanner-a (kalorije/makroi se unose ručno).

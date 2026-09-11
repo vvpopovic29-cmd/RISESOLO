@@ -69,10 +69,15 @@ describe("QuestService", () => {
       expect(existingBuilder.insert).not.toHaveBeenCalled();
     });
 
-    it("kreira novi dnevni quest sa fiksnim nagradama kada ne postoji aktivan za danas", async () => {
+    it("kreira novi dnevni quest sa fiksnim nagradama i genericnim naslovom kada igrac nema Training Plan", async () => {
       const findBuilder = createChainableMock({ data: null, error: null });
+      const trainingPlanBuilder = createChainableMock({ data: null, error: null });
       const insertBuilder = createChainableMock({ data: baseQuestRow, error: null });
-      const from = jest.fn().mockReturnValueOnce(findBuilder).mockReturnValueOnce(insertBuilder);
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(findBuilder)
+        .mockReturnValueOnce(trainingPlanBuilder)
+        .mockReturnValueOnce(insertBuilder);
       const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
       const service = new QuestService(supabase);
 
@@ -80,7 +85,37 @@ describe("QuestService", () => {
 
       expect(result.id).toBe("q1");
       expect(insertBuilder.insert).toHaveBeenCalledWith(
-        expect.objectContaining({ player_id: "p1", type: "daily", linked_action: "workout" }),
+        expect.objectContaining({
+          player_id: "p1",
+          type: "daily",
+          linked_action: "workout",
+          title: "Zavrsi danasnji trening",
+        }),
+      );
+    });
+
+    it("prilagodjava naslov/opis fokusu iz Training Plan-a kada igrac ima aktivan plan", async () => {
+      const findBuilder = createChainableMock({ data: null, error: null });
+      const trainingPlanBuilder = createChainableMock({
+        data: { schedule: Array(7).fill("push") },
+        error: null,
+      });
+      const insertBuilder = createChainableMock({ data: baseQuestRow, error: null });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(findBuilder)
+        .mockReturnValueOnce(trainingPlanBuilder)
+        .mockReturnValueOnce(insertBuilder);
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      await service.generateDailyQuest("p1");
+
+      expect(insertBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Zavrsi danasnji Push trening",
+          description: expect.stringContaining("Push fokus danas"),
+        }),
       );
     });
   });
