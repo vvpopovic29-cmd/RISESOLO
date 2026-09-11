@@ -166,6 +166,81 @@ describe("WorkoutService", () => {
     });
   });
 
+  describe("getStagnationSummary", () => {
+    it("vraca prazan niz kada igrac nema treninge", async () => {
+      const workoutsBuilder = createChainableMock({ data: [], error: null });
+      const supabase = {
+        from: jest.fn(() => workoutsBuilder),
+        rpc: jest.fn(),
+      } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.getStagnationSummary("p1");
+
+      expect(result).toEqual({ stagnantExercises: [] });
+    });
+
+    it("prepoznaje vezbu koja stagnira preko poslednje 3 sesije i razresava naziv", async () => {
+      const workoutsBuilder = createChainableMock({
+        data: [
+          { id: "w1", performed_at: "2026-01-01T10:00:00.000Z" },
+          { id: "w2", performed_at: "2026-01-08T10:00:00.000Z" },
+          { id: "w3", performed_at: "2026-01-15T10:00:00.000Z" },
+        ],
+        error: null,
+      });
+      const setsBuilder = createChainableMock({
+        data: [
+          { id: "s1", workout_id: "w1", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+          { id: "s2", workout_id: "w2", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+          { id: "s3", workout_id: "w3", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+        ],
+        error: null,
+      });
+      const exercisesBuilder = createChainableMock({
+        data: [{ id: "e1", name: "Cucanj" }],
+        error: null,
+      });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(workoutsBuilder)
+        .mockReturnValueOnce(setsBuilder)
+        .mockReturnValueOnce(exercisesBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.getStagnationSummary("p1");
+
+      expect(result.stagnantExercises).toEqual([{ exerciseId: "e1", exerciseName: "Cucanj" }]);
+    });
+
+    it("izostavlja vezbu koja i dalje napreduje (ne stagnira)", async () => {
+      const workoutsBuilder = createChainableMock({
+        data: [
+          { id: "w1", performed_at: "2026-01-01T10:00:00.000Z" },
+          { id: "w2", performed_at: "2026-01-08T10:00:00.000Z" },
+          { id: "w3", performed_at: "2026-01-15T10:00:00.000Z" },
+        ],
+        error: null,
+      });
+      const setsBuilder = createChainableMock({
+        data: [
+          { id: "s1", workout_id: "w1", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+          { id: "s2", workout_id: "w2", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 65 },
+          { id: "s3", workout_id: "w3", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 70 },
+        ],
+        error: null,
+      });
+      const from = jest.fn().mockReturnValueOnce(workoutsBuilder).mockReturnValueOnce(setsBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.getStagnationSummary("p1");
+
+      expect(result.stagnantExercises).toEqual([]);
+    });
+  });
+
   describe("logWorkout", () => {
     it("prosledjuje sets u snake_case obliku RPC-u i mapira rezultat", async () => {
       const rpcResult: LogWorkoutRpcResult = {

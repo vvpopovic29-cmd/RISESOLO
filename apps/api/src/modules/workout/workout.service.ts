@@ -14,6 +14,7 @@ import type {
   ExerciseResponse,
   LogWorkoutInput,
   LogWorkoutResponse,
+  StagnationSummaryResponse,
   WorkoutResponse,
 } from "@risesolo/validation";
 import { SUPABASE_CLIENT } from "../../supabase/supabase.module";
@@ -142,6 +143,95 @@ export class WorkoutService {
     const stagnationStatus = training.detectStagnation(sessionSets);
 
     return { exerciseId, sessions, trend, stagnationStatus };
+  }
+
+  /**
+   * Faza 15: proaktivan System AI signal - agregira `training.detectStagnation`
+   * preko SVIH vezbi koje je igrac ikad trenirao (ne samo jedne, kao
+   * `getExerciseProgress`), da bi se moglo prikazati upozorenje na System
+   * Status (home) ekranu umesto da korisnik mora sam da otvori svaku vezbu.
+   */
+  async getStagnationSummary(playerId: string): Promise<StagnationSummaryResponse> {
+    const { data: workouts, error: workoutsError } = await this.supabase
+      .from("workouts")
+      .select("id, performed_at")
+      .eq("player_id", playerId)
+      .order("performed_at", { ascending: true })
+      .returns<Array<Pick<WorkoutRow, "id" | "performed_at">>>();
+
+    if (workoutsError) {
+      throw new InternalServerErrorException(
+        `Ucitavanje treninga nije uspelo: ${workoutsError.message}`,
+      );
+    }
+
+    const workoutIds = (workouts ?? []).map((workout) => workout.id);
+    if (workoutIds.length === 0) {
+      return { stagnantExercises: [] };
+    }
+
+    const { data: sets, error: setsError } = await this.supabase
+      .from("workout_sets")
+      .select("*")
+      .in("workout_id", workoutIds)
+      .returns<WorkoutSetRow[]>();
+
+    if (setsError) {
+      throw new InternalServerErrorException(`Ucitavanje serija nije uspelo: ${setsError.message}`);
+    }
+
+    const performedAtByWorkoutId = new Map(
+      (workouts ?? []).map((workout) => [workout.id, workout.performed_at]),
+    );
+
+    const setsByExerciseThenWorkout = new Map<string, Map<string, WorkoutSetRow[]>>();
+    for (const set of sets ?? []) {
+      const byWorkout = setsByExerciseThenWorkout.get(set.exercise_id) ?? new Map();
+      const workoutSets = byWorkout.get(set.workout_id) ?? [];
+      workoutSets.push(set);
+      byWorkout.set(set.workout_id, workoutSets);
+      setsByExerciseThenWorkout.set(set.exercise_id, byWorkout);
+    }
+
+    const stagnatingExerciseIds: string[] = [];
+    for (const [exerciseId, byWorkout] of setsByExerciseThenWorkout) {
+      const sessions = [...byWorkout.entries()]
+        .sort(([workoutIdA], [workoutIdB]) => {
+          const a = performedAtByWorkoutId.get(workoutIdA) ?? "";
+          const b = performedAtByWorkoutId.get(workoutIdB) ?? "";
+          return a.localeCompare(b);
+        })
+        .map(([, workoutSets]) =>
+          workoutSets.map((set) => ({ weightKg: set.weight_kg, reps: set.reps })),
+        );
+
+      if (training.detectStagnation(sessions) === "stagnating") {
+        stagnatingExerciseIds.push(exerciseId);
+      }
+    }
+
+    if (stagnatingExerciseIds.length === 0) {
+      return { stagnantExercises: [] };
+    }
+
+    const { data: exercises, error: exercisesError } = await this.supabase
+      .from("exercises")
+      .select("id, name")
+      .in("id", stagnatingExerciseIds)
+      .returns<Array<Pick<ExerciseRow, "id" | "name">>>();
+
+    if (exercisesError) {
+      throw new InternalServerErrorException(
+        `Ucitavanje vezbi nije uspelo: ${exercisesError.message}`,
+      );
+    }
+
+    return {
+      stagnantExercises: (exercises ?? []).map((exercise) => ({
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+      })),
+    };
   }
 
   /**

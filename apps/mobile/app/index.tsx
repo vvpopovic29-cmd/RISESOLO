@@ -2,6 +2,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { Link, Redirect } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useAuth } from "../src/auth/AuthProvider";
+import { StagnationAlert } from "../src/exercise/StagnationAlert";
 import { DailyQuestCard } from "../src/quest/DailyQuestCard";
 import { QuestCard } from "../src/quest/QuestCard";
 import { PlayerStatusCard } from "../src/player/PlayerStatusCard";
@@ -33,6 +34,7 @@ export default function HomeScreen() {
         </View>
 
         <PlayerStatusCard />
+        <StagnationAlert />
         <DailyQuestCard />
         <QuestCard
           testID="weekly-quest"

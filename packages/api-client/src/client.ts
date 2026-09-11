@@ -4,6 +4,7 @@ import {
   questResponseSchema,
   exerciseResponseSchema,
   exerciseProgressResponseSchema,
+  stagnationSummaryResponseSchema,
   logWorkoutResponseSchema,
   workoutResponseSchema,
   nutritionTargetsSchema,
@@ -21,6 +22,7 @@ import {
   type QuestStatus,
   type ExerciseResponse,
   type ExerciseProgressResponse,
+  type StagnationSummaryResponse,
   type LogWorkoutInput,
   type LogWorkoutResponse,
   type WorkoutResponse,
@@ -173,6 +175,9 @@ export function createApiClient(config: ApiClientConfig) {
         `/exercises/${encodeURIComponent(exerciseId)}/progress`,
         exerciseProgressResponseSchema,
       );
+    },
+    async getStagnationSummary(): Promise<StagnationSummaryResponse> {
+      return request("/exercises/stagnation-summary", stagnationSummaryResponseSchema);
     },
     async logWorkout(input: LogWorkoutInput): Promise<LogWorkoutResponse> {
       return request("/workouts", logWorkoutResponseSchema, { method: "POST", body: input });

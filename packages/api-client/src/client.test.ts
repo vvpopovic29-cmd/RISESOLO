@@ -314,4 +314,20 @@ describe("createApiClient", () => {
     expect(capturedBody).toBeUndefined();
     expect(result).toEqual([]);
   });
+
+  it("getStagnationSummary() vraca parsiranu listu vezbi koje stagniraju", async () => {
+    const client = createApiClient({
+      baseUrl: "http://localhost:3000",
+      fetchImpl: mockFetch({
+        stagnantExercises: [
+          { exerciseId: "00000000-0000-0000-0000-000000000010", exerciseName: "Cucanj" },
+        ],
+      }),
+    });
+
+    const result = await client.getStagnationSummary();
+
+    expect(result.stagnantExercises).toHaveLength(1);
+    expect(result.stagnantExercises[0]?.exerciseName).toBe("Cucanj");
+  });
 });

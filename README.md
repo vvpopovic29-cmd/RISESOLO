@@ -82,16 +82,25 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > je čisto informativno upozorenje). Mobile ekran za beleženje treninga
 > prikazuje poruku o odmoru kada je to polje true.
 >
-> **Faza 14 (trenutno stanje):** Rank Examination cooldown - do sada je
+> **Faza 14:** Rank Examination cooldown - do sada je
 > neuspeo (istekao) Rank Exam mogao odmah da se ponovi bez ikakve posledice.
 > `POST /quests/rank-exam/generate` sada proverava poslednji istekli `boss`
 > quest za isti ciljni rang i, ako je istekao pre manje od 24h
 > (`gamification.RANK_EXAM_COOLDOWN_HOURS` u `packages/domain`), vraća 400
 > sa preostalim brojem sati do sledećeg pokušaja. Uspešno položen ispit
 > (status `completed`) ne broji se u cooldown - samo neuspeh (istekao rok).
-> Ostale poslovne funkcije (pravi analiza/coach System AI, Class Evolution,
-> Deload nedelje, automatske zamene vežbi, Dungeons/Bosses, community/guild)
-> dolaze u narednim fazama - videti "Poznata ograničenja" ispod.
+>
+> **Faza 15 (trenutno stanje):** Proaktivan System AI signal - do sada je
+> `stagnationStatus` postojao samo po-vezbi na Progressive Overload ekranu,
+> korisnik je morao sam da otvori svaku vezbu da vidi da li stagnira. Novi
+> `GET /exercises/stagnation-summary` agregira `training.detectStagnation`
+> preko SVIH vezbi koje je igrac ikad trenirao i vraća listu onih koje
+> stagniraju (poslednje 3 sesije). System Status (home) ekran sada prikazuje
+> upozorenje kada bar jedna vezba stagnira, sa linkom ka Progressive
+> Overload ekranu. Ostale poslovne funkcije (pravi analiza/coach System AI,
+> Class Evolution, Deload nedelje, automatske zamene vežbi, Dungeons/Bosses,
+> community/guild) dolaze u narednim fazama - videti "Poznata ograničenja"
+> ispod.
 
 ## Struktura
 
@@ -197,6 +206,7 @@ Ruta (sve zahtevaju autentifikaciju):
 | POST | `/quests/:id/complete` | Završava quest čiji je progres dostigao cilj |
 | GET | `/exercises` | Katalog vežbi (difficulty, uputstva, alternative vežbe) |
 | GET | `/exercises/:id/progress` | Progressive Overload signal (Epley 1RM trend poslednje 2 sesije + System AI stagnationStatus preko poslednje 3) |
+| GET | `/exercises/stagnation-summary` | Lista svih vezbi koje trenutno stagniraju (preko svih vezbi koje je igrac ikad trenirao) |
 | POST | `/workouts` | Beleži trening (serije) - PR detekcija + XP + quest progres + streak |
 | GET | `/workouts` | Istorija treninga |
 | GET | `/workouts/:id` | Detalji treninga (sa serijama) |
@@ -265,7 +275,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 14)
+## Poznata ograničenja (Faza 15)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -300,9 +310,11 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   nema Food Scanner-a (kalorije/makroi se unose ručno).
 - System AI je za sada samo jedan pravilima-vođen signal (stagnation
   detection preko poslednje 3 sesije, `training.detectStagnation`) - nema
-  prave analize/coach-a, adaptivnog prilagođavanja trening plana, ni
-  notifikacija kad se stagnacija detektuje (korisnik mora sam da otvori
-  Progressive Overload ekran). Rank Examination (Faza 9) je level-gated
+  prave analize/coach-a, ni adaptivnog prilagođavanja trening plana. Od
+  Faze 15 se signal prikazuje proaktivno na System Status ekranu
+  (`GET /exercises/stagnation-summary`), ali samo in-app (pri sledećem
+  otvaranju aplikacije) - nema push notifikacija van aplikacije. Rank
+  Examination (Faza 9) je level-gated
   "boss" quest koji promoviše `players.rank` na zavrsavanje - istekne posle
   7 dana kao i svaki drugi quest ako se ne završi na vreme, i od Faze 14
   neuspeh nosi 24h cooldown pre sledećeg pokušaja za isti rang

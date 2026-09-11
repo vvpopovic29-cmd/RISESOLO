@@ -157,6 +157,24 @@ export const exerciseProgressResponseSchema = z.object({
 });
 export type ExerciseProgressResponse = z.infer<typeof exerciseProgressResponseSchema>;
 
+/**
+ * Faza 15: proaktivan System AI signal - do sada je `stagnationStatus`
+ * postojao samo po-vezbi na Progressive Overload ekranu, korisnik je morao
+ * sam da otvori svaku vezbu da vidi da li stagnira. Ovaj summary agregira
+ * preko svih vezbi koje je igrac ikad trenirao, da bi se mogao prikazati
+ * kao upozorenje na System Status (home) ekranu.
+ */
+export const stagnantExerciseSchema = z.object({
+  exerciseId: z.string().uuid(),
+  exerciseName: z.string(),
+});
+export type StagnantExercise = z.infer<typeof stagnantExerciseSchema>;
+
+export const stagnationSummaryResponseSchema = z.object({
+  stagnantExercises: z.array(stagnantExerciseSchema),
+});
+export type StagnationSummaryResponse = z.infer<typeof stagnationSummaryResponseSchema>;
+
 export const workoutSetInputSchema = z.object({
   exerciseId: z.string().uuid(),
   setNumber: z.number().int().min(1).max(20).optional(),
