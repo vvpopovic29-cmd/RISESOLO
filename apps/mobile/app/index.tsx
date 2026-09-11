@@ -56,6 +56,17 @@ export default function HomeScreen() {
           generateButtonText="Generisi Side Quest"
           errorPrefix="Ne mogu da ucitam Side Quest"
         />
+        <QuestCard
+          testID="rank-exam-quest"
+          type="boss"
+          linkedAction="workout"
+          generate={(apiClient) => apiClient.generateRankExamQuest()}
+          label="Rank Examination"
+          loadingText="Proveravam Rank Examination..."
+          emptyText="Nemas aktivan Rank Examination."
+          generateButtonText="Zapocni Rank Examination"
+          errorPrefix="Ne mogu da zapocnem Rank Examination"
+        />
 
         <View className="w-full max-w-sm flex-row gap-3">
           <Link href="/workout/log" asChild>

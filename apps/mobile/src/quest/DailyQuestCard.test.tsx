@@ -23,6 +23,7 @@ const baseQuest: QuestResponse = {
   expiresAt: null,
   completedAt: null,
   createdAt: new Date().toISOString(),
+  targetRank: null,
 };
 
 describe("DailyQuestCard", () => {

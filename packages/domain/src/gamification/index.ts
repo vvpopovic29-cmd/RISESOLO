@@ -12,3 +12,10 @@ export {
   type QuestStatus,
   type QuestProgressState,
 } from "./quest";
+export {
+  RANK_ORDER,
+  RANK_LEVEL_REQUIREMENT,
+  getNextRank,
+  meetsRankExamLevelRequirement,
+  type PlayerRank,
+} from "./rank";

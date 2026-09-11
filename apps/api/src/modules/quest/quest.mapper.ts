@@ -16,5 +16,6 @@ export function mapQuestRowToResponse(row: QuestRow): QuestResponse {
     expiresAt: row.expires_at,
     completedAt: row.completed_at,
     createdAt: row.created_at,
+    targetRank: row.target_rank,
   };
 }

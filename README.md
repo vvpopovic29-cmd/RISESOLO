@@ -34,14 +34,20 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > dana, ne zbijeni na početak nedelje) i prikazuje na mobilnom Training Plan
 > ekranu.
 >
-> **Faza 8 (trenutno stanje):** Daily Quest je sada svestan Training Plana -
-> kada igrač ima postavljen plan, `POST /quests/daily/generate` prilagođava
-> naslov/opis današnjem fokusu iz rasporeda (npr. "Zavrsi danasnji Push
-> trening" umesto generičkog naslova) umesto da ta dva sistema budu potpuno
-> nepovezana. Ostale poslovne funkcije (pravi analiza/coach System AI,
-> formalna Rank Examination/Class evolucija, Dungeons/Bosses,
-> community/guild) dolaze u narednim fazama - videti "Poznata ograničenja"
-> ispod.
+> **Faza 8:** Daily Quest je sada svestan Training Plana - kada igrač ima
+> postavljen plan, `POST /quests/daily/generate` prilagođava naslov/opis
+> današnjem fokusu iz rasporeda (npr. "Zavrsi danasnji Push trening" umesto
+> generičkog naslova) umesto da ta dva sistema budu potpuno nepovezana.
+>
+> **Faza 9 (trenutno stanje):** Rank Examination - `players.rank` više nije
+> statično polje. Kada igrač ispunjava Level uslov za sledeći rang
+> (`gamification.RANK_LEVEL_REQUIREMENT` u `packages/domain`), može da
+> zatraži Rank Examination quest (`POST /quests/rank-exam/generate`, tip
+> `boss`) - kada ga završi (3 treninga u 7 dana, isti auto-progres
+> mehanizam kao svaki drugi `workout`-povezan quest), rang mu se promoviše.
+> Ostale poslovne funkcije (pravi analiza/coach System AI, Class evolucija,
+> Dungeons/Bosses, community/guild) dolaze u narednim fazama - videti
+> "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -142,6 +148,7 @@ Ruta (sve zahtevaju autentifikaciju):
 | POST | `/quests/daily/generate` | Vraća/kreira današnji Daily Quest (idempotentno; naslov/opis prati Training Plan fokus za danas ako postoji) |
 | POST | `/quests/weekly/generate` | Vraća/kreira ovonedeljni Weekly Quest (idempotentno po ISO nedelji) |
 | POST | `/quests/side/generate` | Vraća/kreira današnji Side Quest - Nutrition fokusiran (idempotentno) |
+| POST | `/quests/rank-exam/generate` | Vraća/kreira Rank Examination quest (400 ako je Level prenizak ili je igrač već na SSS) |
 | POST | `/quests/:id/complete` | Završava quest čiji je progres dostigao cilj |
 | GET | `/exercises` | Katalog vežbi (difficulty, uputstva, alternative vežbe) |
 | GET | `/exercises/:id/progress` | Progressive Overload signal (Epley 1RM trend poslednje 2 sesije + System AI stagnationStatus preko poslednje 3) |
@@ -213,7 +220,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 8)
+## Poznata ograničenja (Faza 9)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -247,10 +254,13 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   detection preko poslednje 3 sesije, `training.detectStagnation`) - nema
   prave analize/coach-a, adaptivnog prilagođavanja trening plana, ni
   notifikacija kad se stagnacija detektuje (korisnik mora sam da otvori
-  Progressive Overload ekran). Formalna Rank Examination (trenutno je
-  `rank` polje na Player-u statično - napreduje se samo kroz Level/XP, nema
-  poseban "ispit"), Class Evolution, Dungeons/Bosses i community/guild
-  sistemi nisu implementirani - namerno kasnije faze.
+  Progressive Overload ekran). Rank Examination (Faza 9) je level-gated
+  "boss" quest koji promoviše `players.rank` na zavrsavanje - nema još
+  ograničenja "jedan pokušaj dnevno"/kazne za neuspeh (quest jednostavno
+  istekne posle 7 dana kao i svaki drugi, pa se novi Exam može odmah
+  ponovo zatražiti preko `fn_expire_stale_quests` sweep-a). Class
+  Evolution, Dungeons/Bosses i community/guild sistemi nisu implementirani
+  - namerno kasnije faze.
 - Achievements/Titles (Faza 4) su implementirani kao fiksan seed-ovan katalog
   (`supabase/migrations/..._achievements_system.sql`, ~17 achievement-a) sa
   automatskim otključavanjem preko `fn_evaluate_achievements` - nema još

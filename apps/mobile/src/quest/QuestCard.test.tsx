@@ -23,6 +23,7 @@ const weeklyQuest: QuestResponse = {
   expiresAt: null,
   completedAt: null,
   createdAt: new Date().toISOString(),
+  targetRank: null,
 };
 
 const baseProps = {
@@ -80,6 +81,27 @@ describe("QuestCard", () => {
 
     await waitFor(() => expect(generateWeeklyQuest).toHaveBeenCalled());
     await waitFor(() => expect(screen.getByText("Zavrsi 5 treninga ove nedelje")).toBeTruthy());
+  });
+
+  it("prikazuje ciljni rank kada je quest Rank Examination", async () => {
+    const rankExamQuest: QuestResponse = {
+      ...weeklyQuest,
+      type: "boss",
+      title: "Rank Examination: D",
+      targetRank: "D",
+    };
+    mockedUseApiClient.mockReturnValue({ listQuests: () => Promise.resolve([rankExamQuest]) });
+
+    await render(
+      <QuestCard
+        {...baseProps}
+        type="boss"
+        generate={(apiClient) => apiClient.generateRankExamQuest()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText("Rank Examination: D")).toBeTruthy());
+    expect(screen.getByText("Nagrada: Rank D")).toBeTruthy();
   });
 
   it("prikazuje error stanje kada zahtev ne uspe", async () => {

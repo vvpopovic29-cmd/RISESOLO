@@ -19,6 +19,7 @@ const baseQuestRow: QuestRow = {
   expires_at: null,
   completed_at: null,
   created_at: "2026-01-01T00:00:00.000Z",
+  target_rank: null,
 };
 
 function noopSweepRpc(): jest.Mock {
@@ -182,6 +183,84 @@ describe("QuestService", () => {
           type: "side",
           linked_action: "nutrition",
           target_count: 3,
+        }),
+      );
+    });
+  });
+
+  describe("generateRankExamQuest", () => {
+    it("baca BadRequestException kada je igrac vec na najvisem rangu (SSS)", async () => {
+      const playerBuilder = createChainableMock({
+        data: { rank: "SSS", level: 40 },
+        error: null,
+      });
+      const supabase = {
+        from: jest.fn(() => playerBuilder),
+        rpc: noopSweepRpc(),
+      } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      await expect(service.generateRankExamQuest("p1")).rejects.toThrow(BadRequestException);
+    });
+
+    it("baca BadRequestException kada Level ne dostize prag za sledeci rang", async () => {
+      const playerBuilder = createChainableMock({ data: { rank: "E", level: 2 }, error: null });
+      const supabase = {
+        from: jest.fn(() => playerBuilder),
+        rpc: noopSweepRpc(),
+      } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      await expect(service.generateRankExamQuest("p1")).rejects.toThrow(BadRequestException);
+    });
+
+    it("vraca postojeci aktivan Rank Exam quest umesto da napravi duplikat", async () => {
+      const playerBuilder = createChainableMock({ data: { rank: "E", level: 5 }, error: null });
+      const bossQuestRow: QuestRow = {
+        ...baseQuestRow,
+        type: "boss",
+        target_rank: "D",
+      };
+      const existingBuilder = createChainableMock({ data: bossQuestRow, error: null });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(playerBuilder)
+        .mockReturnValueOnce(existingBuilder);
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      const result = await service.generateRankExamQuest("p1");
+
+      expect(result.targetRank).toBe("D");
+      expect(existingBuilder.insert).not.toHaveBeenCalled();
+    });
+
+    it("kreira novi Rank Exam quest sa target_rank kada igrac ispunjava uslove i nema aktivan ispit", async () => {
+      const playerBuilder = createChainableMock({ data: { rank: "E", level: 5 }, error: null });
+      const findBuilder = createChainableMock({ data: null, error: null });
+      const bossQuestRow: QuestRow = {
+        ...baseQuestRow,
+        type: "boss",
+        target_rank: "D",
+      };
+      const insertBuilder = createChainableMock({ data: bossQuestRow, error: null });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(playerBuilder)
+        .mockReturnValueOnce(findBuilder)
+        .mockReturnValueOnce(insertBuilder);
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      const result = await service.generateRankExamQuest("p1");
+
+      expect(result.targetRank).toBe("D");
+      expect(insertBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          player_id: "p1",
+          type: "boss",
+          linked_action: "workout",
+          target_rank: "D",
         }),
       );
     });

@@ -1,4 +1,4 @@
-import type { QuestLinkedAction, QuestStatus, QuestType } from "@risesolo/validation";
+import type { PlayerRank, QuestLinkedAction, QuestStatus, QuestType } from "@risesolo/validation";
 
 /**
  * Oblik `public.quests` reda kako ga vraca Supabase (snake_case kolone).
@@ -19,4 +19,5 @@ export interface QuestRow {
   expires_at: string | null;
   completed_at: string | null;
   created_at: string;
+  target_rank: PlayerRank | null;
 }

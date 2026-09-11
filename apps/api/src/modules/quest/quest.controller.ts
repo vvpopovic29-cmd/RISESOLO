@@ -37,6 +37,11 @@ export class QuestController {
     return this.questService.generateSideQuest(playerId);
   }
 
+  @Post("rank-exam/generate")
+  generateRankExam(@CurrentPlayerId() playerId: string): Promise<QuestResponse> {
+    return this.questService.generateRankExamQuest(playerId);
+  }
+
   @Post(":id/complete")
   complete(@CurrentPlayerId() playerId: string, @Param("id") id: string): Promise<QuestResponse> {
     return this.questService.completeQuest(playerId, id);

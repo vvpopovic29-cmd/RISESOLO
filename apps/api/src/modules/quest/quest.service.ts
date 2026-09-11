@@ -6,7 +6,8 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { DayFocus, QuestResponse, QuestStatus } from "@risesolo/validation";
+import { gamification } from "@risesolo/domain";
+import type { DayFocus, PlayerRank, QuestResponse, QuestStatus } from "@risesolo/validation";
 import { SUPABASE_CLIENT } from "../../supabase/supabase.module";
 import { mapQuestRowToResponse } from "./quest.mapper";
 import type { QuestRow } from "./quest.types";
@@ -19,6 +20,10 @@ const WEEKLY_WORKOUT_QUEST_COIN_REWARD = 150;
 const SIDE_NUTRITION_QUEST_TARGET = 3;
 const SIDE_NUTRITION_QUEST_XP_REWARD = 200;
 const SIDE_NUTRITION_QUEST_COIN_REWARD = 15;
+const RANK_EXAM_QUEST_TARGET = 3;
+const RANK_EXAM_QUEST_XP_REWARD = 1000;
+const RANK_EXAM_QUEST_COIN_REWARD = 100;
+const RANK_EXAM_QUEST_DAYS = 7;
 
 /** Labele za fokus dana (Training Plan) - koriste se samo u tekstu Daily Quest-a, ne uticu na logiku. */
 const FOCUS_TITLES: Partial<Record<DayFocus, string>> = {
@@ -208,6 +213,80 @@ export class QuestService {
     return mapQuestRowToResponse(created);
   }
 
+  /**
+   * Vraca aktivan Rank Examination quest (kreira ga ako jos ne postoji).
+   * Za razliku od Daily/Weekly/Side questova, Rank Exam se ne generise
+   * automatski/slobodno - odbija se ako je igrac vec na najvisem rangu
+   * (SSS) ili ako Level ne dostize prag za sledeci rang
+   * (`gamification.RANK_LEVEL_REQUIREMENT`). Zavrsavanje questa (isti
+   * `linked_action: 'workout'` auto-progres mehanizam) promovise
+   * `players.rank` unutar `fn_complete_daily_quest`, jer quest nosi
+   * `target_rank`.
+   */
+  async generateRankExamQuest(playerId: string): Promise<QuestResponse> {
+    await this.expireStaleQuests(playerId);
+
+    const { data: player, error: playerError } = await this.supabase
+      .from("players")
+      .select("rank, level")
+      .eq("id", playerId)
+      .maybeSingle<{ rank: PlayerRank; level: number }>();
+
+    if (playerError) {
+      throw new InternalServerErrorException(
+        `Ucitavanje igraca nije uspelo: ${playerError.message}`,
+      );
+    }
+    if (!player) {
+      throw new NotFoundException("Player ne postoji");
+    }
+
+    const nextRank = gamification.getNextRank(player.rank);
+    if (!nextRank) {
+      throw new BadRequestException("Vec si na najvisem rangu (SSS)");
+    }
+    if (!gamification.meetsRankExamLevelRequirement(player.level, nextRank)) {
+      const requiredLevel = gamification.RANK_LEVEL_REQUIREMENT[nextRank];
+      throw new BadRequestException(
+        `Potreban je Level ${requiredLevel} za Rank Examination (${nextRank}) - trenutni Level je ${player.level}`,
+      );
+    }
+
+    const { data: existing, error: existingError } = await this.supabase
+      .from("quests")
+      .select("*")
+      .eq("player_id", playerId)
+      .eq("type", "boss")
+      .eq("status", "active")
+      .maybeSingle<QuestRow>();
+
+    if (existingError) {
+      throw new InternalServerErrorException(
+        `Provera postojeceg Rank Exam questa nije uspela: ${existingError.message}`,
+      );
+    }
+    if (existing) {
+      return mapQuestRowToResponse(existing);
+    }
+
+    const expiresAt = new Date(Date.now() + RANK_EXAM_QUEST_DAYS * 24 * 60 * 60 * 1000);
+
+    const created = await this.insertQuest({
+      player_id: playerId,
+      type: "boss",
+      title: `Rank Examination: ${nextRank}`,
+      description: `Zavrsi ${RANK_EXAM_QUEST_TARGET} treninga u naredna ${RANK_EXAM_QUEST_DAYS} dana da polozis ispit i napredujes u Rank ${nextRank}.`,
+      linked_action: "workout",
+      target_count: RANK_EXAM_QUEST_TARGET,
+      xp_reward: RANK_EXAM_QUEST_XP_REWARD,
+      coin_reward: RANK_EXAM_QUEST_COIN_REWARD,
+      expires_at: expiresAt.toISOString(),
+      target_rank: nextRank,
+    });
+
+    return mapQuestRowToResponse(created);
+  }
+
   async completeQuest(playerId: string, questId: string): Promise<QuestResponse> {
     const { data, error } = await this.supabase.rpc("fn_complete_daily_quest", {
       p_player_id: playerId,
@@ -277,6 +356,7 @@ export class QuestService {
     xp_reward: number;
     coin_reward: number;
     expires_at: string;
+    target_rank?: PlayerRank;
   }): Promise<QuestRow> {
     const { data, error } = await this.supabase
       .from("quests")

@@ -218,6 +218,7 @@ describe("createApiClient", () => {
           expiresAt: null,
           completedAt: null,
           createdAt: new Date().toISOString(),
+          targetRank: null,
         }),
       } as unknown as Response;
     }) as unknown as typeof fetch;

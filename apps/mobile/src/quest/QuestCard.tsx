@@ -91,6 +91,9 @@ export function QuestCard({
         {quest.title}
       </Text>
       {quest.description ? <Text className="text-neutral-600">{quest.description}</Text> : null}
+      {quest.targetRank ? (
+        <Text className="text-xs text-premium">Nagrada: Rank {quest.targetRank}</Text>
+      ) : null}
       <View className="flex-row items-center justify-between">
         <Text className="text-neutral-600">
           Progres: {quest.progressCount} / {quest.targetCount}

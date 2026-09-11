@@ -104,6 +104,8 @@ export const questResponseSchema = z.object({
   expiresAt: z.string().nullable(),
   completedAt: z.string().nullable(),
   createdAt: z.string(),
+  /** Postavljeno samo za Rank Examination questove (type: "boss") - rank koji zavrsavanje ovog questa dodeljuje. */
+  targetRank: playerRankSchema.nullable(),
 });
 export type QuestResponse = z.infer<typeof questResponseSchema>;
 

@@ -155,6 +155,9 @@ export function createApiClient(config: ApiClientConfig) {
     async generateSideQuest(): Promise<QuestResponse> {
       return request("/quests/side/generate", questResponseSchema, { method: "POST" });
     },
+    async generateRankExamQuest(): Promise<QuestResponse> {
+      return request("/quests/rank-exam/generate", questResponseSchema, { method: "POST" });
+    },
     async completeQuest(questId: string): Promise<QuestResponse> {
       return request(`/quests/${encodeURIComponent(questId)}/complete`, questResponseSchema, {
         method: "POST",
