@@ -7,3 +7,4 @@ export {
   type ProgressTrend,
   type StagnationStatus,
 } from "./progressive-overload";
+export { generateWeeklySchedule, type SplitType, type DayFocus } from "./training-plan";

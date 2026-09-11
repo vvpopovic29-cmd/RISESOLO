@@ -230,6 +230,49 @@ describe("createApiClient", () => {
     expect(result.type).toBe("weekly");
   });
 
+  it("updateTrainingPlan() salje PUT sa telom i validira odgovor", async () => {
+    let capturedMethod = "";
+    let capturedBody = "";
+    const fetchSpy: typeof fetch = (async (_url, init) => {
+      capturedMethod = init?.method ?? "";
+      capturedBody = String(init?.body ?? "");
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          splitType: "push_pull_legs",
+          daysPerWeek: 3,
+          schedule: ["rest", "rest", "push", "rest", "pull", "rest", "legs"],
+          updatedAt: new Date().toISOString(),
+        }),
+      } as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const client = createApiClient({ baseUrl: "http://localhost:3000", fetchImpl: fetchSpy });
+    const input = { splitType: "push_pull_legs" as const, daysPerWeek: 3 };
+    const result = await client.updateTrainingPlan(input);
+
+    expect(capturedMethod).toBe("PUT");
+    expect(JSON.parse(capturedBody)).toEqual(input);
+    expect(result.splitType).toBe("push_pull_legs");
+    expect(result.schedule).toHaveLength(7);
+  });
+
+  it("getTrainingPlan() vraca sva null polja kada igrac jos nema plan", async () => {
+    const client = createApiClient({
+      baseUrl: "http://localhost:3000",
+      fetchImpl: mockFetch({
+        splitType: null,
+        daysPerWeek: null,
+        schedule: null,
+        updatedAt: null,
+      }),
+    });
+
+    const result = await client.getTrainingPlan();
+    expect(result.splitType).toBeNull();
+  });
+
   it("listAchievements() vraca parsiranu listu", async () => {
     const achievement = {
       id: "00000000-0000-0000-0000-000000000003",

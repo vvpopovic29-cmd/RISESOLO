@@ -95,6 +95,17 @@ export default function HomeScreen() {
           </Link>
         </View>
 
+        <View className="w-full max-w-sm">
+          <Link href="/training-plan" asChild>
+            <Pressable
+              testID="nav-training-plan"
+              className="items-center rounded-md bg-accent px-4 py-3"
+            >
+              <Text className="font-semibold text-neutral-50">Training Plan</Text>
+            </Pressable>
+          </Link>
+        </View>
+
         <View className="flex-row gap-3">
           <Pressable
             onPress={toggleColorScheme}

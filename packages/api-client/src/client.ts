@@ -11,6 +11,7 @@ import {
   waterLogResponseSchema,
   nutritionDailySummarySchema,
   achievementResponseSchema,
+  trainingPlanResponseSchema,
   z,
   type HealthResponse,
   type PlayerResponse,
@@ -31,6 +32,8 @@ import {
   type WaterLogResponse,
   type NutritionDailySummary,
   type AchievementResponse,
+  type TrainingPlanResponse,
+  type UpdateTrainingPlanInput,
 } from "@risesolo/validation";
 
 export interface ApiClientConfig {
@@ -55,7 +58,7 @@ export class ApiError extends Error {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PATCH";
+  method?: "GET" | "POST" | "PATCH" | "PUT";
   body?: unknown;
   query?: Record<string, string | undefined>;
   /** Ako je true, zahtev nosi Authorization header (podrazumevano true - skoro sve rute su zasticene). */
@@ -206,6 +209,14 @@ export function createApiClient(config: ApiClientConfig) {
       return request("/achievements/evaluate", z.array(achievementResponseSchema), {
         method: "POST",
       });
+    },
+
+    // --- Training Plan ------------------------------------------------------
+    async getTrainingPlan(): Promise<TrainingPlanResponse> {
+      return request("/training-plan", trainingPlanResponseSchema);
+    },
+    async updateTrainingPlan(input: UpdateTrainingPlanInput): Promise<TrainingPlanResponse> {
+      return request("/training-plan", trainingPlanResponseSchema, { method: "PUT", body: input });
     },
   };
 }

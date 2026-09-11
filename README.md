@@ -23,11 +23,16 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > sada zaista auto-progresuju (`fn_log_meal`/`fn_log_water` su dobile isti
 > auto-progres mehanizam koji je `fn_log_workout` već imao).
 >
-> **Faza 6 (trenutno stanje):** prvi "System AI" signal - stagnation
-> detection preko poslednje 3 trening sesije (`training.detectStagnation` u
-> `packages/domain`), izložen na `GET /exercises/:id/progress` kao
-> `stagnationStatus` i prikazan na mobilnom Progressive Overload ekranu sa
-> konkretnim predlogom akcije. Ostale poslovne funkcije (pravi
+> **Faza 6:** prvi "System AI" signal - stagnation detection preko poslednje
+> 3 trening sesije (`training.detectStagnation` u `packages/domain`),
+> izložen na `GET /exercises/:id/progress` kao `stagnationStatus` i prikazan
+> na mobilnom Progressive Overload ekranu sa konkretnim predlogom akcije.
+>
+> **Faza 7 (trenutno stanje):** Training Plans - nedeljni split (Push/Pull/Legs,
+> Upper/Lower, Full Body) po igraču; 7-dnevni raspored (pon..ned) se generiše
+> na backendu preko `training.generateWeeklySchedule` (ravnomerna
+> raspodela trening dana, ne zbijeni na početak nedelje) i prikazuje na
+> mobilnom Training Plan ekranu. Ostale poslovne funkcije (pravi
 > analiza/coach System AI, formalna Rank Examination/Class evolucija,
 > Dungeons/Bosses, community/guild) dolaze u narednim fazama - videti
 > "Poznata ograničenja" ispod.
@@ -111,7 +116,7 @@ kroz `SECURITY DEFINER` RPC funkcije u `supabase/migrations/` (`fn_grant_xp`,
 `fn_grant_reward`, `fn_complete_daily_quest`, `fn_log_workout`,
 `fn_allocate_stat_points`, `fn_log_meal`, `fn_log_water`,
 `fn_upsert_nutrition_targets`, `fn_evaluate_achievements`,
-`fn_expire_stale_quests`) koje:
+`fn_expire_stale_quests`, `fn_upsert_training_plan`) koje:
 - atomski izračunavaju level-up (formula `XP = Level² × 100`, ista formula
   je duplirana i testirana u `packages/domain/src/gamification`),
 - su idempotentne (unique constraint na `xp_transactions`/`reward_transactions`
@@ -142,6 +147,8 @@ Ruta (sve zahtevaju autentifikaciju):
 | POST | `/nutrition/meals` | Beleži obrok (+ Nutrition XP) |
 | POST | `/nutrition/water` | Beleži unos vode (+ Nutrition XP) |
 | GET | `/nutrition/summary` | Dnevni zbir obroka/vode nasuprot ciljevima (opciono `?date=YYYY-MM-DD`) |
+| GET | `/training-plan` | Trenutni Training Plan igrača (sva polja null ako još nije postavljen) |
+| PUT | `/training-plan` | Bira split + broj trening dana; backend generiše i čuva 7-dnevni raspored |
 | GET | `/achievements` | Ceo achievement katalog + `unlocked`/`unlockedAt` stanje za igrača |
 | POST | `/achievements/evaluate` | Proverava trenutne pragove i otključava nove (vraća samo novootključane) |
 
@@ -200,7 +207,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 6)
+## Poznata ograničenja (Faza 7)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -220,10 +227,12 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   listQuests/generate poziva - nema cron job). Main/Boss/Hidden/Penalty tipovi
   i pravi System AI generator questova dolaze u kasnijim fazama (videti
   `packages/domain/README.md`).
-- Training Plans (Daily/Weekly split, Recovery Days, Deload, automatska
-  zamena vežbi) nisu implementirani - Faza 3 pokriva samo katalog vežbi +
-  ad-hoc workout logging + Progressive Overload signal (poredi poslednje 2
-  sesije; nema jos preporuka/prilagođavanja plana).
+- Training Plans (Faza 7) pokrivaju samo split izbor + generisan 7-dnevni
+  raspored (`GET`/`PUT /training-plan`) - nema još Recovery Day logike
+  (npr. upozorenje ako se trenira na "rest" dan), Deload nedelje, ni
+  automatske zamene vežbi/povezivanja plana sa Daily Quest generacijom
+  (Daily Quest je i dalje uvek "završi bar jedan trening", bez obzira na
+  today's planirani fokus iz plana).
 - Nutrition XP je fiksan po logu (meal/water), bez "dnevni cilj ispunjen"
   bonusa (izbegnuta idempotencija-po-danu komplikacija za sada) i bez Food
   Scanner-a (kalorije/makroi se unose ručno).

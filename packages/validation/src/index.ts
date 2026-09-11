@@ -68,4 +68,14 @@ export {
   achievementResponseSchema,
   type AchievementResponse,
 } from "./contracts/achievement";
+export {
+  splitTypeSchema,
+  type SplitType,
+  dayFocusSchema,
+  type DayFocus,
+  trainingPlanResponseSchema,
+  type TrainingPlanResponse,
+  updateTrainingPlanInputSchema,
+  type UpdateTrainingPlanInput,
+} from "./contracts/training-plan";
 export { z } from "zod";
