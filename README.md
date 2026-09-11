@@ -18,13 +18,19 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > sistem (katalog + automatsko otključavanje preko `fn_evaluate_achievements`),
 > i Progressive Overload grafikon na mobilnom.
 >
-> **Faza 5 (trenutno stanje):** Weekly i Side questovi (uz postojeći Daily),
-> lenja ekspiracija isteklih questova (`fn_expire_stale_quests`), i
-> Nutrition/Water questovi sada zaista auto-progresuju (`fn_log_meal`/
-> `fn_log_water` su dobile isti auto-progres mehanizam koji je `fn_log_workout`
-> već imao). Ostale poslovne funkcije (System AI, formalna Rank
-> Examination/Class evolucija, Dungeons/Bosses, community/guild) dolaze u
-> narednim fazama - videti "Poznata ograničenja" ispod.
+> **Faza 5:** Weekly i Side questovi (uz postojeći Daily), lenja ekspiracija
+> isteklih questova (`fn_expire_stale_quests`), i Nutrition/Water questovi
+> sada zaista auto-progresuju (`fn_log_meal`/`fn_log_water` su dobile isti
+> auto-progres mehanizam koji je `fn_log_workout` već imao).
+>
+> **Faza 6 (trenutno stanje):** prvi "System AI" signal - stagnation
+> detection preko poslednje 3 trening sesije (`training.detectStagnation` u
+> `packages/domain`), izložen na `GET /exercises/:id/progress` kao
+> `stagnationStatus` i prikazan na mobilnom Progressive Overload ekranu sa
+> konkretnim predlogom akcije. Ostale poslovne funkcije (pravi
+> analiza/coach System AI, formalna Rank Examination/Class evolucija,
+> Dungeons/Bosses, community/guild) dolaze u narednim fazama - videti
+> "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -127,7 +133,7 @@ Ruta (sve zahtevaju autentifikaciju):
 | POST | `/quests/side/generate` | Vraća/kreira današnji Side Quest - Nutrition fokusiran (idempotentno) |
 | POST | `/quests/:id/complete` | Završava quest čiji je progres dostigao cilj |
 | GET | `/exercises` | Katalog vežbi (difficulty, uputstva, alternative vežbe) |
-| GET | `/exercises/:id/progress` | Progressive Overload signal (Epley 1RM trend poslednje 2 sesije) |
+| GET | `/exercises/:id/progress` | Progressive Overload signal (Epley 1RM trend poslednje 2 sesije + System AI stagnationStatus preko poslednje 3) |
 | POST | `/workouts` | Beleži trening (serije) - PR detekcija + XP + quest progres + streak |
 | GET | `/workouts` | Istorija treninga |
 | GET | `/workouts/:id` | Detalji treninga (sa serijama) |
@@ -194,7 +200,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 5)
+## Poznata ograničenja (Faza 6)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -221,10 +227,14 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 - Nutrition XP je fiksan po logu (meal/water), bez "dnevni cilj ispunjen"
   bonusa (izbegnuta idempotencija-po-danu komplikacija za sada) i bez Food
   Scanner-a (kalorije/makroi se unose ručno).
-- System AI (analiza/coach/adaptivni trening/stagnation detection), formalna
-  Rank Examination (trenutno je `rank` polje na Player-u statično - napreduje
-  se samo kroz Level/XP, nema poseban "ispit"), Class Evolution, Dungeons/Bosses
-  i community/guild sistemi nisu implementirani - namerno kasnije faze.
+- System AI je za sada samo jedan pravilima-vođen signal (stagnation
+  detection preko poslednje 3 sesije, `training.detectStagnation`) - nema
+  prave analize/coach-a, adaptivnog prilagođavanja trening plana, ni
+  notifikacija kad se stagnacija detektuje (korisnik mora sam da otvori
+  Progressive Overload ekran). Formalna Rank Examination (trenutno je
+  `rank` polje na Player-u statično - napreduje se samo kroz Level/XP, nema
+  poseban "ispit"), Class Evolution, Dungeons/Bosses i community/guild
+  sistemi nisu implementirani - namerno kasnije faze.
 - Achievements/Titles (Faza 4) su implementirani kao fiksan seed-ovan katalog
   (`supabase/migrations/..._achievements_system.sql`, ~17 achievement-a) sa
   automatskim otključavanjem preko `fn_evaluate_achievements` - nema još

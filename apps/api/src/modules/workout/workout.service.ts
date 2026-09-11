@@ -87,7 +87,12 @@ export class WorkoutService {
 
     const workoutIds = (workouts ?? []).map((workout) => workout.id);
     if (workoutIds.length === 0) {
-      return { exerciseId, sessions: [], trend: "insufficient_data" };
+      return {
+        exerciseId,
+        sessions: [],
+        trend: "insufficient_data",
+        stagnationStatus: "insufficient_data",
+      };
     }
 
     const { data: sets, error: setsError } = await this.supabase
@@ -129,13 +134,13 @@ export class WorkoutService {
       });
     }
 
-    const trend = training.computeProgressTrend(
-      sessions.map((session) =>
-        session.sets.map((set) => ({ weightKg: set.weightKg, reps: set.reps })),
-      ),
+    const sessionSets = sessions.map((session) =>
+      session.sets.map((set) => ({ weightKg: set.weightKg, reps: set.reps })),
     );
+    const trend = training.computeProgressTrend(sessionSets);
+    const stagnationStatus = training.detectStagnation(sessionSets);
 
-    return { exerciseId, sessions, trend };
+    return { exerciseId, sessions, trend, stagnationStatus };
   }
 
   /**

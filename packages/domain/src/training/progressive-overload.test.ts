@@ -1,4 +1,9 @@
-import { computeProgressTrend, estimated1Rm, topEstimated1Rm } from "./progressive-overload";
+import {
+  computeProgressTrend,
+  detectStagnation,
+  estimated1Rm,
+  topEstimated1Rm,
+} from "./progressive-overload";
 
 describe("estimated1Rm", () => {
   it("vraca samu tezinu za 1 ponavljanje", () => {
@@ -62,5 +67,65 @@ describe("computeProgressTrend", () => {
       [{ weightKg: 65, reps: 8 }],
     ];
     expect(computeProgressTrend(sessions)).toBe("up");
+  });
+});
+
+describe("detectStagnation", () => {
+  it("vraca insufficient_data kada ima manje sesija nego windowSize (podrazumevano 3)", () => {
+    expect(detectStagnation([])).toBe("insufficient_data");
+    expect(detectStagnation([[{ weightKg: 60, reps: 8 }], [{ weightKg: 65, reps: 8 }]])).toBe(
+      "insufficient_data",
+    );
+  });
+
+  it("vraca progressing kada svaka sesija u prozoru raste u odnosu na prethodnu", () => {
+    const sessions = [
+      [{ weightKg: 60, reps: 8 }],
+      [{ weightKg: 65, reps: 8 }],
+      [{ weightKg: 70, reps: 8 }],
+    ];
+    expect(detectStagnation(sessions)).toBe("progressing");
+  });
+
+  it("vraca regressing kada svaka sesija u prozoru opada u odnosu na prethodnu", () => {
+    const sessions = [
+      [{ weightKg: 70, reps: 8 }],
+      [{ weightKg: 65, reps: 8 }],
+      [{ weightKg: 60, reps: 8 }],
+    ];
+    expect(detectStagnation(sessions)).toBe("regressing");
+  });
+
+  it("vraca stagnating kada su sve sesije u prozoru identicne", () => {
+    const sessions = [
+      [{ weightKg: 60, reps: 8 }],
+      [{ weightKg: 60, reps: 8 }],
+      [{ weightKg: 60, reps: 8 }],
+    ];
+    expect(detectStagnation(sessions)).toBe("stagnating");
+  });
+
+  it("vraca stagnating kada su signali u prozoru mesoviti (i rast i pad)", () => {
+    const sessions = [
+      [{ weightKg: 60, reps: 8 }],
+      [{ weightKg: 70, reps: 8 }],
+      [{ weightKg: 65, reps: 8 }],
+    ];
+    expect(detectStagnation(sessions)).toBe("stagnating");
+  });
+
+  it("koristi samo poslednjih windowSize sesija kada ih ima vise", () => {
+    const sessions = [
+      [{ weightKg: 100, reps: 8 }], // najjaca sesija, ali van prozora od 3
+      [{ weightKg: 60, reps: 8 }],
+      [{ weightKg: 65, reps: 8 }],
+      [{ weightKg: 70, reps: 8 }],
+    ];
+    expect(detectStagnation(sessions)).toBe("progressing");
+  });
+
+  it("prihvata prilagodjen windowSize", () => {
+    const sessions = [[{ weightKg: 60, reps: 8 }], [{ weightKg: 65, reps: 8 }]];
+    expect(detectStagnation(sessions, 2)).toBe("progressing");
   });
 });

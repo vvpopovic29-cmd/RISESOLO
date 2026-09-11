@@ -22,6 +22,7 @@ const squat: ExerciseResponse = {
 const progress: ExerciseProgressResponse = {
   exerciseId: squat.id,
   trend: "up",
+  stagnationStatus: "insufficient_data",
   sessions: [
     {
       workoutId: "00000000-0000-0000-0000-000000000020",
@@ -73,6 +74,28 @@ describe("ExerciseProgressScreen", () => {
     expect(screen.getByText(/U usponu/)).toBeTruthy();
     expect(screen.getByText("~76kg 1RM")).toBeTruthy();
     expect(screen.getByText("~82kg 1RM")).toBeTruthy();
+    expect(screen.getByTestId("exercise-progress-stagnation-insight")).toBeTruthy();
+    expect(screen.getByText(/bar 3 treninga ove vezbe/i)).toBeTruthy();
+  });
+
+  it("prikazuje System AI predlog akcije kada je progres stagnating", async () => {
+    const getExerciseProgress = jest
+      .fn()
+      .mockResolvedValue({ ...progress, stagnationStatus: "stagnating" });
+    mockedUseApiClient.mockReturnValue({
+      listExercises: () => Promise.resolve([squat]),
+      getExerciseProgress,
+    });
+
+    await render(<ExerciseProgressScreen />);
+
+    await waitFor(() =>
+      expect(screen.getByTestId(`exercise-progress-exercise-${squat.id}`)).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByTestId(`exercise-progress-exercise-${squat.id}`));
+
+    await waitFor(() => expect(screen.getByTestId("exercise-progress-result")).toBeTruthy());
+    expect(screen.getByText(/promenis broj ponavljanja/i)).toBeTruthy();
   });
 
   it("prikazuje gresku kada ucitavanje napretka ne uspe", async () => {

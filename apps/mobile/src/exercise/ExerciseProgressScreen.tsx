@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import type { ProgressTrend } from "@risesolo/validation";
+import type { ProgressTrend, StagnationStatus } from "@risesolo/validation";
 import { useExercises } from "./use-exercises";
 import { useExerciseProgress } from "./use-exercise-progress";
 
@@ -15,6 +15,32 @@ const trendColorClasses: Record<ProgressTrend, string> = {
   up: "text-success",
   down: "text-danger",
   flat: "text-warning",
+  insufficient_data: "text-neutral-600",
+};
+
+/**
+ * "System AI" insight (poslednje 3 sesije, videti
+ * `@risesolo/domain` training.detectStagnation) - manje osetljiv signal od
+ * `trend` (koji poredi samo poslednje 2), sa konkretnim predlogom akcije.
+ */
+const stagnationMessages: Record<StagnationStatus, string> = {
+  progressing: "Napreduje tri treninga zaredom - nastavi sa istim programom.",
+  stagnating: "Stagnacija - probaj da promenis broj ponavljanja ili povecas tezinu.",
+  regressing: "Opada tri treninga zaredom - razmisli o deload nedelji ili dodatnom odmoru.",
+  insufficient_data: "Potrebno je bar 3 treninga ove vezbe za System AI analizu.",
+};
+
+const stagnationBorderClasses: Record<StagnationStatus, string> = {
+  progressing: "border-success",
+  stagnating: "border-warning",
+  regressing: "border-danger",
+  insufficient_data: "border-neutral-400",
+};
+
+const stagnationTextClasses: Record<StagnationStatus, string> = {
+  progressing: "text-success",
+  stagnating: "text-warning",
+  regressing: "text-danger",
   insufficient_data: "text-neutral-600",
 };
 
@@ -103,6 +129,18 @@ export function ExerciseProgressScreen() {
             <Text className={`font-semibold ${trendColorClasses[progressState.data.trend]}`}>
               Trend: {trendLabels[progressState.data.trend]}
             </Text>
+
+            <View
+              testID="exercise-progress-stagnation-insight"
+              className={`gap-1 rounded-lg border p-3 ${
+                stagnationBorderClasses[progressState.data.stagnationStatus]
+              }`}
+            >
+              <Text className="text-xs uppercase tracking-wide text-premium">System AI</Text>
+              <Text className={stagnationTextClasses[progressState.data.stagnationStatus]}>
+                {stagnationMessages[progressState.data.stagnationStatus]}
+              </Text>
+            </View>
 
             {progressState.data.sessions.length === 0 ? (
               <Text className="text-neutral-600">Jos nema zabelezenih serija za ovu vezbu.</Text>

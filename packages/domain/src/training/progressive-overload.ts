@@ -5,6 +5,8 @@ export interface SetPerformance {
 
 export type ProgressTrend = "up" | "down" | "flat" | "insufficient_data";
 
+export type StagnationStatus = "insufficient_data" | "progressing" | "stagnating" | "regressing";
+
 /**
  * Epley formula za procenu 1RM (Personal Record procena). Za reps = 1
  * vraca samu tezinu (nema ekstrapolacije potrebne).
@@ -63,4 +65,45 @@ export function computeProgressTrend(
     return "down";
   }
   return "flat";
+}
+
+/**
+ * "System AI" signal: gleda poslednjih `windowSize` sesija (podrazumevano
+ * 3) umesto samo poslednje dve kao `computeProgressTrend` - manje osetljivo
+ * na jednokratni losiji trening. Strogo rastuce u prozoru -> "progressing",
+ * strogo opadajuce -> "regressing", sve ostalo (ravno ili mesovito) ->
+ * "stagnating" (signal da je vreme za promenu programa/tezine/ponavljanja).
+ */
+export function detectStagnation(
+  sessions: readonly (readonly SetPerformance[])[],
+  windowSize = 3,
+): StagnationStatus {
+  if (sessions.length < windowSize) {
+    return "insufficient_data";
+  }
+
+  const recentTopLifts = sessions.slice(-windowSize).map(topEstimated1Rm);
+
+  let hasIncrease = false;
+  let hasDecrease = false;
+  for (let i = 1; i < recentTopLifts.length; i++) {
+    const current = recentTopLifts[i];
+    const prior = recentTopLifts[i - 1];
+    if (current === undefined || prior === undefined) {
+      continue;
+    }
+    if (current > prior) {
+      hasIncrease = true;
+    } else if (current < prior) {
+      hasDecrease = true;
+    }
+  }
+
+  if (hasIncrease && !hasDecrease) {
+    return "progressing";
+  }
+  if (hasDecrease && !hasIncrease) {
+    return "regressing";
+  }
+  return "stagnating";
 }

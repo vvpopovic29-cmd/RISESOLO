@@ -29,6 +29,8 @@ export {
   type ExerciseProgressSession,
   progressTrendSchema,
   type ProgressTrend,
+  stagnationStatusSchema,
+  type StagnationStatus,
   exerciseProgressResponseSchema,
   type ExerciseProgressResponse,
   workoutSetInputSchema,

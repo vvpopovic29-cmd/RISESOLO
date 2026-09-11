@@ -102,7 +102,12 @@ describe("WorkoutService", () => {
 
       const result = await service.getExerciseProgress("p1", "e1");
 
-      expect(result).toEqual({ exerciseId: "e1", sessions: [], trend: "insufficient_data" });
+      expect(result).toEqual({
+        exerciseId: "e1",
+        sessions: [],
+        trend: "insufficient_data",
+        stagnationStatus: "insufficient_data",
+      });
     });
 
     it("grupise serije po treningu hronoloski i racuna trend preko domain sloja", async () => {
@@ -131,6 +136,33 @@ describe("WorkoutService", () => {
       expect(result.sessions[0]?.workoutId).toBe("w1");
       expect(result.sessions[1]?.workoutId).toBe("w2");
       expect(result.trend).toBe("up");
+      expect(result.stagnationStatus).toBe("insufficient_data");
+    });
+
+    it("racuna stagnationStatus preko poslednje 3 sesije kada ih ima dovoljno", async () => {
+      const workoutsBuilder = createChainableMock({
+        data: [
+          { id: "w1", performed_at: "2026-01-01T10:00:00.000Z" },
+          { id: "w2", performed_at: "2026-01-08T10:00:00.000Z" },
+          { id: "w3", performed_at: "2026-01-15T10:00:00.000Z" },
+        ],
+        error: null,
+      });
+      const setsBuilder = createChainableMock({
+        data: [
+          { id: "s1", workout_id: "w1", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+          { id: "s2", workout_id: "w2", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 65 },
+          { id: "s3", workout_id: "w3", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 70 },
+        ],
+        error: null,
+      });
+      const from = jest.fn().mockReturnValueOnce(workoutsBuilder).mockReturnValueOnce(setsBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.getExerciseProgress("p1", "e1");
+
+      expect(result.stagnationStatus).toBe("progressing");
     });
   });
 

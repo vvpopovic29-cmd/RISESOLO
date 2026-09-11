@@ -134,10 +134,24 @@ export type ExerciseProgressSession = z.infer<typeof exerciseProgressSessionSche
 export const progressTrendSchema = z.enum(["up", "down", "flat", "insufficient_data"]);
 export type ProgressTrend = z.infer<typeof progressTrendSchema>;
 
+export const stagnationStatusSchema = z.enum([
+  "insufficient_data",
+  "progressing",
+  "stagnating",
+  "regressing",
+]);
+export type StagnationStatus = z.infer<typeof stagnationStatusSchema>;
+
 export const exerciseProgressResponseSchema = z.object({
   exerciseId: z.string().uuid(),
   sessions: z.array(exerciseProgressSessionSchema),
   trend: progressTrendSchema,
+  /**
+   * "System AI" signal - gleda poslednje 3 sesije (ne samo 2 kao `trend`)
+   * radi stabilnijeg signala da li je vreme za promenu programa. Videti
+   * `@risesolo/domain` training.detectStagnation.
+   */
+  stagnationStatus: stagnationStatusSchema,
 });
 export type ExerciseProgressResponse = z.infer<typeof exerciseProgressResponseSchema>;
 
