@@ -195,6 +195,41 @@ describe("createApiClient", () => {
     expect(result.workoutId).toBe("00000000-0000-0000-0000-000000000002");
   });
 
+  it("generateWeeklyQuest() salje POST i validira odgovor", async () => {
+    let capturedUrl = "";
+    let capturedMethod = "";
+    const fetchSpy: typeof fetch = (async (url: RequestInfo | URL, init) => {
+      capturedUrl = String(url);
+      capturedMethod = init?.method ?? "";
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          id: "00000000-0000-0000-0000-000000000005",
+          type: "weekly",
+          title: "Zavrsi 5 treninga ove nedelje",
+          description: null,
+          linkedAction: "workout",
+          targetCount: 5,
+          progressCount: 0,
+          xpReward: 2000,
+          coinReward: 150,
+          status: "active",
+          expiresAt: null,
+          completedAt: null,
+          createdAt: new Date().toISOString(),
+        }),
+      } as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const client = createApiClient({ baseUrl: "http://localhost:3000", fetchImpl: fetchSpy });
+    const result = await client.generateWeeklyQuest();
+
+    expect(capturedUrl).toBe("http://localhost:3000/quests/weekly/generate");
+    expect(capturedMethod).toBe("POST");
+    expect(result.type).toBe("weekly");
+  });
+
   it("listAchievements() vraca parsiranu listu", async () => {
     const achievement = {
       id: "00000000-0000-0000-0000-000000000003",

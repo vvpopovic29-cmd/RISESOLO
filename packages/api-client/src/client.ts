@@ -146,6 +146,12 @@ export function createApiClient(config: ApiClientConfig) {
     async generateDailyQuest(): Promise<QuestResponse> {
       return request("/quests/daily/generate", questResponseSchema, { method: "POST" });
     },
+    async generateWeeklyQuest(): Promise<QuestResponse> {
+      return request("/quests/weekly/generate", questResponseSchema, { method: "POST" });
+    },
+    async generateSideQuest(): Promise<QuestResponse> {
+      return request("/quests/side/generate", questResponseSchema, { method: "POST" });
+    },
     async completeQuest(questId: string): Promise<QuestResponse> {
       return request(`/quests/${encodeURIComponent(questId)}/complete`, questResponseSchema, {
         method: "POST",

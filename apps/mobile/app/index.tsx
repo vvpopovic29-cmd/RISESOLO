@@ -3,6 +3,7 @@ import { Link, Redirect } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useAuth } from "../src/auth/AuthProvider";
 import { DailyQuestCard } from "../src/quest/DailyQuestCard";
+import { QuestCard } from "../src/quest/QuestCard";
 import { PlayerStatusCard } from "../src/player/PlayerStatusCard";
 
 export default function HomeScreen() {
@@ -33,6 +34,28 @@ export default function HomeScreen() {
 
         <PlayerStatusCard />
         <DailyQuestCard />
+        <QuestCard
+          testID="weekly-quest"
+          type="weekly"
+          linkedAction="workout"
+          generate={(apiClient) => apiClient.generateWeeklyQuest()}
+          label="Weekly Quest"
+          loadingText="Proveravam Weekly Quest..."
+          emptyText="Ove nedelje jos nemas Weekly Quest."
+          generateButtonText="Generisi Weekly Quest"
+          errorPrefix="Ne mogu da ucitam Weekly Quest"
+        />
+        <QuestCard
+          testID="side-quest"
+          type="side"
+          linkedAction="nutrition"
+          generate={(apiClient) => apiClient.generateSideQuest()}
+          label="Side Quest"
+          loadingText="Proveravam Side Quest..."
+          emptyText="Danas jos nemas Side Quest."
+          generateButtonText="Generisi Side Quest"
+          errorPrefix="Ne mogu da ucitam Side Quest"
+        />
 
         <View className="w-full max-w-sm flex-row gap-3">
           <Link href="/workout/log" asChild>

@@ -14,12 +14,17 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > + Nutrition XP), i mobile Supabase Auth + System Status ekran povezan na
 > pravi API.
 >
-> **Faza 4 (trenutno stanje):** mobile ekrani za workout/nutrition logging,
-> Achievements/Titles sistem (katalog + automatsko otključavanje preko
-> `fn_evaluate_achievements`), i Progressive Overload grafikon na mobilnom.
-> Ostale poslovne funkcije (System AI, formalna Rank Examination/Class
-> evolucija, Dungeons/Bosses, community/guild) dolaze u narednim fazama -
-> videti "Poznata ograničenja" ispod.
+> **Faza 4:** mobile ekrani za workout/nutrition logging, Achievements/Titles
+> sistem (katalog + automatsko otključavanje preko `fn_evaluate_achievements`),
+> i Progressive Overload grafikon na mobilnom.
+>
+> **Faza 5 (trenutno stanje):** Weekly i Side questovi (uz postojeći Daily),
+> lenja ekspiracija isteklih questova (`fn_expire_stale_quests`), i
+> Nutrition/Water questovi sada zaista auto-progresuju (`fn_log_meal`/
+> `fn_log_water` su dobile isti auto-progres mehanizam koji je `fn_log_workout`
+> već imao). Ostale poslovne funkcije (System AI, formalna Rank
+> Examination/Class evolucija, Dungeons/Bosses, community/guild) dolaze u
+> narednim fazama - videti "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -99,7 +104,8 @@ Sve mutacije koje utiču na progres (uključujući Nutrition XP od Faze 3) idu
 kroz `SECURITY DEFINER` RPC funkcije u `supabase/migrations/` (`fn_grant_xp`,
 `fn_grant_reward`, `fn_complete_daily_quest`, `fn_log_workout`,
 `fn_allocate_stat_points`, `fn_log_meal`, `fn_log_water`,
-`fn_upsert_nutrition_targets`, `fn_evaluate_achievements`) koje:
+`fn_upsert_nutrition_targets`, `fn_evaluate_achievements`,
+`fn_expire_stale_quests`) koje:
 - atomski izračunavaju level-up (formula `XP = Level² × 100`, ista formula
   je duplirana i testirana u `packages/domain/src/gamification`),
 - su idempotentne (unique constraint na `xp_transactions`/`reward_transactions`
@@ -117,6 +123,8 @@ Ruta (sve zahtevaju autentifikaciju):
 | POST | `/players/me/stat-points/allocate` | Troši Stat Points na izabrani atribut |
 | GET | `/quests` | Lista questova (opciono `?status=`) |
 | POST | `/quests/daily/generate` | Vraća/kreira današnji Daily Quest (idempotentno) |
+| POST | `/quests/weekly/generate` | Vraća/kreira ovonedeljni Weekly Quest (idempotentno po ISO nedelji) |
+| POST | `/quests/side/generate` | Vraća/kreira današnji Side Quest - Nutrition fokusiran (idempotentno) |
 | POST | `/quests/:id/complete` | Završava quest čiji je progres dostigao cilj |
 | GET | `/exercises` | Katalog vežbi (difficulty, uputstva, alternative vežbe) |
 | GET | `/exercises/:id/progress` | Progressive Overload signal (Epley 1RM trend poslednje 2 sesije) |
@@ -186,7 +194,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 4)
+## Poznata ograničenja (Faza 5)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -199,8 +207,11 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 - Nema pune OpenAPI JSON generacije (Swagger) - DTO usklađenost se obezbeđuje
   deljenom Zod semom (`packages/validation/src/contracts/`); uvodi se kada
   broj endpoint-a to opravda.
-- Questovi su trenutno samo sistemski (fiksan Daily Quest template preko
-  `POST /quests/daily/generate`) - Weekly/Main/Side/Boss/Hidden/Penalty tipovi
+- Questovi su i dalje sistemski (fiksni template-i, ne generativni) - Faza 5
+  dodaje Weekly (`POST /quests/weekly/generate`, 5 treninga/ISO nedelja) i
+  Side (`POST /quests/side/generate`, 3 obroka/dan) uz postojeći Daily, plus
+  lenju ekspiraciju (`fn_expire_stale_quests`, pozvano pre svakog
+  listQuests/generate poziva - nema cron job). Main/Boss/Hidden/Penalty tipovi
   i pravi System AI generator questova dolaze u kasnijim fazama (videti
   `packages/domain/README.md`).
 - Training Plans (Daily/Weekly split, Recovery Days, Deload, automatska

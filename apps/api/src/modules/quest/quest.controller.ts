@@ -27,6 +27,16 @@ export class QuestController {
     return this.questService.generateDailyQuest(playerId);
   }
 
+  @Post("weekly/generate")
+  generateWeekly(@CurrentPlayerId() playerId: string): Promise<QuestResponse> {
+    return this.questService.generateWeeklyQuest(playerId);
+  }
+
+  @Post("side/generate")
+  generateSide(@CurrentPlayerId() playerId: string): Promise<QuestResponse> {
+    return this.questService.generateSideQuest(playerId);
+  }
+
   @Post(":id/complete")
   complete(@CurrentPlayerId() playerId: string, @Param("id") id: string): Promise<QuestResponse> {
     return this.questService.completeQuest(playerId, id);

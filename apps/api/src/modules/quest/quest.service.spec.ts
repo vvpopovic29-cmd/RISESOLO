@@ -21,18 +21,21 @@ const baseQuestRow: QuestRow = {
   created_at: "2026-01-01T00:00:00.000Z",
 };
 
+function noopSweepRpc(): jest.Mock {
+  return jest.fn().mockResolvedValue({ data: null, error: null });
+}
+
 describe("QuestService", () => {
   describe("listQuests", () => {
-    it("vraca mapiranu listu questova", async () => {
+    it("pokrece sweep isteklih questova pre ucitavanja liste", async () => {
       const builder = createChainableMock({ data: [baseQuestRow], error: null });
-      const supabase = {
-        from: jest.fn(() => builder),
-        rpc: jest.fn(),
-      } as unknown as SupabaseClient;
+      const rpc = noopSweepRpc();
+      const supabase = { from: jest.fn(() => builder), rpc } as unknown as SupabaseClient;
       const service = new QuestService(supabase);
 
       const result = await service.listQuests("p1");
 
+      expect(rpc).toHaveBeenCalledWith("fn_expire_stale_quests", { p_player_id: "p1" });
       expect(result).toHaveLength(1);
       expect(result[0]?.id).toBe("q1");
     });
@@ -41,7 +44,7 @@ describe("QuestService", () => {
       const builder = createChainableMock({ data: [], error: null });
       const supabase = {
         from: jest.fn(() => builder),
-        rpc: jest.fn(),
+        rpc: noopSweepRpc(),
       } as unknown as SupabaseClient;
       const service = new QuestService(supabase);
 
@@ -56,7 +59,7 @@ describe("QuestService", () => {
       const existingBuilder = createChainableMock({ data: baseQuestRow, error: null });
       const supabase = {
         from: jest.fn(() => existingBuilder),
-        rpc: jest.fn(),
+        rpc: noopSweepRpc(),
       } as unknown as SupabaseClient;
       const service = new QuestService(supabase);
 
@@ -70,7 +73,7 @@ describe("QuestService", () => {
       const findBuilder = createChainableMock({ data: null, error: null });
       const insertBuilder = createChainableMock({ data: baseQuestRow, error: null });
       const from = jest.fn().mockReturnValueOnce(findBuilder).mockReturnValueOnce(insertBuilder);
-      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
       const service = new QuestService(supabase);
 
       const result = await service.generateDailyQuest("p1");
@@ -78,6 +81,73 @@ describe("QuestService", () => {
       expect(result.id).toBe("q1");
       expect(insertBuilder.insert).toHaveBeenCalledWith(
         expect.objectContaining({ player_id: "p1", type: "daily", linked_action: "workout" }),
+      );
+    });
+  });
+
+  describe("generateWeeklyQuest", () => {
+    it("vraca postojeci aktivan weekly quest umesto da napravi duplikat", async () => {
+      const weeklyRow: QuestRow = { ...baseQuestRow, type: "weekly", target_count: 5 };
+      const existingBuilder = createChainableMock({ data: weeklyRow, error: null });
+      const supabase = {
+        from: jest.fn(() => existingBuilder),
+        rpc: noopSweepRpc(),
+      } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      const result = await service.generateWeeklyQuest("p1");
+
+      expect(result.type).toBe("weekly");
+      expect(existingBuilder.insert).not.toHaveBeenCalled();
+    });
+
+    it("kreira novi weekly quest sa target_count=5 kada ne postoji aktivan za ovu nedelju", async () => {
+      const findBuilder = createChainableMock({ data: null, error: null });
+      const weeklyRow: QuestRow = { ...baseQuestRow, type: "weekly", target_count: 5 };
+      const insertBuilder = createChainableMock({ data: weeklyRow, error: null });
+      const from = jest.fn().mockReturnValueOnce(findBuilder).mockReturnValueOnce(insertBuilder);
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      const result = await service.generateWeeklyQuest("p1");
+
+      expect(result.type).toBe("weekly");
+      expect(insertBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          player_id: "p1",
+          type: "weekly",
+          linked_action: "workout",
+          target_count: 5,
+        }),
+      );
+    });
+  });
+
+  describe("generateSideQuest", () => {
+    it("kreira novi side quest sa linked_action=nutrition kada ne postoji aktivan za danas", async () => {
+      const findBuilder = createChainableMock({ data: null, error: null });
+      const sideRow: QuestRow = {
+        ...baseQuestRow,
+        type: "side",
+        linked_action: "nutrition",
+        target_count: 3,
+      };
+      const insertBuilder = createChainableMock({ data: sideRow, error: null });
+      const from = jest.fn().mockReturnValueOnce(findBuilder).mockReturnValueOnce(insertBuilder);
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      const result = await service.generateSideQuest("p1");
+
+      expect(result.type).toBe("side");
+      expect(result.linkedAction).toBe("nutrition");
+      expect(insertBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          player_id: "p1",
+          type: "side",
+          linked_action: "nutrition",
+          target_count: 3,
+        }),
       );
     });
   });
