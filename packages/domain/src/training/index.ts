@@ -3,6 +3,8 @@ export {
   topEstimated1Rm,
   computeProgressTrend,
   detectStagnation,
+  DELOAD_REGRESSING_THRESHOLD,
+  shouldRecommendDeload,
   type SetPerformance,
   type ProgressTrend,
   type StagnationStatus,

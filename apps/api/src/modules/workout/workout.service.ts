@@ -167,7 +167,7 @@ export class WorkoutService {
 
     const workoutIds = (workouts ?? []).map((workout) => workout.id);
     if (workoutIds.length === 0) {
-      return { stagnantExercises: [] };
+      return { stagnantExercises: [], regressingExercises: [], deloadRecommended: false };
     }
 
     const { data: sets, error: setsError } = await this.supabase
@@ -194,6 +194,7 @@ export class WorkoutService {
     }
 
     const stagnatingExerciseIds: string[] = [];
+    const regressingExerciseIds: string[] = [];
     for (const [exerciseId, byWorkout] of setsByExerciseThenWorkout) {
       const sessions = [...byWorkout.entries()]
         .sort(([workoutIdA], [workoutIdB]) => {
@@ -205,19 +206,25 @@ export class WorkoutService {
           workoutSets.map((set) => ({ weightKg: set.weight_kg, reps: set.reps })),
         );
 
-      if (training.detectStagnation(sessions) === "stagnating") {
+      const status = training.detectStagnation(sessions);
+      if (status === "stagnating") {
         stagnatingExerciseIds.push(exerciseId);
+      } else if (status === "regressing") {
+        regressingExerciseIds.push(exerciseId);
       }
     }
 
-    if (stagnatingExerciseIds.length === 0) {
-      return { stagnantExercises: [] };
+    const deloadRecommended = training.shouldRecommendDeload(regressingExerciseIds.length);
+
+    const relevantExerciseIds = [...stagnatingExerciseIds, ...regressingExerciseIds];
+    if (relevantExerciseIds.length === 0) {
+      return { stagnantExercises: [], regressingExercises: [], deloadRecommended };
     }
 
     const { data: exercises, error: exercisesError } = await this.supabase
       .from("exercises")
       .select("id, name")
-      .in("id", stagnatingExerciseIds)
+      .in("id", relevantExerciseIds)
       .returns<Array<Pick<ExerciseRow, "id" | "name">>>();
 
     if (exercisesError) {
@@ -226,11 +233,18 @@ export class WorkoutService {
       );
     }
 
+    const nameById = new Map((exercises ?? []).map((exercise) => [exercise.id, exercise.name]));
+
     return {
-      stagnantExercises: (exercises ?? []).map((exercise) => ({
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
+      stagnantExercises: stagnatingExerciseIds.map((exerciseId) => ({
+        exerciseId,
+        exerciseName: nameById.get(exerciseId) ?? exerciseId,
       })),
+      regressingExercises: regressingExerciseIds.map((exerciseId) => ({
+        exerciseId,
+        exerciseName: nameById.get(exerciseId) ?? exerciseId,
+      })),
+      deloadRecommended,
     };
   }
 

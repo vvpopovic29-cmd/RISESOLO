@@ -107,3 +107,16 @@ export function detectStagnation(
   }
   return "stagnating";
 }
+
+/**
+ * Broj vezbi koje moraju istovremeno "regressing"-ovati (videti
+ * `detectStagnation`) da bi se preporucila Deload nedelja - jedna vezba u
+ * padu je obicno sum (los san, los dan), ali vise vezbi istovremeno je
+ * jaci sistemski signal umora/preopterecenja.
+ */
+export const DELOAD_REGRESSING_THRESHOLD = 2;
+
+/** Da li broj vezbi koje trenutno regresiraju opravdava preporuku Deload nedelje. */
+export function shouldRecommendDeload(regressingExerciseCount: number): boolean {
+  return regressingExerciseCount >= DELOAD_REGRESSING_THRESHOLD;
+}

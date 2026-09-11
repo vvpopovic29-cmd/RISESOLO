@@ -90,17 +90,26 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > sa preostalim brojem sati do sledećeg pokušaja. Uspešno položen ispit
 > (status `completed`) ne broji se u cooldown - samo neuspeh (istekao rok).
 >
-> **Faza 15 (trenutno stanje):** Proaktivan System AI signal - do sada je
+> **Faza 15:** Proaktivan System AI signal - do sada je
 > `stagnationStatus` postojao samo po-vezbi na Progressive Overload ekranu,
 > korisnik je morao sam da otvori svaku vezbu da vidi da li stagnira. Novi
 > `GET /exercises/stagnation-summary` agregira `training.detectStagnation`
 > preko SVIH vezbi koje je igrac ikad trenirao i vraća listu onih koje
 > stagniraju (poslednje 3 sesije). System Status (home) ekran sada prikazuje
 > upozorenje kada bar jedna vezba stagnira, sa linkom ka Progressive
-> Overload ekranu. Ostale poslovne funkcije (pravi analiza/coach System AI,
-> Class Evolution, Deload nedelje, automatske zamene vežbi, Dungeons/Bosses,
-> community/guild) dolaze u narednim fazama - videti "Poznata ograničenja"
-> ispod.
+> Overload ekranu.
+>
+> **Faza 16 (trenutno stanje):** Deload nedelja preporuka - isti
+> `stagnation-summary` endpoint sada dodatno prati `regressing` vezbe (ne
+> samo `stagnating`) i, kada `training.DELOAD_REGRESSING_THRESHOLD` (2)
+> ili vise vezbi istovremeno opada tri treninga zaredom, vraća
+> `deloadRecommended: true` - sistemski signal umora/preopterecenja, ne
+> samo jedna losa vezba. System Status ekran prikazuje istaknutiju Deload
+> poruku pored postojeceg stagnation upozorenja. Ovo je informativna
+> preporuka - ne menja automatski Training Plan raspored. Ostale poslovne
+> funkcije (pravi analiza/coach System AI, Class Evolution, automatske
+> zamene vežbi, Dungeons/Bosses, community/guild) dolaze u narednim
+> fazama - videti "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -206,7 +215,7 @@ Ruta (sve zahtevaju autentifikaciju):
 | POST | `/quests/:id/complete` | Završava quest čiji je progres dostigao cilj |
 | GET | `/exercises` | Katalog vežbi (difficulty, uputstva, alternative vežbe) |
 | GET | `/exercises/:id/progress` | Progressive Overload signal (Epley 1RM trend poslednje 2 sesije + System AI stagnationStatus preko poslednje 3) |
-| GET | `/exercises/stagnation-summary` | Lista svih vezbi koje trenutno stagniraju (preko svih vezbi koje je igrac ikad trenirao) |
+| GET | `/exercises/stagnation-summary` | Vezbe koje stagniraju/regresiraju (preko svih vezbi koje je igrac ikad trenirao) + `deloadRecommended` preporuka |
 | POST | `/workouts` | Beleži trening (serije) - PR detekcija + XP + quest progres + streak |
 | GET | `/workouts` | Istorija treninga |
 | GET | `/workouts/:id` | Detalji treninga (sa serijama) |
@@ -275,7 +284,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 15)
+## Poznata ograničenja (Faza 16)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -297,11 +306,14 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   `packages/domain/README.md`).
 - Training Plans (Faza 7-8) pokrivaju split izbor + generisan 7-dnevni
   raspored (`GET`/`PUT /training-plan`), Daily Quest sada prati današnji
-  fokus iz plana u naslovu/opisu (Faza 8), i `logWorkout` upozorava (ne
-  blokira) kada se trenira na "rest" dan (Faza 13, `restDayWarning`) -
-  i dalje nema Deload nedelja ni automatske zamene vežbi.
-  `target_count`/`linked_action` Daily Quest-a se ne menjaju na osnovu
-  plana (uvek "završi bar jedan trening"), samo tekst.
+  fokus iz plana u naslovu/opisu (Faza 8), `logWorkout` upozorava (ne
+  blokira) kada se trenira na "rest" dan (Faza 13, `restDayWarning`), i
+  `stagnation-summary` preporucuje Deload nedelju kada 2+ vezbe
+  istovremeno regresiraju (Faza 16, `deloadRecommended`) - ali ovo je
+  samo informativna preporuka, ne i automatsko umetanje deload nedelje u
+  raspored ni automatska zamena vežbi. `target_count`/`linked_action`
+  Daily Quest-a se ne menjaju na osnovu plana (uvek "završi bar jedan
+  trening"), samo tekst.
 - Nutrition XP je fiksan po logu (meal/water), plus jednokratan dnevni
   bonus (100 XP, Faza 12) kada su svi postavljeni ciljevi ispunjeni za taj
   dan - provera se dešava samo pri sledećem `logMeal`/`logWater` pozivu, ne

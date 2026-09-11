@@ -172,6 +172,15 @@ export type StagnantExercise = z.infer<typeof stagnantExerciseSchema>;
 
 export const stagnationSummaryResponseSchema = z.object({
   stagnantExercises: z.array(stagnantExerciseSchema),
+  /** Faza 16: vezbe koje opadaju (ne samo stagniraju) poslednje 3 sesije. */
+  regressingExercises: z.array(stagnantExerciseSchema),
+  /**
+   * Preporuka Deload nedelje (smanjen intenzitet/obim) - true kada bar
+   * `training.DELOAD_REGRESSING_THRESHOLD` vezbi istovremeno regresira
+   * (sistemski signal umora, ne samo jedna losa vezba). Informativna
+   * preporuka - ne menja automatski trening plan.
+   */
+  deloadRecommended: z.boolean(),
 });
 export type StagnationSummaryResponse = z.infer<typeof stagnationSummaryResponseSchema>;
 

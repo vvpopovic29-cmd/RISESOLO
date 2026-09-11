@@ -322,6 +322,8 @@ describe("createApiClient", () => {
         stagnantExercises: [
           { exerciseId: "00000000-0000-0000-0000-000000000010", exerciseName: "Cucanj" },
         ],
+        regressingExercises: [],
+        deloadRecommended: false,
       }),
     });
 

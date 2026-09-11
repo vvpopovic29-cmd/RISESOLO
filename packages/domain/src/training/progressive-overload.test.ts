@@ -2,6 +2,7 @@ import {
   computeProgressTrend,
   detectStagnation,
   estimated1Rm,
+  shouldRecommendDeload,
   topEstimated1Rm,
 } from "./progressive-overload";
 
@@ -127,5 +128,17 @@ describe("detectStagnation", () => {
   it("prihvata prilagodjen windowSize", () => {
     const sessions = [[{ weightKg: 60, reps: 8 }], [{ weightKg: 65, reps: 8 }]];
     expect(detectStagnation(sessions, 2)).toBe("progressing");
+  });
+});
+
+describe("shouldRecommendDeload", () => {
+  it("vraca false kada nijedna ili samo jedna vezba regresira (moguc sum)", () => {
+    expect(shouldRecommendDeload(0)).toBe(false);
+    expect(shouldRecommendDeload(1)).toBe(false);
+  });
+
+  it("vraca true kada 2 ili vise vezbi regresira istovremeno", () => {
+    expect(shouldRecommendDeload(2)).toBe(true);
+    expect(shouldRecommendDeload(5)).toBe(true);
   });
 });

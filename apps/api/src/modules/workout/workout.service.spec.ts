@@ -177,7 +177,11 @@ describe("WorkoutService", () => {
 
       const result = await service.getStagnationSummary("p1");
 
-      expect(result).toEqual({ stagnantExercises: [] });
+      expect(result).toEqual({
+        stagnantExercises: [],
+        regressingExercises: [],
+        deloadRecommended: false,
+      });
     });
 
     it("prepoznaje vezbu koja stagnira preko poslednje 3 sesije i razresava naziv", async () => {
@@ -238,6 +242,82 @@ describe("WorkoutService", () => {
       const result = await service.getStagnationSummary("p1");
 
       expect(result.stagnantExercises).toEqual([]);
+    });
+
+    it("prepoznaje vezbu koja regresira i ne preporucuje deload kada regresira samo jedna", async () => {
+      const workoutsBuilder = createChainableMock({
+        data: [
+          { id: "w1", performed_at: "2026-01-01T10:00:00.000Z" },
+          { id: "w2", performed_at: "2026-01-08T10:00:00.000Z" },
+          { id: "w3", performed_at: "2026-01-15T10:00:00.000Z" },
+        ],
+        error: null,
+      });
+      const setsBuilder = createChainableMock({
+        data: [
+          { id: "s1", workout_id: "w1", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 70 },
+          { id: "s2", workout_id: "w2", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 65 },
+          { id: "s3", workout_id: "w3", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+        ],
+        error: null,
+      });
+      const exercisesBuilder = createChainableMock({
+        data: [{ id: "e1", name: "Cucanj" }],
+        error: null,
+      });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(workoutsBuilder)
+        .mockReturnValueOnce(setsBuilder)
+        .mockReturnValueOnce(exercisesBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.getStagnationSummary("p1");
+
+      expect(result.regressingExercises).toEqual([{ exerciseId: "e1", exerciseName: "Cucanj" }]);
+      expect(result.deloadRecommended).toBe(false);
+    });
+
+    it("preporucuje deload kada 2 ili vise vezbi regresira istovremeno", async () => {
+      const workoutsBuilder = createChainableMock({
+        data: [
+          { id: "w1", performed_at: "2026-01-01T10:00:00.000Z" },
+          { id: "w2", performed_at: "2026-01-08T10:00:00.000Z" },
+          { id: "w3", performed_at: "2026-01-15T10:00:00.000Z" },
+        ],
+        error: null,
+      });
+      const setsBuilder = createChainableMock({
+        data: [
+          { id: "s1", workout_id: "w1", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 70 },
+          { id: "s2", workout_id: "w2", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 65 },
+          { id: "s3", workout_id: "w3", exercise_id: "e1", set_number: 1, reps: 8, weight_kg: 60 },
+          { id: "s4", workout_id: "w1", exercise_id: "e2", set_number: 1, reps: 8, weight_kg: 50 },
+          { id: "s5", workout_id: "w2", exercise_id: "e2", set_number: 1, reps: 8, weight_kg: 45 },
+          { id: "s6", workout_id: "w3", exercise_id: "e2", set_number: 1, reps: 8, weight_kg: 40 },
+        ],
+        error: null,
+      });
+      const exercisesBuilder = createChainableMock({
+        data: [
+          { id: "e1", name: "Cucanj" },
+          { id: "e2", name: "Benc" },
+        ],
+        error: null,
+      });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(workoutsBuilder)
+        .mockReturnValueOnce(setsBuilder)
+        .mockReturnValueOnce(exercisesBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.getStagnationSummary("p1");
+
+      expect(result.regressingExercises).toHaveLength(2);
+      expect(result.deloadRecommended).toBe(true);
     });
   });
 
