@@ -36,6 +36,13 @@ export function WorkoutLogScreen() {
       ? exercisesState.data.find((exercise) => exercise.id === selectedExerciseId)
       : undefined;
 
+  const alternativeExercises =
+    selectedExercise && exercisesState.status === "success"
+      ? selectedExercise.alternativeExerciseIds
+          .map((alternativeId) => exercisesState.data.find((e) => e.id === alternativeId))
+          .filter((exercise): exercise is (typeof exercisesState.data)[number] => Boolean(exercise))
+      : [];
+
   const repsNum = Number(reps);
   const weightNum = Number(weightKg);
   const canAddSet =
@@ -197,6 +204,26 @@ export function WorkoutLogScreen() {
               ))}
             </View>
           </ScrollView>
+        ) : null}
+
+        {alternativeExercises.length > 0 ? (
+          <View testID="workout-log-alternatives" className="gap-2">
+            <Text className="text-xs uppercase tracking-wide text-neutral-600">
+              Alternativne vezbe (ako nemas opremu)
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {alternativeExercises.map((alternative) => (
+                <Pressable
+                  key={alternative.id}
+                  testID={`workout-log-alternative-${alternative.id}`}
+                  onPress={() => setSelectedExerciseId(alternative.id)}
+                  className="rounded-md border border-info px-3 py-1.5"
+                >
+                  <Text className="text-info">{alternative.name}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
         ) : null}
 
         <View className="flex-row gap-3">

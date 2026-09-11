@@ -99,17 +99,25 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > upozorenje kada bar jedna vezba stagnira, sa linkom ka Progressive
 > Overload ekranu.
 >
-> **Faza 16 (trenutno stanje):** Deload nedelja preporuka - isti
+> **Faza 16:** Deload nedelja preporuka - isti
 > `stagnation-summary` endpoint sada dodatno prati `regressing` vezbe (ne
 > samo `stagnating`) i, kada `training.DELOAD_REGRESSING_THRESHOLD` (2)
 > ili vise vezbi istovremeno opada tri treninga zaredom, vraća
 > `deloadRecommended: true` - sistemski signal umora/preopterecenja, ne
 > samo jedna losa vezba. System Status ekran prikazuje istaknutiju Deload
 > poruku pored postojeceg stagnation upozorenja. Ovo je informativna
-> preporuka - ne menja automatski Training Plan raspored. Ostale poslovne
-> funkcije (pravi analiza/coach System AI, Class Evolution, automatske
-> zamene vežbi, Dungeons/Bosses, community/guild) dolaze u narednim
-> fazama - videti "Poznata ograničenja" ispod.
+> preporuka - ne menja automatski Training Plan raspored.
+>
+> **Faza 17 (trenutno stanje):** Zamena vezbi na ekranu za beleženje
+> treninga - `alternativeExerciseIds` je postojao u `ExerciseResponse`
+> podatku (i backend/kontraktu) od Faze 1, ali mobilni ekran ga nikad
+> nije koristio. Kada izabrana vezba ima alternative, ekran sada prikazuje
+> red chip-ova sa alternativnim vezbama (npr. ako nemaš opremu) - tap
+> odmah zamenjuje izabranu vezbu pre unosa serija. Nema promena na
+> backendu/bazi - podatak je vec postojao. Ostale poslovne funkcije (pravi
+> analiza/coach System AI, Class Evolution, Dungeons/Bosses,
+> community/guild) dolaze u narednim fazama - videti "Poznata
+> ograničenja" ispod.
 
 ## Struktura
 
@@ -284,7 +292,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 16)
+## Poznata ograničenja (Faza 17)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -311,7 +319,9 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   `stagnation-summary` preporucuje Deload nedelju kada 2+ vezbe
   istovremeno regresiraju (Faza 16, `deloadRecommended`) - ali ovo je
   samo informativna preporuka, ne i automatsko umetanje deload nedelje u
-  raspored ni automatska zamena vežbi. `target_count`/`linked_action`
+  raspored. Zamena vežbi (Faza 17) je i dalje ručna - korisnik bira
+  alternativu sa ekrana, sistem je ne bira sam (npr. na osnovu profila
+  dostupne opreme, koji ne postoji). `target_count`/`linked_action`
   Daily Quest-a se ne menjaju na osnovu plana (uvek "završi bar jedan
   trening"), samo tekst.
 - Nutrition XP je fiksan po logu (meal/water), plus jednokratan dnevni

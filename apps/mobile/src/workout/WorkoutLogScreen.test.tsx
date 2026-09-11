@@ -9,6 +9,16 @@ jest.mock("../api/use-api-client", () => ({
 
 const mockedUseApiClient = useApiClient as jest.Mock;
 
+const gobletSquat: ExerciseResponse = {
+  id: "00000000-0000-0000-0000-000000000011",
+  name: "Goblet cucanj",
+  muscleGroups: ["legs"],
+  equipment: "dumbbell",
+  difficulty: "E",
+  instructions: null,
+  alternativeExerciseIds: [],
+};
+
 const squat: ExerciseResponse = {
   id: "00000000-0000-0000-0000-000000000010",
   name: "Cucanj",
@@ -16,7 +26,7 @@ const squat: ExerciseResponse = {
   equipment: "barbell",
   difficulty: "D",
   instructions: null,
-  alternativeExerciseIds: [],
+  alternativeExerciseIds: [gobletSquat.id],
 };
 
 const logWorkoutResult: LogWorkoutResponse = {
@@ -143,6 +153,34 @@ describe("WorkoutLogScreen", () => {
     await fireEvent.press(screen.getByTestId("workout-log-add-set"));
 
     expect(screen.queryByTestId("workout-log-set-0")).toBeNull();
+  });
+
+  it("prikazuje alternativne vezbe i zamenjuje izabranu vezbu kada se tapne alternativa", async () => {
+    mockedUseApiClient.mockReturnValue({
+      listExercises: () => Promise.resolve([squat, gobletSquat]),
+      logWorkout: jest.fn(),
+    });
+
+    await render(<WorkoutLogScreen />);
+
+    await waitFor(() =>
+      expect(screen.getByTestId(`workout-log-exercise-${squat.id}`)).toBeTruthy(),
+    );
+    expect(screen.queryByTestId("workout-log-alternatives")).toBeNull();
+
+    await fireEvent.press(screen.getByTestId(`workout-log-exercise-${squat.id}`));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(`workout-log-alternative-${gobletSquat.id}`)).toBeTruthy(),
+    );
+
+    await fireEvent.press(screen.getByTestId(`workout-log-alternative-${gobletSquat.id}`));
+    await fireEvent.changeText(screen.getByTestId("workout-log-reps-input"), "10");
+    await fireEvent.changeText(screen.getByTestId("workout-log-weight-input"), "20");
+    await fireEvent.press(screen.getByTestId("workout-log-add-set"));
+
+    await waitFor(() => expect(screen.getByTestId("workout-log-set-0")).toBeTruthy());
+    expect(screen.getByText("Goblet cucanj: 10 x 20kg")).toBeTruthy();
   });
 
   it("prikazuje upozorenje kada je danas Recovery Day po Training Planu", async () => {
