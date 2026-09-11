@@ -15,7 +15,10 @@ export {
 export {
   RANK_ORDER,
   RANK_LEVEL_REQUIREMENT,
+  RANK_EXAM_COOLDOWN_HOURS,
   getNextRank,
   meetsRankExamLevelRequirement,
+  isRankExamOnCooldown,
+  rankExamCooldownRemainingHours,
   type PlayerRank,
 } from "./rank";

@@ -238,6 +238,7 @@ describe("QuestService", () => {
     it("kreira novi Rank Exam quest sa target_rank kada igrac ispunjava uslove i nema aktivan ispit", async () => {
       const playerBuilder = createChainableMock({ data: { rank: "E", level: 5 }, error: null });
       const findBuilder = createChainableMock({ data: null, error: null });
+      const cooldownBuilder = createChainableMock({ data: null, error: null });
       const bossQuestRow: QuestRow = {
         ...baseQuestRow,
         type: "boss",
@@ -248,6 +249,7 @@ describe("QuestService", () => {
         .fn()
         .mockReturnValueOnce(playerBuilder)
         .mockReturnValueOnce(findBuilder)
+        .mockReturnValueOnce(cooldownBuilder)
         .mockReturnValueOnce(insertBuilder);
       const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
       const service = new QuestService(supabase);
@@ -263,6 +265,50 @@ describe("QuestService", () => {
           target_rank: "D",
         }),
       );
+    });
+
+    it("baca BadRequestException kada je prethodni Rank Exam za isti rang istekao pre manje od 24h", async () => {
+      const playerBuilder = createChainableMock({ data: { rank: "E", level: 5 }, error: null });
+      const findBuilder = createChainableMock({ data: null, error: null });
+      const recentlyFailedAt = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const cooldownBuilder = createChainableMock({
+        data: { expires_at: recentlyFailedAt },
+        error: null,
+      });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(playerBuilder)
+        .mockReturnValueOnce(findBuilder)
+        .mockReturnValueOnce(cooldownBuilder);
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      await expect(service.generateRankExamQuest("p1")).rejects.toThrow(BadRequestException);
+    });
+
+    it("dozvoljava novi pokusaj kada je prethodni neuspeh stariji od 24h", async () => {
+      const playerBuilder = createChainableMock({ data: { rank: "E", level: 5 }, error: null });
+      const findBuilder = createChainableMock({ data: null, error: null });
+      const longAgoFailedAt = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+      const cooldownBuilder = createChainableMock({
+        data: { expires_at: longAgoFailedAt },
+        error: null,
+      });
+      const bossQuestRow: QuestRow = { ...baseQuestRow, type: "boss", target_rank: "D" };
+      const insertBuilder = createChainableMock({ data: bossQuestRow, error: null });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(playerBuilder)
+        .mockReturnValueOnce(findBuilder)
+        .mockReturnValueOnce(cooldownBuilder)
+        .mockReturnValueOnce(insertBuilder);
+      const supabase = { from, rpc: noopSweepRpc() } as unknown as SupabaseClient;
+      const service = new QuestService(supabase);
+
+      const result = await service.generateRankExamQuest("p1");
+
+      expect(result.targetRank).toBe("D");
+      expect(insertBuilder.insert).toHaveBeenCalled();
     });
   });
 

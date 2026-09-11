@@ -75,15 +75,23 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > sada prikazuje "Dnevni cilj ispunjen!" poruku, sa naznakom bonusa kada je
 > već dodeljen.
 >
-> **Faza 13 (trenutno stanje):** Recovery Day upozorenje - `POST /workouts`
+> **Faza 13:** Recovery Day upozorenje - `POST /workouts`
 > (`logWorkout`) sada proverava igračev Training Plan i, ako je danas
 > "rest" dan po rasporedu, vraća `restDayWarning: true` u odgovoru (trening
 > se i dalje uspešno beleži - PR-ovi/XP/quest progres su nepromenjeni, ovo
 > je čisto informativno upozorenje). Mobile ekran za beleženje treninga
-> prikazuje poruku o odmoru kada je to polje true. Ostale poslovne funkcije
-> (pravi analiza/coach System AI, Class Evolution, Deload nedelje, automatske
-> zamene vežbi, Dungeons/Bosses, community/guild) dolaze u narednim fazama -
-> videti "Poznata ograničenja" ispod.
+> prikazuje poruku o odmoru kada je to polje true.
+>
+> **Faza 14 (trenutno stanje):** Rank Examination cooldown - do sada je
+> neuspeo (istekao) Rank Exam mogao odmah da se ponovi bez ikakve posledice.
+> `POST /quests/rank-exam/generate` sada proverava poslednji istekli `boss`
+> quest za isti ciljni rang i, ako je istekao pre manje od 24h
+> (`gamification.RANK_EXAM_COOLDOWN_HOURS` u `packages/domain`), vraća 400
+> sa preostalim brojem sati do sledećeg pokušaja. Uspešno položen ispit
+> (status `completed`) ne broji se u cooldown - samo neuspeh (istekao rok).
+> Ostale poslovne funkcije (pravi analiza/coach System AI, Class Evolution,
+> Deload nedelje, automatske zamene vežbi, Dungeons/Bosses, community/guild)
+> dolaze u narednim fazama - videti "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -257,7 +265,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 13)
+## Poznata ograničenja (Faza 14)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -295,10 +303,10 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   prave analize/coach-a, adaptivnog prilagođavanja trening plana, ni
   notifikacija kad se stagnacija detektuje (korisnik mora sam da otvori
   Progressive Overload ekran). Rank Examination (Faza 9) je level-gated
-  "boss" quest koji promoviše `players.rank` na zavrsavanje - nema još
-  ograničenja "jedan pokušaj dnevno"/kazne za neuspeh (quest jednostavno
-  istekne posle 7 dana kao i svaki drugi, pa se novi Exam može odmah
-  ponovo zatražiti preko `fn_expire_stale_quests` sweep-a). Class ostaje
+  "boss" quest koji promoviše `players.rank` na zavrsavanje - istekne posle
+  7 dana kao i svaki drugi quest ako se ne završi na vreme, i od Faze 14
+  neuspeh nosi 24h cooldown pre sledećeg pokušaja za isti rang
+  (`RANK_EXAM_COOLDOWN_HOURS`). Class ostaje
   slobodan izbor bez ikakvih uslova (Faza 10 dodaje samo UI za postojeći
   slobodan-izbor endpoint) - prava Class Evolution (uslovljena
   statovima/rangom/dostignućima, sa mogućnošću "zaključavanja" izbora)

@@ -32,3 +32,24 @@ export function getNextRank(currentRank: PlayerRank): PlayerRank | null {
 export function meetsRankExamLevelRequirement(level: number, targetRank: PlayerRank): boolean {
   return level >= RANK_LEVEL_REQUIREMENT[targetRank];
 }
+
+/**
+ * Koliko sati posle neuspesnog (istekog) Rank Examination-a igrac mora da
+ * saceka pre nego sto moze da zatrazi novi pokusaj za isti rank - bez ovoga
+ * je "boss fight" bez ikakvih posledica za neuspeh (quest jednostavno
+ * istekne i novi se odmah moze zatraziti).
+ */
+export const RANK_EXAM_COOLDOWN_HOURS = 24;
+
+/** Da li je igrac i dalje u cooldown periodu posle isteklog Rank Examination-a za isti rank. */
+export function isRankExamOnCooldown(lastFailedExpiresAt: Date, now: Date): boolean {
+  const cooldownEndsAt = lastFailedExpiresAt.getTime() + RANK_EXAM_COOLDOWN_HOURS * 60 * 60 * 1000;
+  return now.getTime() < cooldownEndsAt;
+}
+
+/** Koliko punih sati jos ostaje do kraja cooldown-a (minimum 1, za citljivu poruku korisniku). */
+export function rankExamCooldownRemainingHours(lastFailedExpiresAt: Date, now: Date): number {
+  const cooldownEndsAt = lastFailedExpiresAt.getTime() + RANK_EXAM_COOLDOWN_HOURS * 60 * 60 * 1000;
+  const remainingMs = cooldownEndsAt - now.getTime();
+  return Math.max(1, Math.ceil(remainingMs / (60 * 60 * 1000)));
+}

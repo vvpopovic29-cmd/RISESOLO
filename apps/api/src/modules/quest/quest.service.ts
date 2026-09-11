@@ -269,6 +269,36 @@ export class QuestService {
       return mapQuestRowToResponse(existing);
     }
 
+    const { data: lastFailed, error: lastFailedError } = await this.supabase
+      .from("quests")
+      .select("expires_at")
+      .eq("player_id", playerId)
+      .eq("type", "boss")
+      .eq("target_rank", nextRank)
+      .eq("status", "expired")
+      .order("expires_at", { ascending: false })
+      .limit(1)
+      .maybeSingle<{ expires_at: string }>();
+
+    if (lastFailedError) {
+      throw new InternalServerErrorException(
+        `Provera Rank Exam cooldown-a nije uspela: ${lastFailedError.message}`,
+      );
+    }
+    if (lastFailed?.expires_at) {
+      const lastFailedExpiresAt = new Date(lastFailed.expires_at);
+      const now = new Date();
+      if (gamification.isRankExamOnCooldown(lastFailedExpiresAt, now)) {
+        const remainingHours = gamification.rankExamCooldownRemainingHours(
+          lastFailedExpiresAt,
+          now,
+        );
+        throw new BadRequestException(
+          `Prethodni Rank Examination za ${nextRank} nije polozen - sacekaj jos ${remainingHours}h pre sledeceg pokusaja.`,
+        );
+      }
+    }
+
     const expiresAt = new Date(Date.now() + RANK_EXAM_QUEST_DAYS * 24 * 60 * 60 * 1000);
 
     const created = await this.insertQuest({
