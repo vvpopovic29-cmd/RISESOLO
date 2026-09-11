@@ -54,16 +54,28 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > statu preko +1 dugmadi; Class se sada prikazuje i na System Status
 > kartici.
 >
-> **Faza 11 (trenutno stanje):** zatvorena još jedna mobilna praznina -
+> **Faza 11:** zatvorena još jedna mobilna praznina -
 > `GET /workouts` i `GET /workouts/:id` su postojali na backendu i u
 > `@risesolo/api-client`-u od Faze 2, ali korisnik do sada nije mogao da
 > vidi istoriju svojih treninga, samo da ih beleži. Novi Istorija treninga
 > ekran (`/workout/history`) prikazuje listu prošlih treninga (datum +
 > napomena); klikom na trening prikazuje se njegov detalj (serije, sa
-> nazivima vežbi razrešenim preko `useExercises()`). Ostale poslovne
-> funkcije (pravi analiza/coach System AI, Class Evolution, Dungeons/Bosses,
-> community/guild) dolaze u narednim fazama - videti "Poznata ograničenja"
-> ispod.
+> nazivima vežbi razrešenim preko `useExercises()`).
+>
+> **Faza 12 (trenutno stanje):** Nutrition dnevni cilj bonus XP - do sada
+> je Nutrition XP bio fiksan po logu (30 za obrok, 10 za vodu) bez ikakve
+> nagrade za ispunjavanje CELOG dnevnog cilja istovremeno. Novi
+> `fn_maybe_grant_nutrition_daily_bonus` (pozvan iz `fn_log_meal`/
+> `fn_log_water`) proverava da li su svi postavljeni ciljevi igrača
+> ispunjeni za taj dan (kalorije u +/- 10% tolerantnom opsegu, protein/
+> ugljeni hidrati/masti/voda kao minimumi - ista logika je duplirana i
+> testirana u `packages/domain/src/nutrition/daily-goal.ts`) i idempotentno
+> dodeljuje 100 XP (`nutrition_daily_bonuses` tabela, primary key
+> `(player_id, bonus_date)`, sprečava duplo dodeljivanje). Nutrition ekran
+> sada prikazuje "Dnevni cilj ispunjen!" poruku, sa naznakom bonusa kada je
+> već dodeljen. Ostale poslovne funkcije (pravi analiza/coach System AI,
+> Class Evolution, Dungeons/Bosses, community/guild) dolaze u narednim
+> fazama - videti "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -144,7 +156,8 @@ kroz `SECURITY DEFINER` RPC funkcije u `supabase/migrations/` (`fn_grant_xp`,
 `fn_grant_reward`, `fn_complete_daily_quest`, `fn_log_workout`,
 `fn_allocate_stat_points`, `fn_log_meal`, `fn_log_water`,
 `fn_upsert_nutrition_targets`, `fn_evaluate_achievements`,
-`fn_expire_stale_quests`, `fn_upsert_training_plan`) koje:
+`fn_expire_stale_quests`, `fn_upsert_training_plan`,
+`fn_maybe_grant_nutrition_daily_bonus`) koje:
 - atomski izračunavaju level-up (formula `XP = Level² × 100`, ista formula
   je duplirana i testirana u `packages/domain/src/gamification`),
 - su idempotentne (unique constraint na `xp_transactions`/`reward_transactions`
@@ -236,7 +249,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 11)
+## Poznata ograničenja (Faza 12)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -263,9 +276,12 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   automatske zamene vežbi. `target_count`/`linked_action` Daily Quest-a se
   ne menjaju na osnovu plana (uvek "završi bar jedan trening"), samo
   tekst.
-- Nutrition XP je fiksan po logu (meal/water), bez "dnevni cilj ispunjen"
-  bonusa (izbegnuta idempotencija-po-danu komplikacija za sada) i bez Food
-  Scanner-a (kalorije/makroi se unose ručno).
+- Nutrition XP je fiksan po logu (meal/water), plus jednokratan dnevni
+  bonus (100 XP, Faza 12) kada su svi postavljeni ciljevi ispunjeni za taj
+  dan - provera se dešava samo pri sledećem `logMeal`/`logWater` pozivu, ne
+  odmah pri promeni ciljeva (ako igrač snizi cilj posle svih logova za dan,
+  bonus se ne dodeljuje retroaktivno dok ne doda još jedan log). I dalje
+  nema Food Scanner-a (kalorije/makroi se unose ručno).
 - System AI je za sada samo jedan pravilima-vođen signal (stagnation
   detection preko poslednje 3 sesije, `training.detectStagnation`) - nema
   prave analize/coach-a, adaptivnog prilagođavanja trening plana, ni

@@ -173,6 +173,16 @@ export function NutritionScreen() {
                 : ""}
             </Text>
 
+            {summaryState.data.bonusXpGranted ? (
+              <Text testID="nutrition-daily-bonus" className="font-semibold text-success">
+                Dnevni cilj ispunjen! +100 XP bonus osvojen.
+              </Text>
+            ) : summaryState.data.dailyGoalMet ? (
+              <Text testID="nutrition-daily-goal-met" className="font-semibold text-success">
+                Dnevni cilj ispunjen!
+              </Text>
+            ) : null}
+
             {editingTargets ? (
               <View className="gap-2 pt-2">
                 <TextInput

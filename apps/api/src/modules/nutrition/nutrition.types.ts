@@ -27,3 +27,10 @@ export interface WaterLogRow {
   amount_ml: number;
   logged_at: string;
 }
+
+/** Videti supabase/migrations/..._nutrition_daily_bonus.sql. */
+export interface NutritionDailyBonusRow {
+  player_id: string;
+  bonus_date: string;
+  granted_at: string;
+}

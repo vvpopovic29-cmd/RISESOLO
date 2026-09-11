@@ -2,7 +2,12 @@ import { BadRequestException } from "@nestjs/common";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createChainableMock } from "../../test/supabase-query-builder.mock";
 import { NutritionService } from "./nutrition.service";
-import type { MealLogRow, NutritionTargetsRow, WaterLogRow } from "./nutrition.types";
+import type {
+  MealLogRow,
+  NutritionDailyBonusRow,
+  NutritionTargetsRow,
+  WaterLogRow,
+} from "./nutrition.types";
 
 const baseTargetsRow: NutritionTargetsRow = {
   player_id: "p1",
@@ -31,6 +36,12 @@ const baseWaterRow: WaterLogRow = {
   player_id: "p1",
   amount_ml: 500,
   logged_at: "2026-01-01T12:00:00.000Z",
+};
+
+const baseBonusRow: NutritionDailyBonusRow = {
+  player_id: "p1",
+  bonus_date: "2026-01-01",
+  granted_at: "2026-01-01T20:00:00.000Z",
 };
 
 describe("NutritionService", () => {
@@ -147,11 +158,13 @@ describe("NutritionService", () => {
       const mealsBuilder = createChainableMock({ data: [baseMealRow], error: null });
       const waterBuilder = createChainableMock({ data: [baseWaterRow], error: null });
       const targetsBuilder = createChainableMock({ data: baseTargetsRow, error: null });
+      const bonusBuilder = createChainableMock({ data: null, error: null });
       const from = jest
         .fn()
         .mockReturnValueOnce(mealsBuilder)
         .mockReturnValueOnce(waterBuilder)
-        .mockReturnValueOnce(targetsBuilder);
+        .mockReturnValueOnce(targetsBuilder)
+        .mockReturnValueOnce(bonusBuilder);
       const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
       const service = new NutritionService(supabase);
 
@@ -164,6 +177,36 @@ describe("NutritionService", () => {
       expect(result.targets.calorieTarget).toBe(2400);
       expect(result.meals).toHaveLength(1);
       expect(result.waterLogs).toHaveLength(1);
+      expect(result.dailyGoalMet).toBe(false);
+      expect(result.bonusXpGranted).toBe(false);
+    });
+
+    it("dailyGoalMet je true kada su svi ciljevi ispunjeni", async () => {
+      const bigMeal: MealLogRow = {
+        ...baseMealRow,
+        calories: 2400,
+        protein_g: 180,
+        carbs_g: 250,
+        fat_g: 70,
+      };
+      const bigWater: WaterLogRow = { ...baseWaterRow, amount_ml: 2500 };
+      const mealsBuilder = createChainableMock({ data: [bigMeal], error: null });
+      const waterBuilder = createChainableMock({ data: [bigWater], error: null });
+      const targetsBuilder = createChainableMock({ data: baseTargetsRow, error: null });
+      const bonusBuilder = createChainableMock({ data: baseBonusRow, error: null });
+      const from = jest
+        .fn()
+        .mockReturnValueOnce(mealsBuilder)
+        .mockReturnValueOnce(waterBuilder)
+        .mockReturnValueOnce(targetsBuilder)
+        .mockReturnValueOnce(bonusBuilder);
+      const supabase = { from, rpc: jest.fn() } as unknown as SupabaseClient;
+      const service = new NutritionService(supabase);
+
+      const result = await service.getDailySummary("p1", "2026-01-01");
+
+      expect(result.dailyGoalMet).toBe(true);
+      expect(result.bonusXpGranted).toBe(true);
     });
   });
 });

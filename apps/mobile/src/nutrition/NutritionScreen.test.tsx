@@ -29,6 +29,8 @@ const baseSummary: NutritionDailySummary = {
   },
   meals: [],
   waterLogs: [],
+  dailyGoalMet: false,
+  bonusXpGranted: false,
 };
 
 const mealLogResult: MealLogResponse = {
@@ -166,5 +168,27 @@ describe("NutritionScreen", () => {
       }),
     );
     await waitFor(() => expect(getNutritionSummary).toHaveBeenCalledTimes(2));
+  });
+
+  it("prikazuje bonus poruku kada je dnevni cilj ispunjen i bonus XP dodeljen", async () => {
+    mockedUseApiClient.mockReturnValue({
+      getNutritionSummary: () =>
+        Promise.resolve({ ...baseSummary, dailyGoalMet: true, bonusXpGranted: true }),
+    });
+
+    await render(<NutritionScreen />);
+
+    await waitFor(() => expect(screen.getByTestId("nutrition-daily-bonus")).toBeTruthy());
+  });
+
+  it("prikazuje poruku o ispunjenom cilju bez pominjanja bonusa kada bonus jos nije dodeljen", async () => {
+    mockedUseApiClient.mockReturnValue({
+      getNutritionSummary: () =>
+        Promise.resolve({ ...baseSummary, dailyGoalMet: true, bonusXpGranted: false }),
+    });
+
+    await render(<NutritionScreen />);
+
+    await waitFor(() => expect(screen.getByTestId("nutrition-daily-goal-met")).toBeTruthy());
   });
 });

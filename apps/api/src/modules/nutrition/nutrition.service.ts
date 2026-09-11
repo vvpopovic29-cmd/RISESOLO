@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { nutrition } from "@risesolo/domain";
 import type {
   LogMealInput,
   LogWaterInput,
@@ -20,7 +21,12 @@ import {
   mapNutritionTargetsRowToResponse,
   mapWaterLogRowToResponse,
 } from "./nutrition.mapper";
-import type { MealLogRow, NutritionTargetsRow, WaterLogRow } from "./nutrition.types";
+import type {
+  MealLogRow,
+  NutritionDailyBonusRow,
+  NutritionTargetsRow,
+  WaterLogRow,
+} from "./nutrition.types";
 
 @Injectable()
 export class NutritionService {
@@ -135,16 +141,39 @@ export class NutritionService {
     const mealRows = meals ?? [];
     const waterRows = waterLogs ?? [];
 
+    const totals = {
+      calories: mealRows.reduce((sum, meal) => sum + meal.calories, 0),
+      proteinG: mealRows.reduce((sum, meal) => sum + meal.protein_g, 0),
+      carbsG: mealRows.reduce((sum, meal) => sum + meal.carbs_g, 0),
+      fatG: mealRows.reduce((sum, meal) => sum + meal.fat_g, 0),
+      waterMl: waterRows.reduce((sum, log) => sum + log.amount_ml, 0),
+    };
+
+    const { data: bonusRow, error: bonusError } = await this.supabase
+      .from("nutrition_daily_bonuses")
+      .select("*")
+      .eq("player_id", playerId)
+      .eq("bonus_date", dateKey)
+      .maybeSingle<NutritionDailyBonusRow>();
+
+    if (bonusError) {
+      throw new InternalServerErrorException(
+        `Ucitavanje dnevnog bonusa nije uspelo: ${bonusError.message}`,
+      );
+    }
+
     return {
       date: dateKey,
-      totalCalories: mealRows.reduce((sum, meal) => sum + meal.calories, 0),
-      totalProteinG: mealRows.reduce((sum, meal) => sum + meal.protein_g, 0),
-      totalCarbsG: mealRows.reduce((sum, meal) => sum + meal.carbs_g, 0),
-      totalFatG: mealRows.reduce((sum, meal) => sum + meal.fat_g, 0),
-      totalWaterMl: waterRows.reduce((sum, log) => sum + log.amount_ml, 0),
+      totalCalories: totals.calories,
+      totalProteinG: totals.proteinG,
+      totalCarbsG: totals.carbsG,
+      totalFatG: totals.fatG,
+      totalWaterMl: totals.waterMl,
       targets,
       meals: mealRows.map(mapMealLogRowToResponse),
       waterLogs: waterRows.map(mapWaterLogRowToResponse),
+      dailyGoalMet: nutrition.isNutritionDailyGoalMet(totals, targets),
+      bonusXpGranted: bonusRow !== null,
     };
   }
 }

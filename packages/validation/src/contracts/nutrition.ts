@@ -69,5 +69,9 @@ export const nutritionDailySummarySchema = z.object({
   targets: nutritionTargetsSchema,
   meals: z.array(mealLogResponseSchema),
   waterLogs: z.array(waterLogResponseSchema),
+  /** Da li su SVI postavljeni ciljevi ispunjeni za ovaj dan (false ako igrac nema nijedan postavljen cilj). */
+  dailyGoalMet: z.boolean(),
+  /** Da li je bonus XP (100) vec dodeljen za ovaj dan - proverava se pri svakom logMeal/logWater pozivu, ne pri ovom GET-u. */
+  bonusXpGranted: z.boolean(),
 });
 export type NutritionDailySummary = z.infer<typeof nutritionDailySummarySchema>;
