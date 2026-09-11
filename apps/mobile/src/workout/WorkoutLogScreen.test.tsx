@@ -54,9 +54,11 @@ describe("WorkoutLogScreen", () => {
 
   it("dodaje set i salje trening kada su podaci validni", async () => {
     const logWorkout = jest.fn().mockResolvedValue(logWorkoutResult);
+    const evaluateAchievements = jest.fn().mockResolvedValue([]);
     mockedUseApiClient.mockReturnValue({
       listExercises: () => Promise.resolve([squat]),
       logWorkout,
+      evaluateAchievements,
     });
 
     await render(<WorkoutLogScreen />);
@@ -82,6 +84,46 @@ describe("WorkoutLogScreen", () => {
     );
     await waitFor(() => expect(screen.getByTestId("workout-log-result")).toBeTruthy());
     expect(screen.getByText(/1 novi licni rekord/)).toBeTruthy();
+    await waitFor(() => expect(evaluateAchievements).toHaveBeenCalled());
+  });
+
+  it("prikazuje novootkljucane achievement-e posle uspesnog treninga", async () => {
+    const logWorkout = jest.fn().mockResolvedValue(logWorkoutResult);
+    const evaluateAchievements = jest.fn().mockResolvedValue([
+      {
+        id: "00000000-0000-0000-0000-000000000040",
+        code: "first_workout",
+        title: "Prvi korak",
+        description: "Zabelezi svoj prvi trening.",
+        category: "training",
+        requirementType: "workout_count",
+        requirementValue: 1,
+        xpReward: 50,
+        coinReward: 10,
+        unlocked: true,
+        unlockedAt: "2026-01-05T10:00:00.000Z",
+      },
+    ]);
+    mockedUseApiClient.mockReturnValue({
+      listExercises: () => Promise.resolve([squat]),
+      logWorkout,
+      evaluateAchievements,
+    });
+
+    await render(<WorkoutLogScreen />);
+
+    await waitFor(() =>
+      expect(screen.getByTestId(`workout-log-exercise-${squat.id}`)).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByTestId(`workout-log-exercise-${squat.id}`));
+    await fireEvent.changeText(screen.getByTestId("workout-log-reps-input"), "5");
+    await fireEvent.changeText(screen.getByTestId("workout-log-weight-input"), "100");
+    await fireEvent.press(screen.getByTestId("workout-log-add-set"));
+    await waitFor(() => expect(screen.getByTestId("workout-log-set-0")).toBeTruthy());
+    await fireEvent.press(screen.getByTestId("workout-log-submit"));
+
+    await waitFor(() => expect(screen.getByTestId("workout-log-new-achievements")).toBeTruthy());
+    expect(screen.getByText("Prvi korak")).toBeTruthy();
   });
 
   it("ne dozvoljava dodavanje seta bez izabrane vezbe ili validnog unosa", async () => {

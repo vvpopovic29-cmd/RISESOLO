@@ -58,4 +58,12 @@ export {
   nutritionDailySummarySchema,
   type NutritionDailySummary,
 } from "./contracts/nutrition";
+export {
+  achievementCategorySchema,
+  type AchievementCategory,
+  achievementRequirementTypeSchema,
+  type AchievementRequirementType,
+  achievementResponseSchema,
+  type AchievementResponse,
+} from "./contracts/achievement";
 export { z } from "zod";

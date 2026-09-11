@@ -53,6 +53,25 @@ export default function HomeScreen() {
           </Link>
         </View>
 
+        <View className="w-full max-w-sm flex-row gap-3">
+          <Link href="/achievements" asChild>
+            <Pressable
+              testID="nav-achievements"
+              className="flex-1 items-center rounded-md bg-premium px-4 py-3"
+            >
+              <Text className="font-semibold text-neutral-50">Achievements</Text>
+            </Pressable>
+          </Link>
+          <Link href="/exercise/progress" asChild>
+            <Pressable
+              testID="nav-exercise-progress"
+              className="flex-1 items-center rounded-md bg-reward px-4 py-3"
+            >
+              <Text className="font-semibold text-neutral-50">Progres</Text>
+            </Pressable>
+          </Link>
+        </View>
+
         <View className="flex-row gap-3">
           <Pressable
             onPress={toggleColorScheme}

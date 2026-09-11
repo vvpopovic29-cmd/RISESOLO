@@ -10,6 +10,7 @@ import {
   mealLogResponseSchema,
   waterLogResponseSchema,
   nutritionDailySummarySchema,
+  achievementResponseSchema,
   z,
   type HealthResponse,
   type PlayerResponse,
@@ -29,6 +30,7 @@ import {
   type LogWaterInput,
   type WaterLogResponse,
   type NutritionDailySummary,
+  type AchievementResponse,
 } from "@risesolo/validation";
 
 export interface ApiClientConfig {
@@ -188,6 +190,16 @@ export function createApiClient(config: ApiClientConfig) {
     },
     async getNutritionSummary(date?: string): Promise<NutritionDailySummary> {
       return request("/nutrition/summary", nutritionDailySummarySchema, { query: { date } });
+    },
+
+    // --- Achievements -----------------------------------------------------
+    async listAchievements(): Promise<AchievementResponse[]> {
+      return request("/achievements", z.array(achievementResponseSchema));
+    },
+    async evaluateAchievements(): Promise<AchievementResponse[]> {
+      return request("/achievements/evaluate", z.array(achievementResponseSchema), {
+        method: "POST",
+      });
     },
   };
 }

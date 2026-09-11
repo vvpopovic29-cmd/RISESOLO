@@ -194,4 +194,44 @@ describe("createApiClient", () => {
     expect(JSON.parse(capturedBody)).toEqual(input);
     expect(result.workoutId).toBe("00000000-0000-0000-0000-000000000002");
   });
+
+  it("listAchievements() vraca parsiranu listu", async () => {
+    const achievement = {
+      id: "00000000-0000-0000-0000-000000000003",
+      code: "first_workout",
+      title: "Prvi korak",
+      description: "Zabelezi svoj prvi trening.",
+      category: "training",
+      requirementType: "workout_count",
+      requirementValue: 1,
+      xpReward: 50,
+      coinReward: 10,
+      unlocked: false,
+      unlockedAt: null,
+    };
+    const client = createApiClient({
+      baseUrl: "http://localhost:3000",
+      fetchImpl: mockFetch([achievement]),
+    });
+
+    const result = await client.listAchievements();
+    expect(result).toEqual([achievement]);
+  });
+
+  it("evaluateAchievements() salje POST bez tela i validira odgovor", async () => {
+    let capturedMethod = "";
+    let capturedBody: unknown;
+    const fetchSpy: typeof fetch = (async (_url, init) => {
+      capturedMethod = init?.method ?? "";
+      capturedBody = init?.body;
+      return { ok: true, status: 200, json: async () => [] } as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const client = createApiClient({ baseUrl: "http://localhost:3000", fetchImpl: fetchSpy });
+    const result = await client.evaluateAchievements();
+
+    expect(capturedMethod).toBe("POST");
+    expect(capturedBody).toBeUndefined();
+    expect(result).toEqual([]);
+  });
 });

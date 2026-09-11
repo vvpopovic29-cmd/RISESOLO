@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import type { LogWorkoutInput } from "@risesolo/validation";
+import { useEvaluateAchievements } from "../achievement/use-evaluate-achievements";
 import { useExercises } from "../exercise/use-exercises";
 import { useLogWorkout } from "./use-log-workout";
 
@@ -19,6 +20,11 @@ interface DraftSet {
 export function WorkoutLogScreen() {
   const { state: exercisesState, refetch: refetchExercises } = useExercises();
   const { state: logState, submit, reset } = useLogWorkout();
+  const {
+    state: achievementsState,
+    evaluate: evaluateAchievements,
+    reset: resetAchievementsState,
+  } = useEvaluateAchievements();
 
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
   const [reps, setReps] = useState("");
@@ -77,10 +83,19 @@ export function WorkoutLogScreen() {
   function logAnother() {
     setSets([]);
     reset();
+    resetAchievementsState();
   }
+
+  useEffect(() => {
+    if (logState.status === "success") {
+      evaluateAchievements();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pokretanje samo na prelazak u "success", ne na svaku promenu evaluateAchievements reference
+  }, [logState.status]);
 
   if (logState.status === "success") {
     const result = logState.data;
+    const newlyUnlocked = achievementsState.status === "success" ? achievementsState.data : [];
     return (
       <View
         testID="workout-log-result"
@@ -99,6 +114,16 @@ export function WorkoutLogScreen() {
             {result.newPersonalRecords.map((pr) => (
               <Text key={`${pr.exerciseId}-${pr.weightKg}-${pr.reps}`} className="text-neutral-600">
                 {pr.weightKg}kg x {pr.reps}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+        {newlyUnlocked.length > 0 ? (
+          <View testID="workout-log-new-achievements" className="items-center gap-1">
+            <Text className="font-semibold text-premium">Novi Achievement!</Text>
+            {newlyUnlocked.map((achievement) => (
+              <Text key={achievement.id} className="text-neutral-600">
+                {achievement.title}
               </Text>
             ))}
           </View>
