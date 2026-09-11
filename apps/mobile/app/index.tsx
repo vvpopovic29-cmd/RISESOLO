@@ -125,6 +125,17 @@ export default function HomeScreen() {
           </Link>
         </View>
 
+        <View className="w-full max-w-sm flex-row gap-3">
+          <Link href="/workout/history" asChild>
+            <Pressable
+              testID="nav-workout-history"
+              className="flex-1 items-center rounded-md bg-accent px-4 py-3"
+            >
+              <Text className="font-semibold text-neutral-50">Istorija treninga</Text>
+            </Pressable>
+          </Link>
+        </View>
+
         <View className="flex-row gap-3">
           <Pressable
             onPress={toggleColorScheme}

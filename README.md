@@ -46,15 +46,24 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > `boss`) - kada ga završi (3 treninga u 7 dana, isti auto-progres
 > mehanizam kao svaki drugi `workout`-povezan quest), rang mu se promoviše.
 >
-> **Faza 10 (trenutno stanje):** zatvorena prava mobilna praznina - `PATCH
+> **Faza 10:** zatvorena prava mobilna praznina - `PATCH
 > /players/me` (ime/Class) i `POST /players/me/stat-points/allocate`
 > (trošenje Stat Points) su postojali na backendu od Faze 2, ali ih do sada
 > nijedan mobilni ekran nije pozivao. Novi Profil ekran (`/player-profile`)
 > pokriva oba: bira ime i Class preko chip-ova, i dodeljuje Stat Points po
 > statu preko +1 dugmadi; Class se sada prikazuje i na System Status
-> kartici. Ostale poslovne funkcije (pravi analiza/coach System AI, Class
-> Evolution, Dungeons/Bosses, community/guild) dolaze u narednim fazama -
-> videti "Poznata ograničenja" ispod.
+> kartici.
+>
+> **Faza 11 (trenutno stanje):** zatvorena još jedna mobilna praznina -
+> `GET /workouts` i `GET /workouts/:id` su postojali na backendu i u
+> `@risesolo/api-client`-u od Faze 2, ali korisnik do sada nije mogao da
+> vidi istoriju svojih treninga, samo da ih beleži. Novi Istorija treninga
+> ekran (`/workout/history`) prikazuje listu prošlih treninga (datum +
+> napomena); klikom na trening prikazuje se njegov detalj (serije, sa
+> nazivima vežbi razrešenim preko `useExercises()`). Ostale poslovne
+> funkcije (pravi analiza/coach System AI, Class Evolution, Dungeons/Bosses,
+> community/guild) dolaze u narednim fazama - videti "Poznata ograničenja"
+> ispod.
 
 ## Struktura
 
@@ -227,7 +236,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 10)
+## Poznata ograničenja (Faza 11)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -277,10 +286,12 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   UI-a za administraciju kataloga (dodavanje novih achievement-a ide kroz
   migraciju, ne kroz admin ekran) niti push notifikacija na otključavanje
   (samo in-app prikaz posle `logWorkout`, i na `/achievements` ekranu).
-- Mobile pokriva: System Status (Player + Daily Quest), workout logging
-  (`/workout/log`), Nutrition (`/nutrition`), Achievements (`/achievements`)
-  i Progressive Overload grafikon (`/exercise/progress`). Nema još
-  Training Plans ekrana (nema backend podrška ni za to, videti gore).
+- Mobile pokriva: System Status (Player + Daily/Weekly/Side/Rank Exam Quest
+  karte), workout logging (`/workout/log`) i istorija treninga
+  (`/workout/history`), Nutrition (`/nutrition`), Achievements
+  (`/achievements`), Progressive Overload grafikon (`/exercise/progress`),
+  Training Plan (`/training-plan`) i Profil (`/player-profile`, Class +
+  Stat Points).
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
   JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
   i nije deo ovog pipeline-a. `@react-native-async-storage/async-storage`
