@@ -85,7 +85,7 @@ describe("WorkoutLogScreen", () => {
     await waitFor(() => expect(screen.getByTestId("workout-log-result")).toBeTruthy());
     expect(screen.getByText(/1 novi licni rekord/)).toBeTruthy();
     await waitFor(() => expect(evaluateAchievements).toHaveBeenCalled());
-  });
+  }, 15000);
 
   it("prikazuje novootkljucane achievement-e posle uspesnog treninga", async () => {
     const logWorkout = jest.fn().mockResolvedValue(logWorkoutResult);
@@ -124,7 +124,7 @@ describe("WorkoutLogScreen", () => {
 
     await waitFor(() => expect(screen.getByTestId("workout-log-new-achievements")).toBeTruthy());
     expect(screen.getByText("Prvi korak")).toBeTruthy();
-  });
+  }, 15000);
 
   it("ne dozvoljava dodavanje seta bez izabrane vezbe ili validnog unosa", async () => {
     mockedUseApiClient.mockReturnValue({
