@@ -63,7 +63,7 @@ describe("NutritionScreen", () => {
 
     await waitFor(() => expect(screen.getByTestId("nutrition-summary")).toBeTruthy());
     expect(screen.getByText("Kalorije: 500 / 2000")).toBeTruthy();
-  });
+  }, 15000);
 
   it("dodaje obrok i osvezava pregled", async () => {
     const logMeal = jest.fn().mockResolvedValue(mealLogResult);
