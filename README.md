@@ -62,7 +62,7 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > napomena); klikom na trening prikazuje se njegov detalj (serije, sa
 > nazivima vežbi razrešenim preko `useExercises()`).
 >
-> **Faza 12 (trenutno stanje):** Nutrition dnevni cilj bonus XP - do sada
+> **Faza 12:** Nutrition dnevni cilj bonus XP - do sada
 > je Nutrition XP bio fiksan po logu (30 za obrok, 10 za vodu) bez ikakve
 > nagrade za ispunjavanje CELOG dnevnog cilja istovremeno. Novi
 > `fn_maybe_grant_nutrition_daily_bonus` (pozvan iz `fn_log_meal`/
@@ -73,9 +73,17 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > dodeljuje 100 XP (`nutrition_daily_bonuses` tabela, primary key
 > `(player_id, bonus_date)`, sprečava duplo dodeljivanje). Nutrition ekran
 > sada prikazuje "Dnevni cilj ispunjen!" poruku, sa naznakom bonusa kada je
-> već dodeljen. Ostale poslovne funkcije (pravi analiza/coach System AI,
-> Class Evolution, Dungeons/Bosses, community/guild) dolaze u narednim
-> fazama - videti "Poznata ograničenja" ispod.
+> već dodeljen.
+>
+> **Faza 13 (trenutno stanje):** Recovery Day upozorenje - `POST /workouts`
+> (`logWorkout`) sada proverava igračev Training Plan i, ako je danas
+> "rest" dan po rasporedu, vraća `restDayWarning: true` u odgovoru (trening
+> se i dalje uspešno beleži - PR-ovi/XP/quest progres su nepromenjeni, ovo
+> je čisto informativno upozorenje). Mobile ekran za beleženje treninga
+> prikazuje poruku o odmoru kada je to polje true. Ostale poslovne funkcije
+> (pravi analiza/coach System AI, Class Evolution, Deload nedelje, automatske
+> zamene vežbi, Dungeons/Bosses, community/guild) dolaze u narednim fazama -
+> videti "Poznata ograničenja" ispod.
 
 ## Struktura
 
@@ -249,7 +257,7 @@ ekran (`app/index.tsx`, Player status + Daily Quest karte).
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 12)
+## Poznata ograničenja (Faza 13)
 
 - Nema Prisma/Redis/BullMQ/Socket.IO konekcije - `DATABASE_URL`/`REDIS_URL`
   ostaju u env semi radi predvidljivog oblika; stvarna baza je Supabase
@@ -270,12 +278,12 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   i pravi System AI generator questova dolaze u kasnijim fazama (videti
   `packages/domain/README.md`).
 - Training Plans (Faza 7-8) pokrivaju split izbor + generisan 7-dnevni
-  raspored (`GET`/`PUT /training-plan`), i Daily Quest sada prati današnji
-  fokus iz plana u naslovu/opisu (Faza 8) - i dalje nema Recovery Day logike
-  (npr. upozorenje ako se trenira na "rest" dan), Deload nedelje, ni
-  automatske zamene vežbi. `target_count`/`linked_action` Daily Quest-a se
-  ne menjaju na osnovu plana (uvek "završi bar jedan trening"), samo
-  tekst.
+  raspored (`GET`/`PUT /training-plan`), Daily Quest sada prati današnji
+  fokus iz plana u naslovu/opisu (Faza 8), i `logWorkout` upozorava (ne
+  blokira) kada se trenira na "rest" dan (Faza 13, `restDayWarning`) -
+  i dalje nema Deload nedelja ni automatske zamene vežbi.
+  `target_count`/`linked_action` Daily Quest-a se ne menjaju na osnovu
+  plana (uvek "završi bar jedan trening"), samo tekst.
 - Nutrition XP je fiksan po logu (meal/water), plus jednokratan dnevni
   bonus (100 XP, Faza 12) kada su svi postavljeni ciljevi ispunjeni za taj
   dan - provera se dešava samo pri sledećem `logMeal`/`logWater` pozivu, ne

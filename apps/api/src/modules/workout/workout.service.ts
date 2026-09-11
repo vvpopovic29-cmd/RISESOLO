@@ -8,6 +8,7 @@ import {
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { training } from "@risesolo/domain";
 import type {
+  DayFocus,
   ExerciseProgressResponse,
   ExerciseProgressSession,
   ExerciseResponse,
@@ -167,7 +168,34 @@ export class WorkoutService {
       throw new BadRequestException(`Beleženje treninga nije uspelo: ${error.message}`);
     }
 
-    return mapLogWorkoutResult(data as LogWorkoutRpcResult);
+    const restDayWarning = await this.isTodayRestDay(playerId);
+
+    return mapLogWorkoutResult(data as LogWorkoutRpcResult, restDayWarning);
+  }
+
+  /**
+   * Cita igracev Training Plan (ako postoji) i proverava da li je danasnji
+   * fokus 'rest' - isti obrazac citanja kao QuestService.getTodaysPlannedFocus,
+   * samo ovde 'rest' je sam signal koji nas zanima (ne kolapsira se u null).
+   */
+  private async isTodayRestDay(playerId: string): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from("training_plans")
+      .select("schedule")
+      .eq("player_id", playerId)
+      .maybeSingle<{ schedule: DayFocus[] }>();
+
+    if (error) {
+      throw new InternalServerErrorException(
+        `Ucitavanje training plana nije uspelo: ${error.message}`,
+      );
+    }
+    if (!data) {
+      return false;
+    }
+
+    const todayIndex = (new Date().getUTCDay() + 6) % 7;
+    return data.schedule[todayIndex] === "rest";
   }
 
   async listWorkouts(playerId: string): Promise<WorkoutResponse[]> {

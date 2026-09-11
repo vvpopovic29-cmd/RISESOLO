@@ -45,6 +45,7 @@ const logWorkoutResult: LogWorkoutResponse = {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
+  restDayWarning: false,
 };
 
 describe("WorkoutLogScreen", () => {
@@ -143,6 +144,30 @@ describe("WorkoutLogScreen", () => {
 
     expect(screen.queryByTestId("workout-log-set-0")).toBeNull();
   });
+
+  it("prikazuje upozorenje kada je danas Recovery Day po Training Planu", async () => {
+    const logWorkout = jest.fn().mockResolvedValue({ ...logWorkoutResult, restDayWarning: true });
+    const evaluateAchievements = jest.fn().mockResolvedValue([]);
+    mockedUseApiClient.mockReturnValue({
+      listExercises: () => Promise.resolve([squat]),
+      logWorkout,
+      evaluateAchievements,
+    });
+
+    await render(<WorkoutLogScreen />);
+
+    await waitFor(() =>
+      expect(screen.getByTestId(`workout-log-exercise-${squat.id}`)).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByTestId(`workout-log-exercise-${squat.id}`));
+    await fireEvent.changeText(screen.getByTestId("workout-log-reps-input"), "5");
+    await fireEvent.changeText(screen.getByTestId("workout-log-weight-input"), "100");
+    await fireEvent.press(screen.getByTestId("workout-log-add-set"));
+    await waitFor(() => expect(screen.getByTestId("workout-log-set-0")).toBeTruthy());
+    await fireEvent.press(screen.getByTestId("workout-log-submit"));
+
+    await waitFor(() => expect(screen.getByTestId("workout-log-rest-day-warning")).toBeTruthy());
+  }, 15000);
 
   it("prikazuje gresku kada slanje treninga ne uspe", async () => {
     const logWorkout = jest.fn().mockRejectedValue(new Error("network"));

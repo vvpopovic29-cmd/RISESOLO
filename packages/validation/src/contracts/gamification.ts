@@ -182,6 +182,8 @@ export const logWorkoutResponseSchema = z.object({
   personalRecordsCount: z.number().int().min(0),
   newPersonalRecords: z.array(newPersonalRecordSchema),
   player: playerResponseSchema,
+  /** True ako igrac ima Training Plan i danas je 'rest' dan po rasporedu - trening je i dalje uspesno zabelezen, ovo je samo informativno upozorenje. */
+  restDayWarning: z.boolean(),
 });
 export type LogWorkoutResponse = z.infer<typeof logWorkoutResponseSchema>;
 

@@ -175,7 +175,11 @@ describe("WorkoutService", () => {
         player: basePlayerRow,
       };
       const rpc = jest.fn().mockResolvedValue({ data: rpcResult, error: null });
-      const supabase = { from: jest.fn(), rpc } as unknown as SupabaseClient;
+      const planBuilder = createChainableMock({ data: null, error: null });
+      const supabase = {
+        from: jest.fn(() => planBuilder),
+        rpc,
+      } as unknown as SupabaseClient;
       const service = new WorkoutService(supabase);
 
       const result = await service.logWorkout("p1", {
@@ -192,6 +196,7 @@ describe("WorkoutService", () => {
       expect(result.personalRecordsCount).toBe(1);
       expect(result.newPersonalRecords).toEqual([{ exerciseId: "e1", weightKg: 65, reps: 8 }]);
       expect(result.player.displayName).toBe("Vukasin");
+      expect(result.restDayWarning).toBe(false);
     });
 
     it("baca BadRequestException kada RPC vrati gresku (npr. nevalidan set)", async () => {
@@ -204,6 +209,31 @@ describe("WorkoutService", () => {
       await expect(
         service.logWorkout("p1", { sets: [{ exerciseId: "e1", reps: 8, weightKg: 65 }] }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it("restDayWarning je true kada igracev Training Plan kaze da je danas 'rest'", async () => {
+      const rpcResult: LogWorkoutRpcResult = {
+        workout_id: "w1",
+        personal_records_count: 0,
+        new_personal_records: [],
+        player: basePlayerRow,
+      };
+      const rpc = jest.fn().mockResolvedValue({ data: rpcResult, error: null });
+      const todayIndex = (new Date().getUTCDay() + 6) % 7;
+      const schedule = Array(7).fill("push");
+      schedule[todayIndex] = "rest";
+      const planBuilder = createChainableMock({ data: { schedule }, error: null });
+      const supabase = {
+        from: jest.fn(() => planBuilder),
+        rpc,
+      } as unknown as SupabaseClient;
+      const service = new WorkoutService(supabase);
+
+      const result = await service.logWorkout("p1", {
+        sets: [{ exerciseId: "e1", reps: 8, weightKg: 65 }],
+      });
+
+      expect(result.restDayWarning).toBe(true);
     });
   });
 

@@ -105,6 +105,12 @@ export function WorkoutLogScreen() {
         <Text className="text-neutral-600">
           Level {result.player.level} - {result.player.xp} XP
         </Text>
+        {result.restDayWarning ? (
+          <Text testID="workout-log-rest-day-warning" className="text-center text-warning">
+            Danas je Recovery Day po tvom Training Planu - trening je zabelezen, ali razmisli o
+            odmoru za bolji oporavak.
+          </Text>
+        ) : null}
         {result.personalRecordsCount > 0 ? (
           <View className="items-center gap-1">
             <Text className="font-semibold text-reward">

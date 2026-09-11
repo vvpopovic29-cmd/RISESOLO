@@ -32,7 +32,10 @@ export function mapWorkoutRowToResponse(row: WorkoutRow, sets?: WorkoutSetRow[])
   };
 }
 
-export function mapLogWorkoutResult(result: LogWorkoutRpcResult): LogWorkoutResponse {
+export function mapLogWorkoutResult(
+  result: LogWorkoutRpcResult,
+  restDayWarning: boolean,
+): LogWorkoutResponse {
   return {
     workoutId: result.workout_id,
     personalRecordsCount: result.personal_records_count,
@@ -42,5 +45,6 @@ export function mapLogWorkoutResult(result: LogWorkoutRpcResult): LogWorkoutResp
       reps: pr.reps,
     })),
     player: mapPlayerRowToResponse(result.player),
+    restDayWarning,
   };
 }

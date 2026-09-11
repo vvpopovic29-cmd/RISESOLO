@@ -160,6 +160,7 @@ describe("createApiClient", () => {
           workoutId: "00000000-0000-0000-0000-000000000002",
           personalRecordsCount: 0,
           newPersonalRecords: [],
+          restDayWarning: false,
           player: {
             id: "00000000-0000-0000-0000-000000000001",
             displayName: "Vukasin",
