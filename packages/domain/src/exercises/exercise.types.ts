@@ -8,22 +8,10 @@ export type ExerciseLibrary = "CALISTHENICS" | "GYM";
 export type ExerciseDifficulty = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
 export type ExerciseCategory =
-  | "CHEST"
-  | "BACK"
-  | "SHOULDERS"
-  | "ARMS"
-  | "LEGS"
-  | "CORE"
-  | "FULL_BODY";
+  "CHEST" | "BACK" | "SHOULDERS" | "ARMS" | "LEGS" | "CORE" | "FULL_BODY";
 
 export type ExerciseSubcategory =
-  | "BICEPS"
-  | "TRICEPS"
-  | "QUADRICEPS"
-  | "HAMSTRINGS"
-  | "GLUTES"
-  | "CALVES"
-  | null;
+  "BICEPS" | "TRICEPS" | "QUADRICEPS" | "HAMSTRINGS" | "GLUTES" | "CALVES" | null;
 
 export type MovementPattern =
   | "PUSH"
