@@ -98,3 +98,19 @@ export {
   type WorkoutTemplate,
   type WorkoutTemplateExercise,
 } from "./workouts";
+
+export { calculateCoinsForXp, COINS_PER_XP } from "./rewards";
+
+export {
+  computeDisplayedStreak,
+  createInitialStreak,
+  updateStreakForActivity,
+  type StreakState,
+} from "./streaks";
+
+export {
+  completeWorkout,
+  type CompleteWorkoutInput,
+  type CompletionOutcome,
+  type QuestUpdateOutcome,
+} from "./completion";
