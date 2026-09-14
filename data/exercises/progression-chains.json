@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "chains": [
+    {
+      "id": "push-up-progression",
+      "name": "Push-Up Progression",
+      "category": "CHEST",
+      "steps": [
+        "cal-chest-incline-push-up",
+        "cal-chest-knee-push-up",
+        "cal-chest-standard-push-up",
+        "cal-chest-diamond-push-up",
+        "cal-chest-decline-push-up",
+        "cal-chest-archer-push-up",
+        "cal-chest-pseudo-planche-push-up",
+        "cal-chest-one-arm-push-up",
+        "cal-chest-planche-push-up"
+      ]
+    }
+  ]
+}

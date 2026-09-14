@@ -1,0 +1,574 @@
+{
+  "version": 1,
+  "count": 8,
+  "skill_lines": [
+    {
+      "id": "skill-line-foundations",
+      "name": "Foundations",
+      "primary_muscles": [
+        "Shoulders",
+        "Core",
+        "Grip / Forearms"
+      ],
+      "description": "Progressive skill line building toward the Foundations.",
+      "steps": [
+        {
+          "id": "skill-foundations-dead-hang",
+          "order": 1,
+          "name": "Dead Hang",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-foundations-active-hang",
+          "order": 2,
+          "name": "Active Hang",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-foundations-scapular-pull-up",
+          "order": 3,
+          "name": "Scapular Pull-Up",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-foundations-hollow-body",
+          "order": 4,
+          "name": "Hollow Body",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 50,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-foundations-arch-body",
+          "order": 5,
+          "name": "Arch Body",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 60,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-foundations-support-hold",
+          "order": 6,
+          "name": "Support Hold",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    },
+    {
+      "id": "skill-line-handstand",
+      "name": "Handstand",
+      "primary_muscles": [
+        "Shoulders",
+        "Triceps",
+        "Core"
+      ],
+      "description": "Progressive skill line building toward the Handstand.",
+      "steps": [
+        {
+          "id": "skill-handstand-wall-handstand",
+          "order": 1,
+          "name": "Wall Handstand",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "WALL",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-handstand-freestanding-handstand",
+          "order": 2,
+          "name": "Freestanding Handstand",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-handstand-handstand-shoulder-tap",
+          "order": 3,
+          "name": "Handstand Shoulder Tap",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-handstand-handstand-push-up",
+          "order": 4,
+          "name": "Handstand Push-Up",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    },
+    {
+      "id": "skill-line-l-sit",
+      "name": "L-Sit",
+      "primary_muscles": [
+        "Core",
+        "Hip Flexors",
+        "Triceps"
+      ],
+      "description": "Progressive skill line building toward the L-Sit.",
+      "steps": [
+        {
+          "id": "skill-l-sit-tuck-sit",
+          "order": 1,
+          "name": "Tuck Sit",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-l-sit-one-leg-l-sit",
+          "order": 2,
+          "name": "One-Leg L-Sit",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-l-sit-l-sit",
+          "order": 3,
+          "name": "L-Sit",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-l-sit-v-sit",
+          "order": 4,
+          "name": "V-Sit",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    },
+    {
+      "id": "skill-line-front-lever",
+      "name": "Front Lever",
+      "primary_muscles": [
+        "Lats",
+        "Core",
+        "Shoulders"
+      ],
+      "description": "Progressive skill line building toward the Front Lever.",
+      "steps": [
+        {
+          "id": "skill-front-lever-tuck-front-lever",
+          "order": 1,
+          "name": "Tuck Front Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-front-lever-advanced-tuck-front-lever",
+          "order": 2,
+          "name": "Advanced Tuck Front Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-front-lever-one-leg-front-lever",
+          "order": 3,
+          "name": "One-Leg Front Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-front-lever-straddle-front-lever",
+          "order": 4,
+          "name": "Straddle Front Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 50,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-front-lever-full-front-lever",
+          "order": 5,
+          "name": "Full Front Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    },
+    {
+      "id": "skill-line-back-lever",
+      "name": "Back Lever",
+      "primary_muscles": [
+        "Shoulders",
+        "Chest",
+        "Core"
+      ],
+      "description": "Progressive skill line building toward the Back Lever.",
+      "steps": [
+        {
+          "id": "skill-back-lever-skin-the-cat",
+          "order": 1,
+          "name": "Skin the Cat",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-back-lever-tuck-back-lever",
+          "order": 2,
+          "name": "Tuck Back Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-back-lever-advanced-tuck-back-lever",
+          "order": 3,
+          "name": "Advanced Tuck Back Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-back-lever-straddle-back-lever",
+          "order": 4,
+          "name": "Straddle Back Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 50,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-back-lever-full-back-lever",
+          "order": 5,
+          "name": "Full Back Lever",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    },
+    {
+      "id": "skill-line-planche",
+      "name": "Planche",
+      "primary_muscles": [
+        "Shoulders",
+        "Chest",
+        "Core"
+      ],
+      "description": "Progressive skill line building toward the Planche.",
+      "steps": [
+        {
+          "id": "skill-planche-planche-lean",
+          "order": 1,
+          "name": "Planche Lean",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-planche-frog-stand",
+          "order": 2,
+          "name": "Frog Stand",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-planche-tuck-planche",
+          "order": 3,
+          "name": "Tuck Planche",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-planche-advanced-tuck-planche",
+          "order": 4,
+          "name": "Advanced Tuck Planche",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 50,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-planche-straddle-planche",
+          "order": 5,
+          "name": "Straddle Planche",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 60,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-planche-full-planche",
+          "order": 6,
+          "name": "Full Planche",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    },
+    {
+      "id": "skill-line-human-flag",
+      "name": "Human Flag",
+      "primary_muscles": [
+        "Obliques",
+        "Lats",
+        "Shoulders"
+      ],
+      "description": "Progressive skill line building toward the Human Flag.",
+      "steps": [
+        {
+          "id": "skill-human-flag-vertical-flag-hold",
+          "order": 1,
+          "name": "Vertical Flag Hold",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-human-flag-tuck-flag",
+          "order": 2,
+          "name": "Tuck Flag",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-human-flag-one-leg-flag",
+          "order": 3,
+          "name": "One-Leg Flag",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-human-flag-straddle-flag",
+          "order": 4,
+          "name": "Straddle Flag",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 50,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-human-flag-full-human-flag",
+          "order": 5,
+          "name": "Full Human Flag",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    },
+    {
+      "id": "skill-line-muscle-up",
+      "name": "Muscle-Up",
+      "primary_muscles": [
+        "Lats",
+        "Chest",
+        "Triceps",
+        "Shoulders"
+      ],
+      "description": "Progressive skill line building toward the Muscle-Up.",
+      "steps": [
+        {
+          "id": "skill-muscle-up-scapular-pull-up",
+          "order": 1,
+          "name": "Scapular Pull-Up",
+          "difficulty": "BEGINNER",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 20,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-muscle-up-explosive-pull-up",
+          "order": 2,
+          "name": "Explosive Pull-Up",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 30,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-muscle-up-chest-to-bar-pull-up",
+          "order": 3,
+          "name": "Chest-to-Bar Pull-Up",
+          "difficulty": "INTERMEDIATE",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 40,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-muscle-up-band-assisted-muscle-up",
+          "order": 4,
+          "name": "Band-Assisted Muscle-Up",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "RESISTANCE_BAND"
+          ],
+          "hold_target_seconds": 50,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-muscle-up-jumping-muscle-up",
+          "order": 5,
+          "name": "Jumping Muscle-Up",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": 60,
+          "is_skill_mastery": false
+        },
+        {
+          "id": "skill-muscle-up-muscle-up",
+          "order": 6,
+          "name": "Muscle-Up",
+          "difficulty": "ADVANCED",
+          "equipment": [
+            "PULL_UP_BAR",
+            "BODYWEIGHT"
+          ],
+          "hold_target_seconds": null,
+          "is_skill_mastery": true
+        }
+      ]
+    }
+  ]
+}
