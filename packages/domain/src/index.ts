@@ -17,6 +17,21 @@ export type {
 } from "./exercises/exercise.types";
 
 export {
+  filterExercisesByAvailableEquipment,
+  filterExercisesByCategory,
+  filterExercisesByDifficulty,
+  findExerciseById,
+  findExerciseBySlug,
+  findProgressionChain,
+  findSkillLine,
+  firstSkillStep,
+  groupExercisesByCategory,
+  masterySkillStep,
+  nextSkillStep,
+  resolveProgressionChainExercises,
+} from "./exercises/query";
+
+export {
   BASE_LEVEL,
   calculateCurrentLevelXp,
   calculateLevel,
