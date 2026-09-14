@@ -75,3 +75,26 @@ export {
   type QuestStatus,
   type QuestTransitionError,
 } from "./quests";
+
+export {
+  abandonWorkoutSession,
+  completeWorkoutSession,
+  computeWorkoutSessionSummary,
+  createWorkoutTemplate,
+  getSessionExercise,
+  logSet,
+  startFreeformWorkoutSession,
+  startWorkoutSessionFromTemplate,
+  type CreateWorkoutTemplateInput,
+  type StartFreeformWorkoutSessionInput,
+  type StartWorkoutSessionFromTemplateInput,
+  type WorkoutSession,
+  type WorkoutSessionError,
+  type WorkoutSessionExercise,
+  type WorkoutSessionStatus,
+  type WorkoutSessionSummary,
+  type WorkoutSet,
+  type WorkoutSetInput,
+  type WorkoutTemplate,
+  type WorkoutTemplateExercise,
+} from "./workouts";
