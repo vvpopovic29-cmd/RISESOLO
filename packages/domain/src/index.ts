@@ -42,3 +42,21 @@ export {
   type XpGainResult,
   type XpProgress,
 } from "./progression";
+
+export {
+  completeQuest,
+  expireQuest,
+  findQuestDefinition,
+  generateDailyQuest,
+  hasExpired,
+  pickQuestDefinition,
+  QUEST_DEFINITIONS,
+  QUEST_TERMINAL_STATUSES,
+  resolveDailyQuest,
+  updateQuestProgress,
+  type DailyQuest,
+  type QuestDefinition,
+  type QuestReward,
+  type QuestStatus,
+  type QuestTransitionError,
+} from "./quests";
