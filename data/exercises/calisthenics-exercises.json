@@ -11,17 +11,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "WALL",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["WALL", "BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Wall Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -52,10 +44,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-incline-push-up",
@@ -66,16 +55,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Incline Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -106,10 +88,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-knee-push-up",
@@ -120,16 +99,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Knee Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -160,10 +132,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-standard-push-up",
@@ -174,16 +143,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Standard Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -214,10 +176,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-wide-push-up",
@@ -228,16 +187,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Wide Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -268,10 +220,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-diamond-push-up",
@@ -282,16 +231,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Diamond Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -322,10 +264,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-decline-push-up",
@@ -336,16 +275,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Decline Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -376,10 +308,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-archer-push-up",
@@ -390,16 +319,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Archer Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -430,10 +352,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-pseudo-planche-push-up",
@@ -444,16 +363,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Pseudo Planche Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -484,10 +396,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-one-arm-push-up",
@@ -498,16 +407,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the One-Arm Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -539,10 +441,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-typewriter-push-up",
@@ -553,16 +452,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Typewriter Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -594,10 +486,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-explosive-push-up",
@@ -608,16 +497,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Explosive Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -649,10 +531,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-clap-push-up",
@@ -663,16 +542,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Clap Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -704,10 +576,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-chest-planche-push-up",
@@ -718,16 +587,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Chest"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Front Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Chest"],
+      "secondary_muscles": ["Triceps", "Front Shoulders"],
       "instructions": [
         "Get into the starting position for the Planche Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -759,10 +621,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "chest",
-        "push"
-      ]
+      "tags": ["chest", "push"]
     },
     {
       "id": "cal-back-scapular-pull-up",
@@ -773,19 +632,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Scapular Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -816,10 +665,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-dead-hang",
@@ -830,19 +676,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Get into the starting position for the Dead Hang, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -873,10 +709,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "push"
-      ]
+      "tags": ["back", "push"]
     },
     {
       "id": "cal-back-australian-row",
@@ -887,19 +720,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Australian Row, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -930,10 +753,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-resistance-free-row",
@@ -944,19 +764,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Resistance-Free Row, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -987,10 +797,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-assisted-pull-up",
@@ -1001,19 +808,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Assisted Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1044,10 +841,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-pull-up",
@@ -1058,19 +852,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1101,10 +885,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-chin-up",
@@ -1115,19 +896,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Chin-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1158,10 +929,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-wide-grip-pull-up",
@@ -1172,19 +940,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Wide-Grip Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1215,10 +973,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-close-grip-pull-up",
@@ -1229,19 +984,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Close-Grip Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1272,10 +1017,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-neutral-grip-pull-up",
@@ -1286,19 +1028,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Neutral-Grip Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1329,10 +1061,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-commando-pull-up",
@@ -1343,19 +1072,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Commando Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1386,10 +1105,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-archer-pull-up",
@@ -1400,19 +1116,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Archer Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1444,10 +1150,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-typewriter-pull-up",
@@ -1458,19 +1161,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Typewriter Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1502,10 +1195,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-chest-to-bar-pull-up",
@@ -1516,19 +1206,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Chest-to-Bar Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1560,10 +1240,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-explosive-pull-up",
@@ -1574,19 +1251,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the Explosive Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1618,10 +1285,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-back-muscle-up",
@@ -1632,19 +1296,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Get into the starting position for the Muscle-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -1676,10 +1330,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "push"
-      ]
+      "tags": ["back", "push"]
     },
     {
       "id": "cal-back-one-arm-pull-up",
@@ -1690,19 +1341,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Lats",
-        "Upper Back"
-      ],
-      "secondary_muscles": [
-        "Biceps",
-        "Rear Shoulders",
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Lats", "Upper Back"],
+      "secondary_muscles": ["Biceps", "Rear Shoulders", "Forearms"],
       "instructions": [
         "Set up in the starting position for the One-Arm Pull-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -1734,10 +1375,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "back",
-        "pull"
-      ]
+      "tags": ["back", "pull"]
     },
     {
       "id": "cal-shoulders-pike-hold",
@@ -1748,17 +1386,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Pike Hold, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -1789,10 +1419,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-incline-pike-push-up",
@@ -1803,17 +1430,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Incline Pike Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -1844,10 +1463,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-pike-push-up",
@@ -1858,17 +1474,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Pike Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -1899,10 +1507,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-scapular-push-up",
@@ -1913,17 +1518,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Scapular Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -1954,10 +1551,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-elevated-pike-push-up",
@@ -1968,17 +1562,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Elevated Pike Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2009,10 +1595,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-wall-handstand-hold",
@@ -2023,18 +1606,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "WALL",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["WALL", "BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Wall Handstand Hold, prioritizing control over range of motion.",
         "Engage your Shoulders and full-body tension before committing to the hold or movement.",
@@ -2065,10 +1639,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "shoulders",
-        "skill-isometric"
-      ]
+      "tags": ["shoulders", "skill-isometric"]
     },
     {
       "id": "cal-shoulders-wall-handstand-push-up",
@@ -2079,18 +1650,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "WALL",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["WALL", "BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Wall Handstand Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2121,10 +1683,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-handstand",
@@ -2135,17 +1694,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Handstand, prioritizing control over range of motion.",
         "Engage your Shoulders and full-body tension before committing to the hold or movement.",
@@ -2176,10 +1727,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "shoulders",
-        "skill-isometric"
-      ]
+      "tags": ["shoulders", "skill-isometric"]
     },
     {
       "id": "cal-shoulders-freestanding-handstand-push-up",
@@ -2190,17 +1738,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Freestanding Handstand Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2232,10 +1772,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-deficit-handstand-push-up",
@@ -2246,17 +1783,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Deficit Handstand Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2288,10 +1817,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-handstand-push-up",
@@ -2302,17 +1828,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Get into the starting position for the Handstand Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2344,10 +1862,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "push",
-        "shoulders"
-      ]
+      "tags": ["push", "shoulders"]
     },
     {
       "id": "cal-shoulders-planche-lean",
@@ -2358,17 +1873,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Planche Lean, prioritizing control over range of motion.",
         "Engage your Shoulders and full-body tension before committing to the hold or movement.",
@@ -2400,10 +1907,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "shoulders",
-        "skill-isometric"
-      ]
+      "tags": ["shoulders", "skill-isometric"]
     },
     {
       "id": "cal-shoulders-full-planche",
@@ -2414,17 +1918,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Shoulders"
-      ],
-      "secondary_muscles": [
-        "Triceps",
-        "Upper Back",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Shoulders"],
+      "secondary_muscles": ["Triceps", "Upper Back", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Full Planche, prioritizing control over range of motion.",
         "Engage your Shoulders and full-body tension before committing to the hold or movement.",
@@ -2456,10 +1952,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "shoulders",
-        "skill-isometric"
-      ]
+      "tags": ["shoulders", "skill-isometric"]
     },
     {
       "id": "cal-arms-australian-chin-up",
@@ -2470,16 +1963,9 @@
       "subcategory": "BICEPS",
       "movement_pattern": "PULL",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Biceps"
-      ],
-      "secondary_muscles": [
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Biceps"],
+      "secondary_muscles": ["Forearms"],
       "instructions": [
         "Set up in the starting position for the Australian Chin-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -2510,31 +1996,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "biceps",
-        "pull"
-      ]
+      "tags": ["arms", "biceps", "pull"]
     },
     {
       "id": "cal-arms-chin-up",
       "name": "Chin-Up",
-      "slug": "chin-up",
+      "slug": "chin-up-2",
       "library": "CALISTHENICS",
       "category": "ARMS",
       "subcategory": "BICEPS",
       "movement_pattern": "PULL",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Biceps"
-      ],
-      "secondary_muscles": [
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Biceps"],
+      "secondary_muscles": ["Forearms"],
       "instructions": [
         "Set up in the starting position for the Chin-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -2565,11 +2040,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "biceps",
-        "pull"
-      ]
+      "tags": ["arms", "biceps", "pull"]
     },
     {
       "id": "cal-arms-close-grip-chin-up",
@@ -2580,16 +2051,9 @@
       "subcategory": "BICEPS",
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Biceps"
-      ],
-      "secondary_muscles": [
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Biceps"],
+      "secondary_muscles": ["Forearms"],
       "instructions": [
         "Set up in the starting position for the Close-Grip Chin-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -2620,11 +2084,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "biceps",
-        "pull"
-      ]
+      "tags": ["arms", "biceps", "pull"]
     },
     {
       "id": "cal-arms-archer-chin-up",
@@ -2635,16 +2095,9 @@
       "subcategory": "BICEPS",
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Biceps"
-      ],
-      "secondary_muscles": [
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Biceps"],
+      "secondary_muscles": ["Forearms"],
       "instructions": [
         "Set up in the starting position for the Archer Chin-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -2676,11 +2129,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "biceps",
-        "pull"
-      ]
+      "tags": ["arms", "biceps", "pull"]
     },
     {
       "id": "cal-arms-one-arm-chin-up",
@@ -2691,16 +2140,9 @@
       "subcategory": "BICEPS",
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Biceps"
-      ],
-      "secondary_muscles": [
-        "Forearms"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Biceps"],
+      "secondary_muscles": ["Forearms"],
       "instructions": [
         "Set up in the starting position for the One-Arm Chin-Up, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -2732,11 +2174,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "biceps",
-        "pull"
-      ]
+      "tags": ["arms", "biceps", "pull"]
     },
     {
       "id": "cal-arms-bench-dip",
@@ -2747,17 +2185,9 @@
       "subcategory": "TRICEPS",
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BENCH",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Triceps"
-      ],
-      "secondary_muscles": [
-        "Chest",
-        "Shoulders"
-      ],
+      "equipment": ["BENCH", "BODYWEIGHT"],
+      "primary_muscles": ["Triceps"],
+      "secondary_muscles": ["Chest", "Shoulders"],
       "instructions": [
         "Get into the starting position for the Bench Dip, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2788,11 +2218,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "push",
-        "triceps"
-      ]
+      "tags": ["arms", "push", "triceps"]
     },
     {
       "id": "cal-arms-parallel-bar-dip",
@@ -2803,17 +2229,9 @@
       "subcategory": "TRICEPS",
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "DIP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Triceps"
-      ],
-      "secondary_muscles": [
-        "Chest",
-        "Shoulders"
-      ],
+      "equipment": ["DIP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Triceps"],
+      "secondary_muscles": ["Chest", "Shoulders"],
       "instructions": [
         "Get into the starting position for the Parallel Bar Dip, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2844,11 +2262,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "push",
-        "triceps"
-      ]
+      "tags": ["arms", "push", "triceps"]
     },
     {
       "id": "cal-arms-straight-bar-dip",
@@ -2859,17 +2273,9 @@
       "subcategory": "TRICEPS",
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "DIP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Triceps"
-      ],
-      "secondary_muscles": [
-        "Chest",
-        "Shoulders"
-      ],
+      "equipment": ["DIP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Triceps"],
+      "secondary_muscles": ["Chest", "Shoulders"],
       "instructions": [
         "Get into the starting position for the Straight Bar Dip, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2900,11 +2306,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "push",
-        "triceps"
-      ]
+      "tags": ["arms", "push", "triceps"]
     },
     {
       "id": "cal-arms-korean-dip",
@@ -2915,17 +2317,9 @@
       "subcategory": "TRICEPS",
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "DIP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Triceps"
-      ],
-      "secondary_muscles": [
-        "Chest",
-        "Shoulders"
-      ],
+      "equipment": ["DIP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Triceps"],
+      "secondary_muscles": ["Chest", "Shoulders"],
       "instructions": [
         "Get into the starting position for the Korean Dip, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -2957,31 +2351,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "push",
-        "triceps"
-      ]
+      "tags": ["arms", "push", "triceps"]
     },
     {
       "id": "cal-arms-diamond-push-up",
       "name": "Diamond Push-Up",
-      "slug": "diamond-push-up",
+      "slug": "diamond-push-up-2",
       "library": "CALISTHENICS",
       "category": "ARMS",
       "subcategory": "TRICEPS",
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Triceps"
-      ],
-      "secondary_muscles": [
-        "Chest",
-        "Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Triceps"],
+      "secondary_muscles": ["Chest", "Shoulders"],
       "instructions": [
         "Get into the starting position for the Diamond Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -3012,11 +2395,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "push",
-        "triceps"
-      ]
+      "tags": ["arms", "push", "triceps"]
     },
     {
       "id": "cal-arms-tiger-bend-push-up",
@@ -3027,16 +2406,9 @@
       "subcategory": "TRICEPS",
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Triceps"
-      ],
-      "secondary_muscles": [
-        "Chest",
-        "Shoulders"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Triceps"],
+      "secondary_muscles": ["Chest", "Shoulders"],
       "instructions": [
         "Get into the starting position for the Tiger Bend Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -3068,11 +2440,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "push",
-        "triceps"
-      ]
+      "tags": ["arms", "push", "triceps"]
     },
     {
       "id": "cal-arms-impossible-dip",
@@ -3083,17 +2451,9 @@
       "subcategory": "TRICEPS",
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "DIP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Triceps"
-      ],
-      "secondary_muscles": [
-        "Chest",
-        "Shoulders"
-      ],
+      "equipment": ["DIP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Triceps"],
+      "secondary_muscles": ["Chest", "Shoulders"],
       "instructions": [
         "Get into the starting position for the Impossible Dip, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -3125,11 +2485,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "arms",
-        "push",
-        "triceps"
-      ]
+      "tags": ["arms", "push", "triceps"]
     },
     {
       "id": "cal-legs-bodyweight-squat",
@@ -3140,16 +2496,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "SQUAT",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Bodyweight Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -3180,11 +2529,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "quadriceps",
-        "squat"
-      ]
+      "tags": ["legs", "quadriceps", "squat"]
     },
     {
       "id": "cal-legs-narrow-squat",
@@ -3195,16 +2540,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "PULL",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Set up in the starting position for the Narrow Squat, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -3235,11 +2573,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "pull",
-        "quadriceps"
-      ]
+      "tags": ["legs", "pull", "quadriceps"]
     },
     {
       "id": "cal-legs-split-squat",
@@ -3250,16 +2584,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "SQUAT",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Split Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -3290,11 +2617,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "quadriceps",
-        "squat"
-      ]
+      "tags": ["legs", "quadriceps", "squat"]
     },
     {
       "id": "cal-legs-reverse-lunge",
@@ -3305,16 +2628,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "SQUAT",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Reverse Lunge calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -3345,11 +2661,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "quadriceps",
-        "squat"
-      ]
+      "tags": ["legs", "quadriceps", "squat"]
     },
     {
       "id": "cal-legs-walking-lunge",
@@ -3360,16 +2672,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "SQUAT",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Walking Lunge calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -3400,11 +2705,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "quadriceps",
-        "squat"
-      ]
+      "tags": ["legs", "quadriceps", "squat"]
     },
     {
       "id": "cal-legs-bulgarian-split-squat",
@@ -3415,16 +2716,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "SQUAT",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Bulgarian Split Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -3456,11 +2750,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "quadriceps",
-        "squat"
-      ]
+      "tags": ["legs", "quadriceps", "squat"]
     },
     {
       "id": "cal-legs-assisted-pistol-squat",
@@ -3471,16 +2761,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "SQUAT",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Assisted Pistol Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -3512,11 +2795,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "quadriceps",
-        "squat"
-      ]
+      "tags": ["legs", "quadriceps", "squat"]
     },
     {
       "id": "cal-legs-pistol-squat",
@@ -3527,16 +2806,9 @@
       "subcategory": "QUADRICEPS",
       "movement_pattern": "SQUAT",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Quadriceps"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Quadriceps"],
+      "secondary_muscles": ["Glutes", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Pistol Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -3568,11 +2840,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "legs",
-        "quadriceps",
-        "squat"
-      ]
+      "tags": ["legs", "quadriceps", "squat"]
     },
     {
       "id": "cal-legs-glute-bridge",
@@ -3583,16 +2851,9 @@
       "subcategory": "HAMSTRINGS",
       "movement_pattern": "HINGE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Hamstrings"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Hamstrings"],
+      "secondary_muscles": ["Glutes", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Glute Bridge with a neutral spine and a soft bend in the knees.",
         "Hinge at the hips, pushing them back while keeping the weight (or bodyweight) close to your body.",
@@ -3623,11 +2884,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "hamstrings",
-        "hinge",
-        "legs"
-      ]
+      "tags": ["hamstrings", "hinge", "legs"]
     },
     {
       "id": "cal-legs-single-leg-glute-bridge",
@@ -3638,16 +2895,9 @@
       "subcategory": "HAMSTRINGS",
       "movement_pattern": "HINGE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Hamstrings"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Hamstrings"],
+      "secondary_muscles": ["Glutes", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Single-Leg Glute Bridge with a neutral spine and a soft bend in the knees.",
         "Hinge at the hips, pushing them back while keeping the weight (or bodyweight) close to your body.",
@@ -3678,11 +2928,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "hamstrings",
-        "hinge",
-        "legs"
-      ]
+      "tags": ["hamstrings", "hinge", "legs"]
     },
     {
       "id": "cal-legs-hamstring-walkout",
@@ -3693,16 +2939,9 @@
       "subcategory": "HAMSTRINGS",
       "movement_pattern": "PUSH",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Hamstrings"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Hamstrings"],
+      "secondary_muscles": ["Glutes", "Lower Back"],
       "instructions": [
         "Get into the starting position for the Hamstring Walkout, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -3733,11 +2972,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "hamstrings",
-        "legs",
-        "push"
-      ]
+      "tags": ["hamstrings", "legs", "push"]
     },
     {
       "id": "cal-legs-nordic-curl-progression",
@@ -3748,16 +2983,9 @@
       "subcategory": "HAMSTRINGS",
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Hamstrings"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Hamstrings"],
+      "secondary_muscles": ["Glutes", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Nordic Curl Progression, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -3789,11 +3017,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "hamstrings",
-        "legs",
-        "pull"
-      ]
+      "tags": ["hamstrings", "legs", "pull"]
     },
     {
       "id": "cal-legs-nordic-hamstring-curl",
@@ -3804,16 +3028,9 @@
       "subcategory": "HAMSTRINGS",
       "movement_pattern": "PULL",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Hamstrings"
-      ],
-      "secondary_muscles": [
-        "Glutes",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Hamstrings"],
+      "secondary_muscles": ["Glutes", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Nordic Hamstring Curl, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -3845,31 +3062,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "hamstrings",
-        "legs",
-        "pull"
-      ]
+      "tags": ["hamstrings", "legs", "pull"]
     },
     {
       "id": "cal-legs-glute-bridge-2",
       "name": "Glute Bridge",
-      "slug": "glute-bridge",
+      "slug": "glute-bridge-2",
       "library": "CALISTHENICS",
       "category": "LEGS",
       "subcategory": "GLUTES",
       "movement_pattern": "HINGE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Glutes"
-      ],
-      "secondary_muscles": [
-        "Hamstrings",
-        "Quadriceps"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Glutes"],
+      "secondary_muscles": ["Hamstrings", "Quadriceps"],
       "instructions": [
         "Set up in the starting position for the Glute Bridge with a neutral spine and a soft bend in the knees.",
         "Hinge at the hips, pushing them back while keeping the weight (or bodyweight) close to your body.",
@@ -3900,31 +3106,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "glutes",
-        "hinge",
-        "legs"
-      ]
+      "tags": ["glutes", "hinge", "legs"]
     },
     {
       "id": "cal-legs-single-leg-glute-bridge-2",
       "name": "Single-Leg Glute Bridge",
-      "slug": "single-leg-glute-bridge",
+      "slug": "single-leg-glute-bridge-2",
       "library": "CALISTHENICS",
       "category": "LEGS",
       "subcategory": "GLUTES",
       "movement_pattern": "HINGE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Glutes"
-      ],
-      "secondary_muscles": [
-        "Hamstrings",
-        "Quadriceps"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Glutes"],
+      "secondary_muscles": ["Hamstrings", "Quadriceps"],
       "instructions": [
         "Set up in the starting position for the Single-Leg Glute Bridge with a neutral spine and a soft bend in the knees.",
         "Hinge at the hips, pushing them back while keeping the weight (or bodyweight) close to your body.",
@@ -3955,11 +3150,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "glutes",
-        "hinge",
-        "legs"
-      ]
+      "tags": ["glutes", "hinge", "legs"]
     },
     {
       "id": "cal-legs-hip-thrust",
@@ -3970,16 +3161,9 @@
       "subcategory": "GLUTES",
       "movement_pattern": "HINGE",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Glutes"
-      ],
-      "secondary_muscles": [
-        "Hamstrings",
-        "Quadriceps"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Glutes"],
+      "secondary_muscles": ["Hamstrings", "Quadriceps"],
       "instructions": [
         "Set up in the starting position for the Hip Thrust with a neutral spine and a soft bend in the knees.",
         "Hinge at the hips, pushing them back while keeping the weight (or bodyweight) close to your body.",
@@ -4010,31 +3194,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "glutes",
-        "hinge",
-        "legs"
-      ]
+      "tags": ["glutes", "hinge", "legs"]
     },
     {
       "id": "cal-legs-bulgarian-split-squat-2",
       "name": "Bulgarian Split Squat",
-      "slug": "bulgarian-split-squat",
+      "slug": "bulgarian-split-squat-2",
       "library": "CALISTHENICS",
       "category": "LEGS",
       "subcategory": "GLUTES",
       "movement_pattern": "SQUAT",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Glutes"
-      ],
-      "secondary_muscles": [
-        "Hamstrings",
-        "Quadriceps"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Glutes"],
+      "secondary_muscles": ["Hamstrings", "Quadriceps"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Bulgarian Split Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -4065,11 +3238,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "glutes",
-        "legs",
-        "squat"
-      ]
+      "tags": ["glutes", "legs", "squat"]
     },
     {
       "id": "cal-legs-step-up",
@@ -4080,16 +3249,9 @@
       "subcategory": "GLUTES",
       "movement_pattern": "SQUAT",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Glutes"
-      ],
-      "secondary_muscles": [
-        "Hamstrings",
-        "Quadriceps"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Glutes"],
+      "secondary_muscles": ["Hamstrings", "Quadriceps"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Step-Up calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -4121,11 +3283,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "glutes",
-        "legs",
-        "squat"
-      ]
+      "tags": ["glutes", "legs", "squat"]
     },
     {
       "id": "cal-legs-single-leg-hip-thrust",
@@ -4136,16 +3294,9 @@
       "subcategory": "GLUTES",
       "movement_pattern": "HINGE",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Glutes"
-      ],
-      "secondary_muscles": [
-        "Hamstrings",
-        "Quadriceps"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Glutes"],
+      "secondary_muscles": ["Hamstrings", "Quadriceps"],
       "instructions": [
         "Set up in the starting position for the Single-Leg Hip Thrust with a neutral spine and a soft bend in the knees.",
         "Hinge at the hips, pushing them back while keeping the weight (or bodyweight) close to your body.",
@@ -4177,11 +3328,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "glutes",
-        "hinge",
-        "legs"
-      ]
+      "tags": ["glutes", "hinge", "legs"]
     },
     {
       "id": "cal-legs-standing-calf-raise",
@@ -4192,12 +3339,8 @@
       "subcategory": "CALVES",
       "movement_pattern": "CORE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Calves"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Calves"],
       "secondary_muscles": [],
       "instructions": [
         "Set up in the starting position for the Standing Calf Raise, ensuring your spine is in a neutral, supported position.",
@@ -4229,11 +3372,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "calves",
-        "core",
-        "legs"
-      ]
+      "tags": ["calves", "core", "legs"]
     },
     {
       "id": "cal-legs-single-leg-calf-raise",
@@ -4244,12 +3383,8 @@
       "subcategory": "CALVES",
       "movement_pattern": "CORE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Calves"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Calves"],
       "secondary_muscles": [],
       "instructions": [
         "Set up in the starting position for the Single-Leg Calf Raise, ensuring your spine is in a neutral, supported position.",
@@ -4281,11 +3416,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "calves",
-        "core",
-        "legs"
-      ]
+      "tags": ["calves", "core", "legs"]
     },
     {
       "id": "cal-legs-jump-rope",
@@ -4296,13 +3427,8 @@
       "subcategory": "CALVES",
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "CABLE",
-        "JUMP_ROPE"
-      ],
-      "primary_muscles": [
-        "Calves"
-      ],
+      "equipment": ["CABLE", "JUMP_ROPE"],
+      "primary_muscles": ["Calves"],
       "secondary_muscles": [],
       "instructions": [
         "Set up in the starting position for the Jump Rope.",
@@ -4334,11 +3460,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "calves",
-        "full-body-conditioning",
-        "legs"
-      ]
+      "tags": ["calves", "full-body-conditioning", "legs"]
     },
     {
       "id": "cal-legs-calf-pulses",
@@ -4349,12 +3471,8 @@
       "subcategory": "CALVES",
       "movement_pattern": "ISOLATION",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Calves"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Calves"],
       "secondary_muscles": [],
       "instructions": [
         "Set up in the starting position for the Calf Pulses.",
@@ -4385,11 +3503,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "calves",
-        "isolation",
-        "legs"
-      ]
+      "tags": ["calves", "isolation", "legs"]
     },
     {
       "id": "cal-legs-explosive-calf-raise",
@@ -4400,12 +3514,8 @@
       "subcategory": "CALVES",
       "movement_pattern": "CORE",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Calves"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Calves"],
       "secondary_muscles": [],
       "instructions": [
         "Set up in the starting position for the Explosive Calf Raise, ensuring your spine is in a neutral, supported position.",
@@ -4438,11 +3548,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "calves",
-        "core",
-        "legs"
-      ]
+      "tags": ["calves", "core", "legs"]
     },
     {
       "id": "cal-core-dead-bug",
@@ -4453,17 +3559,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Dead Bug, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4494,9 +3592,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-bird-dog",
@@ -4507,17 +3603,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Bird Dog, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4548,9 +3636,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-plank",
@@ -4561,17 +3647,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Plank, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4602,9 +3680,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-side-plank",
@@ -4615,17 +3691,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Side Plank, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4656,9 +3724,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-knee-tuck",
@@ -4669,17 +3735,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Get into the starting position for the Knee Tuck, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -4710,10 +3768,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core",
-        "push"
-      ]
+      "tags": ["core", "push"]
     },
     {
       "id": "cal-core-mountain-climber",
@@ -4724,17 +3779,9 @@
       "subcategory": null,
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Mountain Climber.",
         "Move through each phase of the movement with control, keeping the core braced throughout.",
@@ -4765,10 +3812,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core",
-        "full-body-conditioning"
-      ]
+      "tags": ["core", "full-body-conditioning"]
     },
     {
       "id": "cal-core-reverse-crunch",
@@ -4779,17 +3823,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Reverse Crunch, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4820,9 +3856,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-leg-raise",
@@ -4833,17 +3867,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Leg Raise, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4874,9 +3900,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-hanging-knee-raise",
@@ -4887,18 +3911,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Hanging Knee Raise, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4929,9 +3944,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-hollow-body-hold",
@@ -4942,17 +3955,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Hollow Body Hold, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -4983,9 +3988,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-l-sit-tuck",
@@ -4996,17 +3999,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the L-Sit Tuck, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -5037,9 +4032,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-hanging-leg-raise",
@@ -5050,18 +4043,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Hanging Leg Raise, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -5093,9 +4077,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-toes-to-bar",
@@ -5106,18 +4088,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Toes-to-Bar, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -5149,9 +4122,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-v-sit",
@@ -5162,17 +4133,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the V-Sit, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -5204,9 +4167,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-l-sit",
@@ -5217,17 +4178,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the L-Sit, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -5259,9 +4212,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-dragon-flag",
@@ -5272,17 +4223,9 @@
       "subcategory": null,
       "movement_pattern": "CORE",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up in the starting position for the Dragon Flag, ensuring your spine is in a neutral, supported position.",
         "Engage your Abs and brace as if about to be tapped in the stomach.",
@@ -5314,9 +4257,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core"
-      ]
+      "tags": ["core"]
     },
     {
       "id": "cal-core-front-lever-tuck",
@@ -5327,18 +4268,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up carefully in the entry position for the Front Lever Tuck, prioritizing control over range of motion.",
         "Engage your Abs and full-body tension before committing to the hold or movement.",
@@ -5370,10 +4302,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core",
-        "skill-isometric"
-      ]
+      "tags": ["core", "skill-isometric"]
     },
     {
       "id": "cal-core-front-lever",
@@ -5384,18 +4313,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Abs"
-      ],
-      "secondary_muscles": [
-        "Obliques",
-        "Hip Flexors",
-        "Lower Back"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Abs"],
+      "secondary_muscles": ["Obliques", "Hip Flexors", "Lower Back"],
       "instructions": [
         "Set up carefully in the entry position for the Front Lever, prioritizing control over range of motion.",
         "Engage your Abs and full-body tension before committing to the hold or movement.",
@@ -5427,30 +4347,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "core",
-        "skill-isometric"
-      ]
+      "tags": ["core", "skill-isometric"]
     },
     {
       "id": "cal-full-body-bodyweight-squat",
       "name": "Bodyweight Squat",
-      "slug": "bodyweight-squat",
+      "slug": "bodyweight-squat-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "SQUAT",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Bodyweight Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -5481,10 +4391,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "squat"
-      ]
+      "tags": ["full-body", "squat"]
     },
     {
       "id": "cal-full-body-push-up",
@@ -5495,16 +4402,9 @@
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Get into the starting position for the Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -5535,30 +4435,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "push"
-      ]
+      "tags": ["full-body", "push"]
     },
     {
       "id": "cal-full-body-reverse-lunge",
       "name": "Reverse Lunge",
-      "slug": "reverse-lunge",
+      "slug": "reverse-lunge-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "SQUAT",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Reverse Lunge calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -5589,30 +4479,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "squat"
-      ]
+      "tags": ["full-body", "squat"]
     },
     {
       "id": "cal-full-body-mountain-climber",
       "name": "Mountain Climber",
-      "slug": "mountain-climber",
+      "slug": "mountain-climber-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up in the starting position for the Mountain Climber.",
         "Move through each phase of the movement with control, keeping the core braced throughout.",
@@ -5643,10 +4523,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "full-body-conditioning"
-      ]
+      "tags": ["full-body", "full-body-conditioning"]
     },
     {
       "id": "cal-full-body-bear-crawl",
@@ -5657,16 +4534,9 @@
       "subcategory": null,
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "BEGINNER",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up in the starting position for the Bear Crawl.",
         "Move through each phase of the movement with control, keeping the core braced throughout.",
@@ -5697,10 +4567,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "full-body-conditioning"
-      ]
+      "tags": ["full-body", "full-body-conditioning"]
     },
     {
       "id": "cal-full-body-burpee",
@@ -5711,16 +4578,9 @@
       "subcategory": null,
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up in the starting position for the Burpee.",
         "Move through each phase of the movement with control, keeping the core braced throughout.",
@@ -5751,10 +4611,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "full-body-conditioning"
-      ]
+      "tags": ["full-body", "full-body-conditioning"]
     },
     {
       "id": "cal-full-body-jump-squat",
@@ -5765,16 +4622,9 @@
       "subcategory": null,
       "movement_pattern": "SQUAT",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Jump Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -5805,10 +4655,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "squat"
-      ]
+      "tags": ["full-body", "squat"]
     },
     {
       "id": "cal-full-body-broad-jump",
@@ -5819,16 +4666,9 @@
       "subcategory": null,
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up in the starting position for the Broad Jump.",
         "Move through each phase of the movement with control, keeping the core braced throughout.",
@@ -5859,30 +4699,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "full-body-conditioning"
-      ]
+      "tags": ["full-body", "full-body-conditioning"]
     },
     {
       "id": "cal-full-body-bear-crawl-2",
       "name": "Bear Crawl",
-      "slug": "bear-crawl",
+      "slug": "bear-crawl-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up in the starting position for the Bear Crawl.",
         "Move through each phase of the movement with control, keeping the core braced throughout.",
@@ -5913,10 +4743,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "full-body-conditioning"
-      ]
+      "tags": ["full-body", "full-body-conditioning"]
     },
     {
       "id": "cal-full-body-crab-walk",
@@ -5927,16 +4754,9 @@
       "subcategory": null,
       "movement_pattern": "FULL_BODY_CONDITIONING",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up in the starting position for the Crab Walk.",
         "Move through each phase of the movement with control, keeping the core braced throughout.",
@@ -5967,10 +4787,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "full-body-conditioning"
-      ]
+      "tags": ["full-body", "full-body-conditioning"]
     },
     {
       "id": "cal-full-body-pull-up-knee-raise",
@@ -5981,17 +4798,9 @@
       "subcategory": null,
       "movement_pattern": "PULL",
       "difficulty": "INTERMEDIATE",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up in the starting position for the Pull-Up + Knee Raise, gripping the bar/handle/dumbbell with a firm, neutral wrist.",
         "Initiate the movement by pulling your shoulder blades down and together before bending the elbows.",
@@ -6022,31 +4831,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "pull"
-      ]
+      "tags": ["full-body", "pull"]
     },
     {
       "id": "cal-full-body-muscle-up",
       "name": "Muscle-Up",
-      "slug": "muscle-up",
+      "slug": "muscle-up-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Get into the starting position for the Muscle-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -6078,30 +4876,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "push"
-      ]
+      "tags": ["full-body", "push"]
     },
     {
       "id": "cal-full-body-handstand-push-up",
       "name": "Handstand Push-Up",
-      "slug": "handstand-push-up",
+      "slug": "handstand-push-up-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Get into the starting position for the Handstand Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -6133,30 +4921,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "push"
-      ]
+      "tags": ["full-body", "push"]
     },
     {
       "id": "cal-full-body-pistol-squat",
       "name": "Pistol Squat",
-      "slug": "pistol-squat",
+      "slug": "pistol-squat-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "SQUAT",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Stand with feet roughly shoulder-width apart (or in the split/staggered stance the Pistol Squat calls for).",
         "Brace your core and begin the movement by pushing your hips back and bending the knees.",
@@ -6188,10 +4966,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "squat"
-      ]
+      "tags": ["full-body", "squat"]
     },
     {
       "id": "cal-full-body-human-flag",
@@ -6202,17 +4977,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Human Flag, prioritizing control over range of motion.",
         "Engage your target muscles and full-body tension before committing to the hold or movement.",
@@ -6244,31 +5011,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "skill-isometric"
-      ]
+      "tags": ["full-body", "skill-isometric"]
     },
     {
       "id": "cal-full-body-front-lever",
       "name": "Front Lever",
-      "slug": "front-lever",
+      "slug": "front-lever-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Front Lever, prioritizing control over range of motion.",
         "Engage your target muscles and full-body tension before committing to the hold or movement.",
@@ -6300,10 +5056,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "skill-isometric"
-      ]
+      "tags": ["full-body", "skill-isometric"]
     },
     {
       "id": "cal-full-body-back-lever",
@@ -6314,17 +5067,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "PULL_UP_BAR",
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["PULL_UP_BAR", "BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Back Lever, prioritizing control over range of motion.",
         "Engage your target muscles and full-body tension before committing to the hold or movement.",
@@ -6356,10 +5101,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "skill-isometric"
-      ]
+      "tags": ["full-body", "skill-isometric"]
     },
     {
       "id": "cal-full-body-planche",
@@ -6370,16 +5112,9 @@
       "subcategory": null,
       "movement_pattern": "SKILL_ISOMETRIC",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Set up carefully in the entry position for the Planche, prioritizing control over range of motion.",
         "Engage your target muscles and full-body tension before committing to the hold or movement.",
@@ -6411,30 +5146,20 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "skill-isometric"
-      ]
+      "tags": ["full-body", "skill-isometric"]
     },
     {
       "id": "cal-full-body-one-arm-push-up",
       "name": "One-Arm Push-Up",
-      "slug": "one-arm-push-up",
+      "slug": "one-arm-push-up-2",
       "library": "CALISTHENICS",
       "category": "FULL_BODY",
       "subcategory": null,
       "movement_pattern": "PUSH",
       "difficulty": "ADVANCED",
-      "equipment": [
-        "BODYWEIGHT"
-      ],
-      "primary_muscles": [
-        "Full Body"
-      ],
-      "secondary_muscles": [
-        "Cardiovascular System",
-        "Core"
-      ],
+      "equipment": ["BODYWEIGHT"],
+      "primary_muscles": ["Full Body"],
+      "secondary_muscles": ["Cardiovascular System", "Core"],
       "instructions": [
         "Get into the starting position for the One-Arm Push-Up, hands (or handles) set at shoulder width unless the variation calls for a wider or narrower grip.",
         "Brace your core and keep a straight line from head to heels (or hips, if kneeling/seated).",
@@ -6466,10 +5191,7 @@
         "video_url": null,
         "gif_url": null
       },
-      "tags": [
-        "full-body",
-        "push"
-      ]
+      "tags": ["full-body", "push"]
     }
   ]
 }

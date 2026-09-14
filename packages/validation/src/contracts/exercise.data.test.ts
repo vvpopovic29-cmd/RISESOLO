@@ -70,6 +70,20 @@ describe("data/exercises/*.json ispunjava ugovor", () => {
     expect(new Set(allIds).size).toBe(allIds.length);
   });
 
+  it("svi exercise slug-ovi (calisthenics + gym) su jedinstveni (DB kolona ima UNIQUE constraint)", () => {
+    // Regresioni test za bag otkriven pri seedovanju Faze 2: slug je pravljen
+    // samo iz imena, bez provere jedinstvenosti - isto ime vezbe (npr.
+    // "Chin-Up", "Diamond Push-Up") se ponavlja u razlicitim kategorijama/
+    // bibliotekama pa je slug (za razliku od id-ja) mogao da se duplira.
+    const cal = exerciseLibraryFileSchema.parse(readJson("calisthenics-exercises.json"));
+    const gym = exerciseLibraryFileSchema.parse(readJson("gym-exercises.json"));
+    const allExercises = [...cal.exercises, ...gym.exercises];
+    const allSlugs = allExercises.map((e) => e.slug);
+    const duplicates = allSlugs.filter((slug, index) => allSlugs.indexOf(slug) !== index);
+    expect(duplicates).toEqual([]);
+    expect(new Set(allSlugs).size).toBe(allSlugs.length);
+  });
+
   it("progression-chains.json referencira samo ID-jeve koji postoje u calisthenics-exercises.json", () => {
     const cal = exerciseLibraryFileSchema.parse(readJson("calisthenics-exercises.json"));
     const chains = progressionChainFileSchema.parse(readJson("progression-chains.json"));
