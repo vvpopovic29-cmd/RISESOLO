@@ -5,6 +5,10 @@ export const apiEnvSchema = z.object({
   PORT: envPrimitives.port.default(3000),
   DATABASE_URL: envPrimitives.url,
   REDIS_URL: envPrimitives.url,
+  // Faza 2 - Supabase projekat "RISESOLO" (supabase/README.md). Service role
+  // zaobilazi RLS - koristi se SAMO ovde (backend), nikad na klijentu.
+  SUPABASE_URL: envPrimitives.url,
+  SUPABASE_SERVICE_ROLE_KEY: envPrimitives.nonEmptyString,
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
