@@ -125,6 +125,7 @@ function makePlayersService(overrides: Partial<jest.Mocked<PlayersService>> = {}
       streak: { currentStreak: 0, longestStreak: 0, lastActivityDate: null },
     }),
     applyProgressionUpdate: jest.fn().mockResolvedValue(undefined),
+    grantStatPoints: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   } as unknown as jest.Mocked<PlayersService>;
 }
@@ -262,6 +263,28 @@ describe("WorkoutsService.completeWorkoutSession", () => {
       coins: outcome.totalCoins,
       streak: outcome.streak,
     });
+    expect(outcome.statPointsAwarded).toBe(0); // 8 XP nije dovoljno za level-up
+    expect(playersService.grantStatPoints).not.toHaveBeenCalled();
+  });
+
+  it("dodeljuje stat poene (Faza 7) kada trening izazove level-up", async () => {
+    const repository = makeRepository();
+    const playersService = makePlayersService({
+      getProgressionSnapshot: jest.fn().mockResolvedValue({
+        totalXp: 92, // + 8 XP (1 completed set) = 100 = tacno prag za level 2
+        coins: 0,
+        streak: { currentStreak: 0, longestStreak: 0, lastActivityDate: null },
+      }),
+    });
+    const service = makeService(repository, playersService);
+
+    const outcome = await service.completeWorkoutSession(USER, "session-1", NOW);
+
+    expect(outcome.levelUp).toBe(true);
+    expect(outcome.previousLevel).toBe(1);
+    expect(outcome.newLevel).toBe(2);
+    expect(outcome.statPointsAwarded).toBe(3); // STAT_POINTS_PER_LEVEL
+    expect(playersService.grantStatPoints).toHaveBeenCalledWith(USER, 3);
   });
 
   it("azurira quest progres bez quest xp_event-a kada quest jos nije zavrsen", async () => {

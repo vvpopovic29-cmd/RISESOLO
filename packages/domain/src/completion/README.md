@@ -83,5 +83,12 @@ njihove README/komentare za tačan obim.
   klik — to je posao `workout_sessions`/`xp_events` unique constraint-a
   (Faza 2), isto kao što je već dokumentovano u Fazi 1 za XP evente.
 - Level Up ekran/UI efekat (Faza 7) — `completeWorkout()` samo vraća
-  `levelUp: boolean` i `previousLevel`/`newLevel`; frontend odlučuje kako
-  to prikazuje.
+  `levelUp: boolean`, `previousLevel`/`newLevel` i `statPointsAwarded`
+  (`calculateStatPointsAwarded(previousLevel, newLevel)` iz Faze 1);
+  frontend odlučuje kako to prikazuje.
+- Upis `statPointsAwarded` u `player_stats.unspent_points` — to je
+  perzistencija (apps/api sloj, isto kao xp_events/progression), ne
+  domain logika. `completeWorkout()` samo IZRAČUNAVA koliko poena treba
+  dodeliti; `grantStatPoints()` (Faza 1) ih stvarno dodaje na postojeće
+  stanje, a to poziva `WorkoutsService`/`PlayersService` u `apps/api`
+  nakon uspešnog `completeWorkout()` poziva.

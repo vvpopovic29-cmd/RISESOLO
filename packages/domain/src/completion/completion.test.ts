@@ -84,6 +84,7 @@ describe("completeWorkout - osnovni tok (bez questa)", () => {
     expect(outcome.previousLevel).toBe(1);
     expect(outcome.newLevel).toBe(1);
     expect(outcome.levelUp).toBe(false);
+    expect(outcome.statPointsAwarded).toBe(0);
     expect(outcome.previousRank).toBe("E");
     expect(outcome.newRank).toBe("E");
     expect(outcome.rankUp).toBe(false);
@@ -143,6 +144,8 @@ describe("completeWorkout - osnovni tok (bez questa)", () => {
     expect(result.value.previousLevel).toBe(1);
     expect(result.value.newLevel).toBe(2);
     expect(result.value.levelUp).toBe(true);
+    // calculateStatPointsAwarded(1, 2) = 1 * STAT_POINTS_PER_LEVEL (3)
+    expect(result.value.statPointsAwarded).toBe(3);
   });
 
   it("propagira gresku iz Faze 5 kada session nema nijednu zavrsenu seriju (prazan trening)", () => {

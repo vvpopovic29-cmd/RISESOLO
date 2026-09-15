@@ -110,3 +110,25 @@ describe("PlayersService.allocateStatPoints", () => {
     expect(repository.updatePlayerStats).not.toHaveBeenCalled();
   });
 });
+
+describe("PlayersService.grantStatPoints", () => {
+  it("dodaje poene na unspent_points bez trosenja na konkretan stat", async () => {
+    const updatedRow: PlayerStatsRow = { ...STATS_ROW, unspent_points: 6 };
+    const repository = makeRepository({
+      updatePlayerStats: jest.fn().mockResolvedValue(updatedRow),
+    });
+    const service = new PlayersService(repository);
+
+    const result = await service.grantStatPoints("u1", 3);
+
+    expect(result.unspentPoints).toBe(6);
+    expect(repository.updatePlayerStats).toHaveBeenCalledWith("u1", {
+      strength: 5,
+      agility: 5,
+      endurance: 5,
+      vitality: 5,
+      intelligence: 5,
+      unspent_points: 6,
+    });
+  });
+});

@@ -188,6 +188,11 @@ export class WorkoutsService {
       streak: outcome.streak,
     });
 
+    if (outcome.statPointsAwarded > 0) {
+      // Faza 7 (Level Up) - stat poeni se dodeljuju ovde, UI ih samo prikazuje.
+      await this.playersService.grantStatPoints(userId, outcome.statPointsAwarded);
+    }
+
     if (outcome.quest) {
       await this.questsService.persist(outcome.quest.quest);
     }

@@ -4,6 +4,7 @@ import {
   calculateProgress,
   calculateRank,
   computeDisplayedStreak,
+  grantStatPoints,
   type Result,
   type AllocateStatPointsError,
   type PlayerStats,
@@ -84,6 +85,29 @@ export class PlayersService {
     });
 
     return { ok: true, value: mapPlayerStatsRowToDomain(updatedRow) };
+  }
+
+  /**
+   * Dodeljuje `points` nerasporedjenih stat poena posle level-upa
+   * (Completion Engine, Faza 6/7 - `statPointsAwarded` u CompletionOutcome-u).
+   * Za razliku od allocateStatPoints, ovo SAMO dodaje na unspent_points -
+   * ne trosi ih na konkretan stat (to igrac radi naknadno, POST /players/me/stat-points).
+   */
+  async grantStatPoints(userId: string, points: number): Promise<PlayerStats> {
+    const statsRow = await this.playersRepository.getPlayerStats(userId);
+    const currentStats = mapPlayerStatsRowToDomain(statsRow);
+    const updatedStats = grantStatPoints(currentStats, points);
+
+    const updatedRow = await this.playersRepository.updatePlayerStats(userId, {
+      strength: updatedStats.strength,
+      agility: updatedStats.agility,
+      endurance: updatedStats.endurance,
+      vitality: updatedStats.vitality,
+      intelligence: updatedStats.intelligence,
+      unspent_points: updatedStats.unspentPoints,
+    });
+
+    return mapPlayerStatsRowToDomain(updatedRow);
   }
 
   /** "Pre" stanje koje Completion Engine (Faza 6) uzima kao previousTotalXp/previousCoins/previousStreak ulaz. */

@@ -31,6 +31,7 @@ import { findExerciseById } from "../exercises/query";
 import type { Exercise } from "../exercises/exercise.types";
 import { applyXpGain } from "../progression/xp";
 import { calculateRank } from "../progression/rank";
+import { calculateStatPointsAwarded } from "../progression/stats";
 import { completeQuest, updateQuestProgress, QUEST_TERMINAL_STATUSES } from "../quests/quest";
 import type { DailyQuest, QuestReward } from "../quests/quest.types";
 import { calculateCoinsForXp } from "../rewards/coins";
@@ -138,6 +139,7 @@ export function completeWorkout(
   const previousLevel = afterWorkout.previousLevel;
   const previousRank = calculateRank(previousLevel);
   const newRank = calculateRank(newLevel);
+  const statPointsAwarded = calculateStatPointsAwarded(previousLevel, newLevel);
 
   const totalXpGained = workoutXpGained + questXpGained;
   const coinsGained = calculateCoinsForXp(totalXpGained);
@@ -155,6 +157,7 @@ export function completeWorkout(
     previousLevel,
     newLevel,
     levelUp,
+    statPointsAwarded,
     previousRank,
     newRank,
     rankUp: newRank !== previousRank,

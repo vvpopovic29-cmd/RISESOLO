@@ -33,6 +33,8 @@ export interface CompletionOutcome {
   readonly previousLevel: number;
   readonly newLevel: number;
   readonly levelUp: boolean;
+  /** calculateStatPointsAwarded(previousLevel, newLevel) - Faza 7 (Level Up) prikazuje ovo, backend je izracunao. */
+  readonly statPointsAwarded: number;
   readonly previousRank: Rank;
   readonly newRank: Rank;
   readonly rankUp: boolean;
