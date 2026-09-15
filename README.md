@@ -3,20 +3,24 @@
 Gamifikovana fitness aplikacija (System RPG estetika, bez kopiranja tuđih
 zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 
-> **Faza 1 (trenutno stanje):** samo monorepo i razvojno okruženje - workspace,
-> deljeni tooling, environment validacija i health-check rute. Poslovne
-> funkcije (trening, ishrana, XP/Rank, community, ekonomija, oporavak) dolaze
-> u narednim fazama.
+> **Trenutno stanje:** core gameplay loop je funkcionalan na backend-u -
+> `Player -> Stats -> XP -> Level -> Daily Quest -> Workout -> XP/Rewards`
+> (auth, profil, stat-points, exercise library, quest engine, workout
+> completion engine, server-authoritative XP/Level/Rank). Mobile UI za ove
+> endpoint-e, AI, Guild, RevenueCat, napredna nutrition analitika i EAS build
+> su namerno van obima i dolaze u narednim fazama.
 
 ## Struktura
 
 ```
 apps/
-  api/      NestJS - REST API (Faza 1: samo health-check)
+  api/      NestJS - REST API (auth, players, exercises, quests, workouts,
+            Prisma/PostgreSQL - vidi apps/api/prisma/schema.prisma)
   mobile/   Expo (React Native + TypeScript + Expo Router + NativeWind)
 packages/
-  domain/        domain kernel (Brand/Result/assertNever) + granice bounded-context modula
-  validation/    deljene Zod seme, env-loader, health-check DTO
+  domain/        domain kernel (Brand/Result/assertNever) + gamification modul
+                  (XP/Level/Rank/Stats/Quest/Streak pravila - vidi packages/domain/README.md)
+  validation/    deljene Zod seme (auth/players/exercises/quests/workouts DTO), env-loader
   design-tokens/ boje (dark/light), spacing, tipografija + NativeWind preset
   api-client/    tipizovan fetch klijent sa runtime validacijom odgovora
 ```
@@ -56,12 +60,25 @@ pnpm --filter @risesolo/mobile start
 3. Sve `EXPO_PUBLIC_*` promenljive se ugrađuju u klijentski bundle u build-time.
 
 Environment se validira Zod semama pri startu:
-- `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`, `REDIS_URL`.
+- `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`, `REDIS_URL`,
+  `JWT_SECRET`, `JWT_EXPIRES_IN`.
 - `apps/mobile/src/config/env.ts` - `EXPO_PUBLIC_API_URL` (sa default vrednošću
   za lokalni razvoj ako promenljiva nije postavljena).
 
 Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 `@risesolo/validation`) i aplikacija se namerno ne podiže (fail-fast).
+
+## Baza podataka (Prisma / PostgreSQL)
+
+```bash
+pnpm --filter @risesolo/api prisma:migrate   # kreira/primenjuje migracije (dev)
+pnpm --filter @risesolo/api prisma:deploy    # primenjuje postojeće migracije (CI/prod)
+pnpm --filter @risesolo/api prisma:seed      # ucitava exercise library (247 vežbi) u bazu
+```
+
+Šema: `apps/api/prisma/schema.prisma`. `total_xp` je jedini izvor istine za
+progres - `level`/`rank` se uvek izvode preko `@risesolo/domain` (vidi
+`packages/domain/README.md`), nikad se ne perzistiraju direktno.
 
 ## Arhitektonska pravila (Faza 1 i nadalje)
 
@@ -101,15 +118,21 @@ Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
 lint, typecheck i test - identično lokalnim komandama iznad.
 
-## Poznata ograničenja (Faza 1)
+## Poznata ograničenja (trenutno stanje)
 
-- Nema Prisma/PostgreSQL/Redis/BullMQ/Socket.IO konekcija - `DATABASE_URL` i
-  `REDIS_URL` postoje samo u env semi radi predvidljivog oblika za buduće faze.
+- Redis/BullMQ/Socket.IO nisu ožičeni - `REDIS_URL` postoji samo u env semi
+  radi predvidljivog oblika za buduće faze (cache/queue/real-time).
 - Nema pune OpenAPI JSON generacije (Swagger) - DTO usklađenost se obezbeđuje
   deljenom Zod semom; uvodi se kada broj endpoint-a to opravda.
-- `packages/domain` sadrži samo kernel (bez poslovne logike) - bounded-context
-  moduli (training, nutrition, gamification, community, economy, recovery) se
-  dodaju u fazi kada se implementira odgovarajuća funkcija.
+- `packages/domain` ima kernel + `gamification` modul implementiran; ostali
+  bounded-context moduli (training, nutrition, community, economy, recovery)
+  se dodaju u fazi kada se implementira odgovarajuća funkcija.
+- Mobile app još nije povezan na nove backend endpoint-e (auth/players/
+  exercises/quests/workouts) - i dalje prikazuje samo health-check ekran.
+  Povezivanje UI-ja je sledeći korak.
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
   JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
   i nije deo ovog pipeline-a.
+- `apps/api/prisma/seed-data/exercise-library.json` (247 vežbi) je
+  template-generisan (vidi seed-data/README.md) - instructions/form_cues
+  tekst treba fitness-content review pre produkcije.
