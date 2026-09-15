@@ -36,6 +36,7 @@ model User {
   workouts     Workout[]
   workoutSessions WorkoutSession[]
   trainingPlans   TrainingPlan[]
+  nutritionEntries NutritionEntry[]
 
   @@map("users")
 }
@@ -193,6 +194,42 @@ model TrainingPlan {
 
   @@index([userId, createdAt])
   @@map("training_plans")
+}
+
+// ---------------------------------------------------------------------------
+// Ishrana (osnovno pracenje)
+// ---------------------------------------------------------------------------
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+
+  @@map("meal_type")
+}
+
+/// Osnovno pracenje ishrane - nova, nezavisna domena (vidi
+/// packages/domain/src/nutrition). Namerno bez XP/coin nagrade - cist
+/// tracking alat, ne deo core gameplay loop-a. Za razliku od Quest-a,
+/// namerno NEMA unique constraint po (userId, date, mealType) - vise unosa
+/// istog obroka istog dana je ocekivano i validno.
+model NutritionEntry {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      DateTime @db.Date
+  mealType  MealType @map("meal_type")
+  name      String
+  calories  Int
+  proteinG  Int      @map("protein_g")
+  carbsG    Int      @map("carbs_g")
+  fatG      Int      @map("fat_g")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("nutrition_entries")
 }
 
 // ---------------------------------------------------------------------------

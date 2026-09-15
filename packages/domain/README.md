@@ -31,6 +31,25 @@ Svaka funkcija je cista (bez pristupa bazi/mrezi) i ima jedinicne testove -
 `apps/api` servisi (application sloj) je pozivaju i odgovorni su za
 perzistenciju i idempotency (npr. unique constraint na `xp_events`).
 
+## `training` (implementirano)
+
+Podrska za AI trening planove (`apps/api/src/training-plans`, `apps/api/src/ai`).
+
+- `candidates.ts` - `selectCandidateExercises(exercises, filters)`: cista
+  funkcija koja filtrira katalog vezbi po tipu treninga i nivou iskustva
+  igraca (nikad teze od `experienceLevel`), ograniceno na najvise
+  `maxPerCategory` po kategoriji misica. Rezultat se salje AI modelu kao
+  uzi, relevantan skup kandidata - ne ceo katalog - da model ne izmisli
+  vezbu koja ne postoji.
+
+## `nutrition` (implementirano)
+
+Osnovno pracenje ishrane/unosa (`apps/api/src/nutrition`). Namerno bez
+XP/coin nagrade - cist tracking alat, van core gameplay loop-a.
+
+- `macros.ts` - `sumDailyMacros(entries)`: sabira kalorije/protein/ugljene
+  hidrate/masti svih unosa jednog dana u dnevni rezime.
+
 ## Planirane domain granice (buduce faze)
 
 Svaka poslovna oblast dobija sopstveni podfolder pod `src/<context>/` u ovom
@@ -39,7 +58,6 @@ u `apps/api/src/modules/<context>/` (kontroleri, use-case orkestracija,
 perzistencija) - u skladu sa arhitektonskim pravilom da UI komponente i
 transportni sloj ne smeju sadrzati poslovna pravila.
 
-- `training` - personalizovani trening, baza vezbi, sesije, progressive overload
 - `community` - izazovi, guild sistemi, rang-liste
 - `economy` - prosireni gold/reward sistemi (van MVP fiksnih nagrada)
 - `recovery` - oporavak, mobilnost, eksplozivnost

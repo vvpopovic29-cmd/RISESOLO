@@ -66,4 +66,14 @@ export {
   type LogSetRequest,
   type CompleteWorkoutResponse,
 } from "./contracts/workouts";
+export {
+  createNutritionEntryRequestSchema,
+  getNutritionDayQuerySchema,
+  nutritionEntrySchema,
+  dailyNutritionSummarySchema,
+  type CreateNutritionEntryRequest,
+  type GetNutritionDayQuery,
+  type NutritionEntryDto,
+  type DailyNutritionSummaryDto,
+} from "./contracts/nutrition";
 export { z } from "zod";

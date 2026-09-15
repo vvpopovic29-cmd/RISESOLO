@@ -4,3 +4,4 @@ export { assertNever } from "./kernel/assert-never";
 
 export * from "./gamification";
 export * from "./training";
+export * from "./nutrition";
