@@ -199,6 +199,12 @@ export default function HomeScreen() {
           onPress={() => router.push("/training-plan")}
           testID="training-plan-button"
         />
+        <Button
+          label="Ishrana"
+          variant="secondary"
+          onPress={() => router.push("/nutrition")}
+          testID="nutrition-button"
+        />
       </View>
     </Screen>
   );

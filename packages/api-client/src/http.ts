@@ -19,7 +19,7 @@ export interface HttpClientConfig {
 }
 
 interface RequestOptions<TSchema extends z.ZodTypeAny | undefined> {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "DELETE";
   path: string;
   body?: unknown;
   query?: Record<string, string | undefined>;

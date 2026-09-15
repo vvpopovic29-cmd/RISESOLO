@@ -3,11 +3,14 @@ import {
   authResponseSchema,
   bossQuestSchema,
   completeWorkoutResponseSchema,
+  createNutritionEntryRequestSchema,
+  dailyNutritionSummarySchema,
   dailyQuestSchema,
   exerciseSchema,
   generateTrainingPlanRequestSchema,
   healthResponseSchema,
   loginRequestSchema,
+  nutritionEntrySchema,
   onboardProfileRequestSchema,
   playerStateSchema,
   registerRequestSchema,
@@ -18,6 +21,8 @@ import {
   type AuthResponse,
   type BossQuestDto,
   type CompleteWorkoutResponse,
+  type CreateNutritionEntryRequest,
+  type DailyNutritionSummaryDto,
   type DailyQuestDto,
   type ExerciseDto,
   type GenerateTrainingPlanRequest,
@@ -25,6 +30,7 @@ import {
   type ListExercisesQuery,
   type LoginRequest,
   type LogSetRequest,
+  type NutritionEntryDto,
   type OnboardProfileRequest,
   type PlayerStateDto,
   type RegisterRequest,
@@ -141,6 +147,24 @@ export function createApiClient(config: ApiClientConfig) {
           path: `/training-plans/${encodeURIComponent(id)}`,
           schema: trainingPlanDetailSchema,
         });
+      },
+    },
+
+    nutrition: {
+      createEntry(dto: CreateNutritionEntryRequest): Promise<NutritionEntryDto> {
+        createNutritionEntryRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/nutrition/entries", body: dto, schema: nutritionEntrySchema });
+      },
+      getDay(date?: string): Promise<DailyNutritionSummaryDto> {
+        return request({
+          method: "GET",
+          path: "/nutrition/entries",
+          query: { date },
+          schema: dailyNutritionSummarySchema,
+        });
+      },
+      deleteEntry(id: string): Promise<void> {
+        return request({ method: "DELETE", path: `/nutrition/entries/${encodeURIComponent(id)}` });
       },
     },
   };
