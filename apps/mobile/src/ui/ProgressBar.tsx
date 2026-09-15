@@ -14,7 +14,14 @@ export function ProgressBar({
 
   return (
     <View className="h-2.5 w-full overflow-hidden rounded-full bg-neutral-800 dark:bg-neutral-300">
-      <View testID={testID} className={`h-full rounded-full ${colorClassName}`} style={{ width: `${clamped * 100}%` }} />
+      <View
+        testID={testID}
+        // transition-all animira promenu sirine kad se progress osvezi (npr. XP posle treninga) -
+        // na webu je to prava CSS tranzicija, na native platformama NativeWind je jednostavno
+        // ignorise (bez animacije, bez greske). Reduce Motion je pokriven globalno (global.css).
+        className={`h-full rounded-full transition-all duration-500 ease-out ${colorClassName}`}
+        style={{ width: `${clamped * 100}%` }}
+      />
     </View>
   );
 }

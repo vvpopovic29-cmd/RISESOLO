@@ -59,15 +59,20 @@ export default function WorkoutScreen() {
     return (
       <Screen>
         <View className="flex-1 justify-center gap-6">
+          {/* "System" glow (accent/cyan - vidi packages/design-tokens colors.ts: "System glow, fokus prsten")
+              na najvece proslavne trenutke - pulsirajuca accent ivica oko premium sadrzaja. */}
           {result.bossQuestCompleted ? (
-            <View className="items-center gap-1 rounded-lg bg-premium/15 py-6" testID="boss-quest-victory">
+            <View
+              className="items-center gap-1 rounded-lg border-2 border-accent/60 bg-premium/15 py-6 animate-pulse"
+              testID="boss-quest-victory"
+            >
               <Text className="text-sm font-semibold text-premium">BOSS PORAZEN</Text>
               <Text className="text-lg font-bold text-premium">Nedeljni Boss Quest zavrsen</Text>
             </View>
           ) : null}
 
           {result.levelUp ? (
-            <View className="items-center gap-1 rounded-lg bg-premium/15 py-6">
+            <View className="items-center gap-1 rounded-lg border-2 border-accent/60 bg-premium/15 py-6 animate-pulse">
               <Text className="text-sm font-semibold text-premium">LEVEL UP</Text>
               <Text className="text-3xl font-bold text-premium">Level {result.level}</Text>
               {result.statPointsGained > 0 ? (
