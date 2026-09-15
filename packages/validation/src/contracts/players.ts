@@ -32,6 +32,8 @@ export const playerProfileSchema = z.object({
   weightKg: z.number().nullable(),
   trainingType: z.string().nullable(),
   experienceLevel: z.string().nullable(),
+  /** `true` nakon POST /players/me/onboarding - koristi klijent da odluci da li prikazuje onboarding ekran. */
+  onboarded: z.boolean(),
 });
 export type PlayerProfileDto = z.infer<typeof playerProfileSchema>;
 

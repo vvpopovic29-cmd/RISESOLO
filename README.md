@@ -3,12 +3,13 @@
 Gamifikovana fitness aplikacija (System RPG estetika, bez kopiranja tuđih
 zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 
-> **Trenutno stanje:** core gameplay loop je funkcionalan na backend-u -
-> `Player -> Stats -> XP -> Level -> Daily Quest -> Workout -> XP/Rewards`
-> (auth, profil, stat-points, exercise library, quest engine, workout
-> completion engine, server-authoritative XP/Level/Rank). Mobile UI za ove
-> endpoint-e, AI, Guild, RevenueCat, napredna nutrition analitika i EAS build
-> su namerno van obima i dolaze u narednim fazama.
+> **Trenutno stanje:** core gameplay loop radi end-to-end, backend i mobile
+> UI - `Auth -> Onboarding -> Home -> Exercises -> Workout -> Complete ->
+> XP/Level-up/Rewards -> Stat Points`. Server (NestJS + Prisma/PostgreSQL)
+> je jedini autoritet za XP/Level/Rank/Coins/Streak; mobile (Expo) ekrani
+> citaju/pisu iskljucivo preko `@risesolo/api-client`. AI, Guild, RevenueCat,
+> napredna nutrition analitika i EAS build su namerno van obima i dolaze u
+> narednim fazama.
 
 ## Struktura
 
@@ -127,12 +128,21 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 - `packages/domain` ima kernel + `gamification` modul implementiran; ostali
   bounded-context moduli (training, nutrition, community, economy, recovery)
   se dodaju u fazi kada se implementira odgovarajuća funkcija.
-- Mobile app još nije povezan na nove backend endpoint-e (auth/players/
-  exercises/quests/workouts) - i dalje prikazuje samo health-check ekran.
-  Povezivanje UI-ja je sledeći korak.
+- Mobile ekrani (`apps/mobile/app/{login,register,onboarding,home,exercises,workout}.tsx`)
+  su povezani na sve backend endpoint-e preko `@risesolo/api-client` i
+  provereni u pravom browseru (Playwright, `expo export --platform web`) -
+  kompletan tok registracija -> onboarding -> trening -> XP/level-up ->
+  raspodela stat poena -> odjava radi sa pravim podacima sa servera.
+  Nedostaje: pause/resume trening sesije, workout template-i ("Moji
+  treninzi"), i UX polish (animacije, System vizuelni efekti).
+- JWT se na nativnim platformama (iOS/Android) cuva u `expo-secure-store`
+  (keychain/keystore); na webu (samo za `expo export --platform web`
+  build-check, ne primarna meta) pada na `localStorage` jer
+  `expo-secure-store` nema pravu web implementaciju - vidi
+  `apps/mobile/src/auth/secure-storage.ts`.
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
   JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
-  i nije deo ovog pipeline-a.
+  i nije deo ovog pipeline-a; jos nije testirano na fizickom uredjaju/simulatoru.
 - `apps/api/prisma/seed-data/exercise-library.json` (247 vežbi) je
   template-generisan (vidi seed-data/README.md) - instructions/form_cues
   tekst treba fitness-content review pre produkcije.

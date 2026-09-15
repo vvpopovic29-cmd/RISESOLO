@@ -46,6 +46,7 @@ export class PlayersService {
         weightKg: profile.weightKg ? Number(profile.weightKg) : null,
         trainingType: profile.trainingType,
         experienceLevel: profile.experienceLevel,
+        onboarded: profile.onboardedAt !== null,
       },
       progression: {
         totalXp: progression.totalXp,

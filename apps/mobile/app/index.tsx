@@ -1,29 +1,31 @@
-import { Pressable, Text, View } from "react-native";
-import { useColorScheme } from "nativewind";
-import { HealthStatus } from "../src/health/HealthStatus";
+import { Text, View } from "react-native";
+import { Redirect } from "expo-router";
+import { useAuth } from "../src/auth/AuthContext";
+import { Screen } from "../src/ui/Screen";
 
-export default function HomeScreen() {
-  const { colorScheme, toggleColorScheme } = useColorScheme();
+/**
+ * Auth gate - ne renderuje UI, samo odlucuje gde da preusmeri na osnovu
+ * persist-ovanog auth stanja (vidi AuthContext.tsx). Onboarding gate
+ * (profile.onboarded) zivi u app/home.tsx, jer se tamo vec cita player
+ * state preko GET /players/me - nema potrebe za dodatnim mrezenim pozivom
+ * ovde samo da bi se odlucilo da li da se ide na /onboarding.
+ */
+export default function IndexGate() {
+  const { state } = useAuth();
 
-  return (
-    <View className="flex-1 items-center justify-center gap-6 bg-neutral-1000 px-6 dark:bg-neutral-50">
-      <View className="items-center gap-1">
-        <Text className="text-4xl font-bold text-neutral-50 dark:text-neutral-1000">RISESOLO</Text>
-        <Text className="text-base text-neutral-500 dark:text-neutral-700">
-          Faza 1 - razvojno okruzenje
-        </Text>
-      </View>
+  if (state.status === "loading") {
+    return (
+      <Screen scroll={false}>
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam RISESOLO...</Text>
+        </View>
+      </Screen>
+    );
+  }
 
-      <HealthStatus />
+  if (state.status === "signedOut") {
+    return <Redirect href="/login" />;
+  }
 
-      <Pressable
-        onPress={toggleColorScheme}
-        className="rounded-md border border-neutral-500 px-4 py-2"
-      >
-        <Text className="text-neutral-50 dark:text-neutral-1000">
-          Tema: {colorScheme === "dark" ? "Dark" : "Light"} (dodirni za promenu)
-        </Text>
-      </Pressable>
-    </View>
-  );
+  return <Redirect href="/home" />;
 }
