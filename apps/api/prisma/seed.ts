@@ -1,4 +1,4 @@
-import { PrismaClient, ExerciseType, ExerciseDifficulty } from "@prisma/client";
+import { PrismaClient, type ExerciseType, type ExerciseDifficulty } from "@prisma/client";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
