@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
+import { AuthProvider } from "../src/auth/AuthContext";
 
 export default function RootLayout() {
   const { setColorScheme } = useColorScheme();
@@ -14,9 +15,9 @@ export default function RootLayout() {
   }, [setColorScheme]);
 
   return (
-    <>
+    <AuthProvider>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }} />
-    </>
+    </AuthProvider>
   );
 }

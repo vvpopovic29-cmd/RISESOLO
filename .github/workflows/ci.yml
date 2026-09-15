@@ -12,6 +12,31 @@ concurrency:
 jobs:
   install-lint-typecheck-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: risesolo
+          POSTGRES_PASSWORD: risesolo
+          POSTGRES_DB: risesolo
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U risesolo"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # apps/api testovi (unit + e2e) zahtevaju validan environment (Zod sema
+      # u apps/api/src/config/env.ts) i pravu Postgres bazu (core-gameplay-loop
+      # e2e test radi prave upite, ne mock). REDIS_URL ne mora da bude
+      # dostiziv servis - jos se ne koristi u kodu (vidi README "Poznata
+      # ogranicenja"), sema samo proverava da je to validan URL string.
+      DATABASE_URL: postgresql://risesolo:risesolo@localhost:5432/risesolo
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-test-secret-do-not-use-in-production
+      JWT_EXPIRES_IN: 7d
+      NODE_ENV: test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,6 +60,12 @@ jobs:
 
       - name: Typecheck
         run: pnpm typecheck
+
+      - name: Apply database migrations
+        run: pnpm --filter @risesolo/api run prisma:deploy
+
+      - name: Seed exercise library
+        run: pnpm --filter @risesolo/api run prisma:seed
 
       - name: Test
         run: pnpm test

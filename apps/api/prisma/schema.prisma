@@ -1,0 +1,281 @@
+// RISESOLO - Prisma schema (Faza 2: core gameplay loop)
+//
+// Pravilo iz domain sloja (packages/domain/src/gamification): `total_xp` je
+// jedini izvor istine za progres - `level` i `rank` se NIKAD ne cuvaju ovde,
+// uvek se izvode u application/API sloju preko `calculateLevel`/`calculateRank`.
+// Isto tako, server (NestJS servisi) je jedini autoritet koji sme da menja
+// total_xp/coins/stat vrednosti - ovaj model namerno ne izlaze "sirove"
+// mutacije klijentu (RLS-ekvivalent se implementira kao ownership provera u
+// servisnom sloju, buduci da ne koristimo Supabase RLS).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth / Profile
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  profile      Profile?
+  playerStats  PlayerStats?
+  progression  Progression?
+  xpEvents     XpEvent[]
+  quests       Quest[]
+  workouts     Workout[]
+  workoutSessions WorkoutSession[]
+
+  @@map("users")
+}
+
+model Profile {
+  userId         String    @id @map("user_id")
+  username       String    @unique
+  avatarUrl      String?   @map("avatar_url")
+  age            Int?
+  heightCm       Int?      @map("height_cm")
+  weightKg       Decimal?  @map("weight_kg") @db.Decimal(5, 2)
+  trainingType   String?   @map("training_type")
+  experienceLevel String?  @map("experience_level")
+  onboardedAt    DateTime? @map("onboarded_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// ---------------------------------------------------------------------------
+// Gamification: stats, progression, xp events
+// ---------------------------------------------------------------------------
+
+model PlayerStats {
+  userId       String   @id @map("user_id")
+  strength     Int      @default(1)
+  agility      Int      @default(1)
+  endurance    Int      @default(1)
+  vitality     Int      @default(1)
+  intelligence Int      @default(1)
+  statPoints   Int      @default(0) @map("stat_points")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("player_stats")
+}
+
+/// `level`/`rank` su NAMERNO izostavljeni - derived vrednosti iz `totalXp`
+/// preko @risesolo/domain (calculateLevel/calculateRank), nikad perzistirane,
+/// da ne bi doslo do drift-a (bug ostavi level=6 dok je total_xp vec za level 7).
+model Progression {
+  userId           String    @id @map("user_id")
+  totalXp          Int       @default(0) @map("total_xp")
+  coins            Int       @default(0)
+  currentStreak    Int       @default(0) @map("current_streak")
+  lastActivityDate DateTime? @map("last_activity_date") @db.Date
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("progression")
+}
+
+enum XpSource {
+  WORKOUT_COMPLETE
+  DAILY_QUEST_COMPLETE
+
+  @@map("xp_source")
+}
+
+/// Immutable ledger - jedan red po nagradjenom dogadjaju. `sourceId` + unique
+/// constraint sprecava duplu nagradu ako isti request (npr. "Complete") stigne
+/// vise puta (mrezni retry, dupli tap).
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  source    XpSource
+  sourceId  String   @map("source_id")
+  amount    Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, source, sourceId])
+  @@index([userId, createdAt])
+  @@map("xp_events")
+}
+
+// ---------------------------------------------------------------------------
+// Exercises
+// ---------------------------------------------------------------------------
+
+enum ExerciseType {
+  CALISTHENICS
+  GYM
+  SKILL
+
+  @@map("exercise_type")
+}
+
+enum ExerciseDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+
+  @@map("exercise_difficulty")
+}
+
+model Exercise {
+  id                String             @id @default(cuid())
+  slug              String             @unique
+  name              String
+  category          String
+  subcategory       String?
+  type              ExerciseType
+  difficulty        ExerciseDifficulty
+  equipment         String
+  movementPattern   String             @map("movement_pattern")
+  primaryMuscles    String[]           @map("primary_muscles")
+  secondaryMuscles  String[]           @map("secondary_muscles")
+  instructions      String[]
+  formCues          String[]           @map("form_cues")
+  safetyNotes       String[]           @map("safety_notes")
+  defaultSets       Int?               @map("default_sets")
+  defaultReps       String?            @map("default_reps")
+  holdSeconds       Int?               @map("hold_seconds")
+  restSeconds       Int?               @map("rest_seconds")
+  progressionChain  String?            @map("progression_chain")
+  progressionOrder  Int?               @map("progression_order")
+  videoUrl          String?            @map("video_url")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  workoutSets       WorkoutSet[]
+
+  @@index([category, difficulty])
+  @@index([progressionChain, progressionOrder])
+  @@map("exercises")
+}
+
+// ---------------------------------------------------------------------------
+// Quests
+// ---------------------------------------------------------------------------
+
+enum QuestType {
+  DAILY
+
+  @@map("quest_type")
+}
+
+enum QuestStatus {
+  AVAILABLE
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+
+  @@map("quest_status")
+}
+
+/// generateDailyQuest(userId, date) je idempotentan zahvaljujuci
+/// @@unique([userId, date, type]) - druga generacija za isti dan vraca
+/// postojeci red umesto da pravi duplikat.
+model Quest {
+  id          String      @id @default(cuid())
+  userId      String      @map("user_id")
+  date        DateTime    @db.Date
+  type        QuestType
+  title       String
+  description String?
+  targetReps  Int?        @map("target_reps")
+  targetSets  Int?        @map("target_sets")
+  xpReward    Int         @map("xp_reward")
+  coinReward  Int         @map("coin_reward")
+  status      QuestStatus @default(AVAILABLE)
+  completedAt DateTime?   @map("completed_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, type])
+  @@map("quests")
+}
+
+// ---------------------------------------------------------------------------
+// Workouts
+// ---------------------------------------------------------------------------
+
+/// Workout = opciona sablon/template definicija (za "Moji treninzi" listu).
+/// Sesija (WorkoutSession) je stvarno izvrsenje - moze postojati i bez
+/// template-a (ad-hoc trening).
+model Workout {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  name      String
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions  WorkoutSession[]
+
+  @@map("workouts")
+}
+
+enum WorkoutSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+
+  @@map("workout_session_status")
+}
+
+model WorkoutSession {
+  id          String               @id @default(cuid())
+  userId      String               @map("user_id")
+  workoutId   String?              @map("workout_id")
+  status      WorkoutSessionStatus @default(IN_PROGRESS)
+  startedAt   DateTime             @default(now()) @map("started_at")
+  completedAt DateTime?            @map("completed_at")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workout     Workout?             @relation(fields: [workoutId], references: [id], onDelete: SetNull)
+  sets        WorkoutSet[]
+
+  @@index([userId, status])
+  @@map("workout_sessions")
+}
+
+/// Jedna serija jedne vezbe unutar sesije. Gym vezbe koriste
+/// reps+weightKg, calisthenics/skill drzanja koriste durationSeconds.
+model WorkoutSet {
+  id              String         @id @default(cuid())
+  sessionId       String         @map("session_id")
+  exerciseId      String         @map("exercise_id")
+  setNumber       Int            @map("set_number")
+  reps            Int?
+  weightKg        Decimal?       @map("weight_kg") @db.Decimal(6, 2)
+  durationSeconds Int?           @map("duration_seconds")
+  completed       Boolean        @default(false)
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  session         WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exercise        Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+
+  /// Cini logSet idempotentnim na retry (isti set_number za istu vezbu u istoj sesiji = upsert, ne duplikat).
+  @@unique([sessionId, exerciseId, setNumber])
+  @@map("workout_sets")
+}

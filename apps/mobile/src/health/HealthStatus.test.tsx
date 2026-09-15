@@ -17,7 +17,7 @@ describe("HealthStatus", () => {
   it("prikazuje loading stanje pre nego sto se zahtev zavrsi", async () => {
     mockedCreateApiClient.mockReturnValue({ getHealth: () => new Promise(() => {}) });
 
-    render(<HealthStatus />);
+    await render(<HealthStatus />);
 
     await waitFor(() => expect(screen.getByText(/Proveravam API konekciju/i)).toBeTruthy());
   });
@@ -28,7 +28,7 @@ describe("HealthStatus", () => {
         Promise.resolve({ status: "ok", uptimeSeconds: 42, timestamp: new Date().toISOString() }),
     });
 
-    render(<HealthStatus />);
+    await render(<HealthStatus />);
 
     await waitFor(() => expect(screen.getByText(/API je dostupan/i)).toBeTruthy());
   });
@@ -38,7 +38,7 @@ describe("HealthStatus", () => {
       getHealth: () => Promise.reject(new Error("mreza nedostupna")),
     });
 
-    render(<HealthStatus />);
+    await render(<HealthStatus />);
 
     await waitFor(() => expect(screen.getByText(/API nije dostupan/i)).toBeTruthy());
     expect(screen.getByText(/Pokusaj ponovo/i)).toBeTruthy();

@@ -1,49 +1,113 @@
-import { healthResponseSchema, type HealthResponse } from "@risesolo/validation";
+import {
+  allocateStatPointsRequestSchema,
+  authResponseSchema,
+  completeWorkoutResponseSchema,
+  dailyQuestSchema,
+  exerciseSchema,
+  healthResponseSchema,
+  loginRequestSchema,
+  onboardProfileRequestSchema,
+  playerStateSchema,
+  registerRequestSchema,
+  workoutSessionSchema,
+  type AllocateStatPointsRequest,
+  type AuthResponse,
+  type CompleteWorkoutResponse,
+  type DailyQuestDto,
+  type ExerciseDto,
+  type HealthResponse,
+  type ListExercisesQuery,
+  type LoginRequest,
+  type LogSetRequest,
+  type OnboardProfileRequest,
+  type PlayerStateDto,
+  type RegisterRequest,
+  type StartWorkoutSessionRequest,
+  type WorkoutSessionDto,
+  z,
+} from "@risesolo/validation";
+import { ApiError, createHttpClient, type HttpClientConfig } from "./http";
 
-export interface ApiClientConfig {
-  baseUrl: string;
-  fetchImpl?: typeof fetch;
-}
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public override readonly cause?: unknown,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
+export type ApiClientConfig = HttpClientConfig;
+export { ApiError };
 
 /**
- * Tanki fetch klijent. Odgovor svakog poziva se runtime validira protiv
- * deljene Zod seme iz `@risesolo/validation`, tako da su TS tipovi i stvarni
- * oblik odgovora garantovano usklajeni (jedan izvor istine za DTO).
+ * Tipizovan fetch klijent za ceo RISESOLO API. Svaki odgovor se runtime
+ * validira protiv deljene Zod seme iz `@risesolo/validation` (isti ugovor
+ * koji koristi `apps/api`) - jedan izvor istine za DTO na oba kraja.
+ *
+ * Auth: `config.getAccessToken()` se poziva pre svakog zahteva koji trazi
+ * token (sve osim `getHealth`/`auth.register`/`auth.login`). Mobile app
+ * (`apps/mobile/src/auth`) ga cita iz persist-ovanog stanja.
  */
 export function createApiClient(config: ApiClientConfig) {
-  const fetchImpl = config.fetchImpl ?? fetch;
-  const baseUrl = config.baseUrl.replace(/\/$/, "");
+  const request = createHttpClient(config);
+  const exerciseListSchema = z.array(exerciseSchema);
 
   return {
-    async getHealth(): Promise<HealthResponse> {
-      let response: Response;
-      try {
-        response = await fetchImpl(`${baseUrl}/health`);
-      } catch (cause) {
-        throw new ApiError("Health-check zahtev nije uspeo (mrezna greska)", cause);
-      }
+    getHealth(): Promise<HealthResponse> {
+      return request({ method: "GET", path: "/health", auth: false, schema: healthResponseSchema });
+    },
 
-      if (!response.ok) {
-        throw new ApiError(`Health-check je vratio status ${response.status}`);
-      }
+    auth: {
+      register(dto: RegisterRequest): Promise<AuthResponse> {
+        registerRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/auth/register", auth: false, body: dto, schema: authResponseSchema });
+      },
+      login(dto: LoginRequest): Promise<AuthResponse> {
+        loginRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/auth/login", auth: false, body: dto, schema: authResponseSchema });
+      },
+    },
 
-      const json: unknown = await response.json();
-      const parsed = healthResponseSchema.safeParse(json);
-      if (!parsed.success) {
-        throw new ApiError("Odgovor health-check rute ne odgovara ocekivanoj semi", parsed.error);
-      }
+    players: {
+      getMe(): Promise<PlayerStateDto> {
+        return request({ method: "GET", path: "/players/me", schema: playerStateSchema });
+      },
+      onboard(dto: OnboardProfileRequest): Promise<PlayerStateDto> {
+        onboardProfileRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/players/me/onboarding", body: dto, schema: playerStateSchema });
+      },
+      allocateStats(dto: AllocateStatPointsRequest): Promise<PlayerStateDto> {
+        allocateStatPointsRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/players/me/stats/allocate", body: dto, schema: playerStateSchema });
+      },
+    },
 
-      return parsed.data;
+    exercises: {
+      list(query: ListExercisesQuery = {}): Promise<ExerciseDto[]> {
+        return request({
+          method: "GET",
+          path: "/exercises",
+          query: { category: query.category, type: query.type, difficulty: query.difficulty },
+          schema: exerciseListSchema,
+        });
+      },
+      getBySlug(slug: string): Promise<ExerciseDto> {
+        return request({ method: "GET", path: `/exercises/${encodeURIComponent(slug)}`, schema: exerciseSchema });
+      },
+    },
+
+    quests: {
+      today(): Promise<DailyQuestDto> {
+        return request({ method: "GET", path: "/quests/today", schema: dailyQuestSchema });
+      },
+    },
+
+    workouts: {
+      startSession(dto: StartWorkoutSessionRequest = {}): Promise<WorkoutSessionDto> {
+        return request({ method: "POST", path: "/workouts/sessions", body: dto, schema: workoutSessionSchema });
+      },
+      logSet(sessionId: string, dto: LogSetRequest): Promise<void> {
+        return request({ method: "POST", path: `/workouts/sessions/${sessionId}/sets`, body: dto });
+      },
+      complete(sessionId: string): Promise<CompleteWorkoutResponse> {
+        return request({
+          method: "POST",
+          path: `/workouts/sessions/${sessionId}/complete`,
+          schema: completeWorkoutResponseSchema,
+        });
+      },
     },
   };
 }
