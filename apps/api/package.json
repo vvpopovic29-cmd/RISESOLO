@@ -22,7 +22,9 @@
     "@nestjs/config": "^3.3.0",
     "@nestjs/core": "^10.4.6",
     "@nestjs/platform-express": "^10.4.6",
+    "@risesolo/domain": "workspace:*",
     "@risesolo/validation": "workspace:*",
+    "@supabase/supabase-js": "^2.45.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

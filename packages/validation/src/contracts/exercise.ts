@@ -86,6 +86,41 @@ export const exerciseSchema = z.object({
 
 export type ExerciseDto = z.infer<typeof exerciseSchema>;
 
+/**
+ * `public.exercises` red (Faza 2) - ISTA polja kao exerciseSchema, ali
+ * thumbnail_url/video_url/gif_url su RAVNE kolone, ne ugnjezden `media`
+ * objekat (JSON fajl ih grupise, DB tabela ne). Koristi ovo (ne
+ * exerciseSchema) za citanje iz baze.
+ */
+export const exerciseRowSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  slug: z.string().min(1),
+  library: exerciseLibrarySchema,
+  category: exerciseCategorySchema,
+  subcategory: exerciseSubcategorySchema,
+  movement_pattern: movementPatternSchema,
+  difficulty: exerciseDifficultySchema,
+  equipment: z.array(equipmentSchema).min(1),
+  primary_muscles: z.array(z.string().min(1)).min(1),
+  secondary_muscles: z.array(z.string().min(1)),
+  instructions: z.array(z.string().min(1)).min(1),
+  form_cues: z.array(z.string().min(1)),
+  common_mistakes: z.array(z.string().min(1)),
+  safety_notes: z.array(z.string().min(1)).min(1),
+  default_sets: z.number().int().positive(),
+  default_reps: z.string().min(1),
+  tempo: z.string().min(1),
+  rest_seconds: z.number().int().nonnegative(),
+  xp_value: z.number().int().nonnegative(),
+  thumbnail_url: z.string().url().nullable(),
+  video_url: z.string().url().nullable(),
+  gif_url: z.string().url().nullable(),
+  tags: z.array(z.string().min(1)),
+});
+
+export type ExerciseRow = z.infer<typeof exerciseRowSchema>;
+
 export const exerciseLibraryFileSchema = z.object({
   version: z.number().int().positive(),
   count: z.number().int().nonnegative(),

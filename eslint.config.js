@@ -62,6 +62,17 @@ module.exports = tseslint.config(
     },
   },
   {
+    // NestJS-ov emitDecoratorMetadata emituje Reflect.metadata("design:paramtypes", [...])
+    // za konstruktorske parametre - to zahteva da injektovane klase budu REGULARNI (value)
+    // importi, ne `import type` (koji se u potpunosti brise iz kompajliranog izlaza i
+    // razbija DI kontejner). Ovo pravilo se ne moze pomiriti sa consistent-type-imports
+    // za fajlove koji koriste constructor injection, pa je iskljuceno za apps/api.
+    files: ["apps/api/**/*.ts"],
+    rules: {
+      "@typescript-eslint/consistent-type-imports": "off",
+    },
+  },
+  {
     files: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/test/**"],
     languageOptions: {
       globals: {

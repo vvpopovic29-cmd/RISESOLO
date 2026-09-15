@@ -1,6 +1,6 @@
 import type { Exercise, ProgressionChain, SkillLine } from "@risesolo/domain";
 
-import type { ExerciseDto, ProgressionChainDto, SkillLineDto } from "../contracts/exercise";
+import type { ExerciseDto, ExerciseRow, ProgressionChainDto, SkillLineDto } from "../contracts/exercise";
 
 /**
  * Mapira validiran (Zod) DTO oblik (snake_case, sirov JSON iz
@@ -37,6 +37,38 @@ export function mapExerciseDtoToDomain(dto: ExerciseDto): Exercise {
       gifUrl: dto.media.gif_url,
     },
     tags: dto.tags,
+  };
+}
+
+/** Isto kao mapExerciseDtoToDomain, ali za `public.exercises` red (ravne media kolone, ne ugnjezden objekat). */
+export function mapExerciseRowToDomain(row: ExerciseRow): Exercise {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    library: row.library,
+    category: row.category,
+    subcategory: row.subcategory,
+    movementPattern: row.movement_pattern,
+    difficulty: row.difficulty,
+    equipment: row.equipment,
+    primaryMuscles: row.primary_muscles,
+    secondaryMuscles: row.secondary_muscles,
+    instructions: row.instructions,
+    formCues: row.form_cues,
+    commonMistakes: row.common_mistakes,
+    safetyNotes: row.safety_notes,
+    defaultSets: row.default_sets,
+    defaultReps: row.default_reps,
+    tempo: row.tempo,
+    restSeconds: row.rest_seconds,
+    xpValue: row.xp_value,
+    media: {
+      thumbnailUrl: row.thumbnail_url,
+      videoUrl: row.video_url,
+      gifUrl: row.gif_url,
+    },
+    tags: row.tags,
   };
 }
 
