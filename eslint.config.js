@@ -70,5 +70,16 @@ module.exports = tseslint.config(
       },
     },
   },
+  {
+    // NestJS (apps/api) oslanja se na experimentalDecorators + emitDecoratorMetadata
+    // za dependency injection: constructor parametar tipa mora ostati VALUE import
+    // (design:paramtypes metadata), inace Nest ne moze da resi zavisnost u runtime-u.
+    // `consistent-type-imports --fix` to ne zna i pretvara injektovane servise u
+    // `import type`, sto tiho razbija DI - zato je iskljucen ovde.
+    files: ["apps/api/src/**/*.ts"],
+    rules: {
+      "@typescript-eslint/consistent-type-imports": "off",
+    },
+  },
   eslintConfigPrettier,
 );

@@ -1,0 +1,24 @@
+export {
+  calculateCurrentLevelXP,
+  calculateLevel,
+  calculateProgress,
+  calculateRequiredXP,
+  detectLevelUp,
+  type LevelUpResult,
+} from "./xp";
+export { RANKS, calculateRank, type Rank } from "./rank";
+export {
+  BASE_PLAYER_STATS,
+  STAT_KEYS,
+  STAT_POINTS_PER_LEVEL,
+  allocateStatPoints,
+  statPointsForLevelsGained,
+  type PlayerStats,
+  type StatAllocation,
+  type StatAllocationError,
+  type StatAllocationOutcome,
+  type StatKey,
+} from "./stats";
+export { COIN_REWARDS, XP_REWARDS, XP_SOURCES, type XpSource } from "./rewards";
+export { QUEST_STATUSES, canTransitionQuestStatus, type QuestStatus } from "./quest";
+export { computeStreakAfterCompletion, isStreakActive } from "./streak";
