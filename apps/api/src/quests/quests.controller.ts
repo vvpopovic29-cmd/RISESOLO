@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import type { DailyQuestDto } from "@risesolo/validation";
+import type { BossQuestDto, DailyQuestDto } from "@risesolo/validation";
 import { CurrentUser, type AuthenticatedUser } from "../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { QuestsService } from "./quests.service";
@@ -14,5 +14,10 @@ export class QuestsController {
   @Get("today")
   getToday(@CurrentUser() user: AuthenticatedUser): Promise<DailyQuestDto> {
     return this.questsService.getTodayQuest(user.id);
+  }
+
+  @Get("boss")
+  getBoss(@CurrentUser() user: AuthenticatedUser): Promise<BossQuestDto> {
+    return this.questsService.getCurrentBossQuest(user.id);
   }
 }

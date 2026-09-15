@@ -1,10 +1,12 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import {
+  BOSS_QUEST_TARGET_SESSIONS,
   COIN_REWARDS,
   XP_REWARDS,
   detectLevelUp,
   statPointsForLevelsGained,
   computeStreakAfterCompletion,
+  isBossQuestComplete,
 } from "@risesolo/domain";
 import type {
   CompleteWorkoutResponse,
@@ -81,7 +83,8 @@ export class WorkoutsService {
    * poslovnih pravila iz @risesolo/domain i perzistira ih atomicno.
    *
    * Pipeline: validate -> XP event (idempotentno preko unique constraint) ->
-   * level-up check -> stat points -> coins -> daily quest -> streak -> DTO.
+   * daily quest -> boss quest -> level-up check -> stat points -> coins ->
+   * streak -> DTO.
    */
   async completeSession(userId: string, sessionId: string): Promise<CompleteWorkoutResponse> {
     const session = await this.getOwnedInProgressSession(userId, sessionId);
@@ -123,6 +126,25 @@ export class WorkoutsService {
           coinsGained += quest.coinReward;
         }
 
+        // Boss quest se zavrsava kada broj zavrsenih sesija ove ISO nedelje (uklj. ovu, jer je
+        // session update vec izvrsen iznad u istoj transakciji) dostigne cilj.
+        const bossQuest = await this.questsService.generateBossQuest(userId, today, tx);
+        let bossQuestCompleted = false;
+        if (bossQuest.status !== "COMPLETED" && bossQuest.status !== "EXPIRED") {
+          const completedSessionsThisWeek = await this.questsService.countCompletedSessionsThisWeek(userId, today, tx);
+          if (isBossQuestComplete(completedSessionsThisWeek, bossQuest.targetSets ?? BOSS_QUEST_TARGET_SESSIONS)) {
+            const completedBossQuest = await this.questsService.completeQuestIfPending(bossQuest.id, tx);
+            bossQuestCompleted = completedBossQuest !== null;
+            if (bossQuestCompleted) {
+              await tx.xpEvent.create({
+                data: { userId, source: "BOSS_QUEST_COMPLETE", sourceId: bossQuest.id, amount: bossQuest.xpReward },
+              });
+              xpGained += bossQuest.xpReward;
+              coinsGained += bossQuest.coinReward;
+            }
+          }
+        }
+
         const levelUpResult = detectLevelUp(totalXpBefore, xpGained);
         const statPointsGained = statPointsForLevelsGained(levelUpResult.levelsGained);
 
@@ -158,6 +180,7 @@ export class WorkoutsService {
           coinsGained,
           coins: progressionAfter.coins,
           questCompleted,
+          bossQuestCompleted,
           streak: newStreak,
         };
       });

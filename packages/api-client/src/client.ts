@@ -1,6 +1,7 @@
 import {
   allocateStatPointsRequestSchema,
   authResponseSchema,
+  bossQuestSchema,
   completeWorkoutResponseSchema,
   dailyQuestSchema,
   exerciseSchema,
@@ -15,6 +16,7 @@ import {
   workoutSessionSchema,
   type AllocateStatPointsRequest,
   type AuthResponse,
+  type BossQuestDto,
   type CompleteWorkoutResponse,
   type DailyQuestDto,
   type ExerciseDto,
@@ -98,6 +100,9 @@ export function createApiClient(config: ApiClientConfig) {
     quests: {
       today(): Promise<DailyQuestDto> {
         return request({ method: "GET", path: "/quests/today", schema: dailyQuestSchema });
+      },
+      boss(): Promise<BossQuestDto> {
+        return request({ method: "GET", path: "/quests/boss", schema: bossQuestSchema });
       },
     },
 

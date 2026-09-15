@@ -59,6 +59,13 @@ export default function WorkoutScreen() {
     return (
       <Screen>
         <View className="flex-1 justify-center gap-6">
+          {result.bossQuestCompleted ? (
+            <View className="items-center gap-1 rounded-lg bg-premium/15 py-6" testID="boss-quest-victory">
+              <Text className="text-sm font-semibold text-premium">BOSS PORAZEN</Text>
+              <Text className="text-lg font-bold text-premium">Nedeljni Boss Quest zavrsen</Text>
+            </View>
+          ) : null}
+
           {result.levelUp ? (
             <View className="items-center gap-1 rounded-lg bg-premium/15 py-6">
               <Text className="text-sm font-semibold text-premium">LEVEL UP</Text>
@@ -79,6 +86,7 @@ export default function WorkoutScreen() {
             <ResultRow label="Coins" value={`+${result.coinsGained}`} accent="text-reward" />
             <ResultRow label="Streak" value={`${result.streak} dana`} accent="text-reward" />
             <ResultRow label="Dnevni quest" value={result.questCompleted ? "Zavrsen" : "Nezavrsen"} />
+            <ResultRow label="Boss quest" value={result.bossQuestCompleted ? "Zavrsen" : "Nezavrsen"} />
           </View>
 
           <Button
