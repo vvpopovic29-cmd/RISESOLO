@@ -45,14 +45,14 @@ function Probe({ apiClient }: { apiClient: ApiClient }) {
 describe("usePlayerState", () => {
   it("pocinje u loading stanju pa prelazi u success sa podacima sa servera", async () => {
     const apiClient = makeApiClient(() => Promise.resolve(samplePlayerState()));
-    render(<Probe apiClient={apiClient} />);
+    await render(<Probe apiClient={apiClient} />);
 
     await waitFor(() => expect(screen.getByText("level:2 statPoints:3")).toBeTruthy());
   });
 
   it("prelazi u error stanje sa porukom iz ApiError kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Neautorizovan pristup", 401)));
-    render(<Probe apiClient={apiClient} />);
+    await render(<Probe apiClient={apiClient} />);
 
     await waitFor(() => expect(screen.getByText("error:Neautorizovan pristup")).toBeTruthy());
   });

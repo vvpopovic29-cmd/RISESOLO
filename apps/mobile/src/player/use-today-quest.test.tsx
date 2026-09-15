@@ -30,14 +30,14 @@ describe("useTodayQuest", () => {
         status: "AVAILABLE" as const,
       }),
     );
-    render(<Probe apiClient={apiClient} />);
+    await render(<Probe apiClient={apiClient} />);
 
     await waitFor(() => expect(screen.getByText("status:AVAILABLE xp:100")).toBeTruthy());
   });
 
   it("prelazi u error stanje kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Zahtev nije uspeo")));
-    render(<Probe apiClient={apiClient} />);
+    await render(<Probe apiClient={apiClient} />);
 
     await waitFor(() => expect(screen.getByText("error:Zahtev nije uspeo")).toBeTruthy());
   });
