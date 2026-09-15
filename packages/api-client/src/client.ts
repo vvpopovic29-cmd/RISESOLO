@@ -4,17 +4,21 @@ import {
   completeWorkoutResponseSchema,
   dailyQuestSchema,
   exerciseSchema,
+  generateTrainingPlanRequestSchema,
   healthResponseSchema,
   loginRequestSchema,
   onboardProfileRequestSchema,
   playerStateSchema,
   registerRequestSchema,
+  trainingPlanDetailSchema,
+  trainingPlanSummarySchema,
   workoutSessionSchema,
   type AllocateStatPointsRequest,
   type AuthResponse,
   type CompleteWorkoutResponse,
   type DailyQuestDto,
   type ExerciseDto,
+  type GenerateTrainingPlanRequest,
   type HealthResponse,
   type ListExercisesQuery,
   type LoginRequest,
@@ -23,6 +27,8 @@ import {
   type PlayerStateDto,
   type RegisterRequest,
   type StartWorkoutSessionRequest,
+  type TrainingPlanDetailDto,
+  type TrainingPlanSummaryDto,
   type WorkoutSessionDto,
   z,
 } from "@risesolo/validation";
@@ -43,6 +49,7 @@ export { ApiError };
 export function createApiClient(config: ApiClientConfig) {
   const request = createHttpClient(config);
   const exerciseListSchema = z.array(exerciseSchema);
+  const trainingPlanListSchema = z.array(trainingPlanSummarySchema);
 
   return {
     getHealth(): Promise<HealthResponse> {
@@ -106,6 +113,28 @@ export function createApiClient(config: ApiClientConfig) {
           method: "POST",
           path: `/workouts/sessions/${sessionId}/complete`,
           schema: completeWorkoutResponseSchema,
+        });
+      },
+    },
+
+    trainingPlans: {
+      generate(dto: GenerateTrainingPlanRequest): Promise<TrainingPlanDetailDto> {
+        generateTrainingPlanRequestSchema.parse(dto);
+        return request({
+          method: "POST",
+          path: "/training-plans/generate",
+          body: dto,
+          schema: trainingPlanDetailSchema,
+        });
+      },
+      list(): Promise<TrainingPlanSummaryDto[]> {
+        return request({ method: "GET", path: "/training-plans", schema: trainingPlanListSchema });
+      },
+      getById(id: string): Promise<TrainingPlanDetailDto> {
+        return request({
+          method: "GET",
+          path: `/training-plans/${encodeURIComponent(id)}`,
+          schema: trainingPlanDetailSchema,
         });
       },
     },

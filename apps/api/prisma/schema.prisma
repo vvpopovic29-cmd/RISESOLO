@@ -35,6 +35,7 @@ model User {
   quests       Quest[]
   workouts     Workout[]
   workoutSessions WorkoutSession[]
+  trainingPlans   TrainingPlan[]
 
   @@map("users")
 }
@@ -167,6 +168,30 @@ model Exercise {
   @@index([category, difficulty])
   @@index([progressionChain, progressionOrder])
   @@map("exercises")
+}
+
+// ---------------------------------------------------------------------------
+// AI trening planovi
+// ---------------------------------------------------------------------------
+
+/// Jedan generisani plan po zahtevu (na zahtev, bez auto-adaptacije - vidi
+/// packages/domain/src/training). `content` cuva puni strukturirani plan
+/// (dani, vezbe, setovi/ponavljanja) kako ga je AI model vratio - validiran
+/// protiv Zod seme pre upisa (packages/validation/src/contracts/training.ts).
+model TrainingPlan {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  title       String
+  summary     String?
+  daysPerWeek Int      @map("days_per_week")
+  content     Json
+  model       String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("training_plans")
 }
 
 // ---------------------------------------------------------------------------

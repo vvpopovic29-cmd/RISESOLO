@@ -32,6 +32,26 @@ export {
 } from "./contracts/exercises";
 export { dailyQuestSchema, type DailyQuestDto } from "./contracts/quests";
 export {
+  trainingPlanExerciseSchema,
+  trainingPlanDaySchema,
+  trainingPlanContentSchema,
+  aiTrainingPlanSchema,
+  generateTrainingPlanRequestSchema,
+  trainingPlanSummarySchema,
+  trainingPlanExerciseDetailSchema,
+  trainingPlanDayDetailSchema,
+  trainingPlanDetailSchema,
+  type TrainingPlanExercise,
+  type TrainingPlanDay,
+  type TrainingPlanContent,
+  type AiTrainingPlanOutput,
+  type GenerateTrainingPlanRequest,
+  type TrainingPlanSummaryDto,
+  type TrainingPlanExerciseDetail,
+  type TrainingPlanDayDetail,
+  type TrainingPlanDetailDto,
+} from "./contracts/training";
+export {
   startWorkoutSessionRequestSchema,
   workoutSessionSchema,
   logSetRequestSchema,
