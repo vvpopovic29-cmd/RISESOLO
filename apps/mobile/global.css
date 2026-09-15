@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Arhitektonsko pravilo #8: animacije moraju postovati OS "Reduce Motion"
+   podesavanje. Ovo je globalno "kill switch" za sve Tailwind/NativeWind
+   transitions i animations na webu - svaka buduca animacija ovo dobija
+   besplatno, bez posebnog opt-out-a po komponenti. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
