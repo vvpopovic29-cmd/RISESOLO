@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { ExerciseDto, ListExercisesQuery } from "@risesolo/validation";
+import type { CandidateExercise } from "@risesolo/domain";
 import type { Exercise } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -25,6 +26,32 @@ export class ExercisesService {
       throw new NotFoundException(`Vezba '${slug}' nije pronadjena`);
     }
     return toDto(exercise);
+  }
+
+  /** Koristi TrainingPlansService da obogati sacuvani plan (slug -> puni podaci o vezbi). */
+  async findManyBySlugs(slugs: readonly string[]): Promise<ExerciseDto[]> {
+    if (slugs.length === 0) return [];
+    const exercises = await this.prisma.exercise.findMany({ where: { slug: { in: [...slugs] } } });
+    return exercises.map(toDto);
+  }
+
+  /**
+   * Kandidat vezbe za AI trening plan (packages/domain selectCandidateExercises) -
+   * namerno iskljucuje SKILL vezbe (handstand/muscle-up progresije), koje
+   * pretpostavljaju posvecen fokus van generickog nedeljnog plana.
+   */
+  async listCandidates(): Promise<CandidateExercise[]> {
+    const exercises = await this.prisma.exercise.findMany({
+      where: { type: { in: ["CALISTHENICS", "GYM"] } },
+    });
+    return exercises.map((exercise) => ({
+      slug: exercise.slug,
+      name: exercise.name,
+      category: exercise.category,
+      type: exercise.type as CandidateExercise["type"],
+      difficulty: exercise.difficulty as CandidateExercise["difficulty"],
+      movementPattern: exercise.movementPattern,
+    }));
   }
 }
 

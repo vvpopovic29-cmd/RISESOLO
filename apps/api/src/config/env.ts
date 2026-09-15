@@ -7,6 +7,9 @@ export const apiEnvSchema = z.object({
   REDIS_URL: envPrimitives.url,
   JWT_SECRET: envPrimitives.nonEmptyString,
   JWT_EXPIRES_IN: z.string().default("7d"),
+  // Opciono - bez ovoga AI trening planovi vracaju 503 (vidi src/ai/ai.service.ts),
+  // ostatak aplikacije radi normalno. Namerno placeholder-friendly (Faza 2: AI planovi).
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
