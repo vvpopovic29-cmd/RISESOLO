@@ -96,6 +96,7 @@ model Progression {
 enum XpSource {
   WORKOUT_COMPLETE
   DAILY_QUEST_COMPLETE
+  BOSS_QUEST_COMPLETE
 
   @@map("xp_source")
 }
@@ -200,6 +201,7 @@ model TrainingPlan {
 
 enum QuestType {
   DAILY
+  BOSS
 
   @@map("quest_type")
 }
@@ -213,9 +215,11 @@ enum QuestStatus {
   @@map("quest_status")
 }
 
-/// generateDailyQuest(userId, date) je idempotentan zahvaljujuci
-/// @@unique([userId, date, type]) - druga generacija za isti dan vraca
-/// postojeci red umesto da pravi duplikat.
+/// generateDailyQuest/generateBossQuest su idempotentni zahvaljujuci
+/// @@unique([userId, date, type]) - druga generacija za isti dan (DAILY) ili
+/// nedelju (BOSS, date = ponedeljak te ISO nedelje) vraca postojeci red
+/// umesto da pravi duplikat. Boss quest progres se NE cuva ovde - racuna se
+/// prebrojavanjem zavrsenih WorkoutSession (vidi @risesolo/domain boss-quest).
 model Quest {
   id          String      @id @default(cuid())
   userId      String      @map("user_id")

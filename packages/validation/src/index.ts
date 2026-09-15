@@ -30,7 +30,12 @@ export {
   type ExerciseDto,
   type ListExercisesQuery,
 } from "./contracts/exercises";
-export { dailyQuestSchema, type DailyQuestDto } from "./contracts/quests";
+export {
+  dailyQuestSchema,
+  bossQuestSchema,
+  type DailyQuestDto,
+  type BossQuestDto,
+} from "./contracts/quests";
 export {
   trainingPlanExerciseSchema,
   trainingPlanDaySchema,

@@ -41,6 +41,7 @@ export const completeWorkoutResponseSchema = z.object({
   coinsGained: z.number().int(),
   coins: z.number().int(),
   questCompleted: z.boolean(),
+  bossQuestCompleted: z.boolean(),
   streak: z.number().int(),
 });
 export type CompleteWorkoutResponse = z.infer<typeof completeWorkoutResponseSchema>;

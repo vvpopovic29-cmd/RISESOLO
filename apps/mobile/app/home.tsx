@@ -6,6 +6,7 @@ import type { AllocateStatPointsRequest } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
 import { usePlayerState } from "../src/player/use-player-state";
 import { useTodayQuest } from "../src/player/use-today-quest";
+import { useBossQuest } from "../src/player/use-boss-quest";
 import { StatAllocator } from "../src/player/StatAllocator";
 import { Button } from "../src/ui/Button";
 import { ErrorState } from "../src/ui/ErrorState";
@@ -23,6 +24,7 @@ export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const { state: questState, refetch: refetchQuest } = useTodayQuest(apiClient);
+  const { state: bossQuestState, refetch: refetchBossQuest } = useBossQuest(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
 
@@ -33,7 +35,8 @@ export default function HomeScreen() {
     useCallback(() => {
       refetchPlayer();
       refetchQuest();
-    }, [refetchPlayer, refetchQuest]),
+      refetchBossQuest();
+    }, [refetchPlayer, refetchQuest, refetchBossQuest]),
   );
 
   async function handleLogout() {
@@ -149,6 +152,39 @@ export default function HomeScreen() {
               </Text>
               <Text className="text-xs font-medium text-accent">
                 {QUEST_STATUS_LABEL[questState.data.status] ?? questState.data.status}
+              </Text>
+            </View>
+          </>
+        )}
+      </View>
+
+      <View className="gap-2 rounded-lg border border-premium/40 p-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-sm font-semibold text-premium">NEDELJNI BOSS QUEST</Text>
+          {bossQuestState.status === "success" && bossQuestState.data.status === "COMPLETED" ? (
+            <Text className="text-xs font-bold text-premium">POBEDJEN</Text>
+          ) : null}
+        </View>
+        {bossQuestState.status === "loading" ? (
+          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        ) : bossQuestState.status === "error" ? (
+          <ErrorState message={bossQuestState.message} onRetry={refetchBossQuest} />
+        ) : (
+          <>
+            <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
+              {bossQuestState.data.title}
+            </Text>
+            <ProgressBar
+              progress={bossQuestState.data.progress / bossQuestState.data.targetSessions}
+              colorClassName="bg-premium"
+              testID="boss-quest-progress"
+            />
+            <View className="flex-row items-center justify-between pt-1">
+              <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                {bossQuestState.data.progress} / {bossQuestState.data.targetSessions} treninga ove nedelje
+              </Text>
+              <Text className="text-xs text-reward">
+                +{bossQuestState.data.xpReward} XP · +{bossQuestState.data.coinReward} coins
               </Text>
             </View>
           </>
