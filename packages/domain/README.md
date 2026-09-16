@@ -56,6 +56,29 @@ XP/coin nagrade - cist tracking alat, van core gameplay loop-a.
 - `macros.ts` - `sumDailyMacros(entries)`: sabira kalorije/protein/ugljene
   hidrate/masti svih unosa jednog dana u dnevni rezime.
 
+## `guild` (implementirano)
+
+Guild sistem (`apps/api/src/guilds`) - 5 stubova iz "Phase 2" liste u jednom
+modulu: Guild Management, Guild Progression, Guild Quests & Raids, Social &
+Chat (osnovna, bez real-time infrastrukture - Redis/Socket.IO nisu ozicena),
+Guild Treasury & Rewards.
+
+- `roles.ts` - `GUILD_ROLES` (LEADER/OFFICER/MEMBER), `GUILD_MEMBER_CAP`,
+  `canKick`/`canChangeRole`/`canDistributeTreasury` - cista permission
+  pravila, bez pristupa bazi.
+- `succession.ts` - `selectNextLeader`: kada LEADER napusti ceh, bira se
+  najstariji OFFICER (ili najstariji MEMBER ako nema OFFICER-a); `null` ako
+  ceh ostaje prazan (raspustanje).
+- `contribution.ts` - `calculateGuildXpContribution`: fiksan procenat
+  (`GUILD_XP_CONTRIBUTION_RATE`) licnog XP-a od svakog treninga automatski
+  ide u cehovski `total_xp` (isti princip kao licni: jedini izvor istine,
+  nivo se uvek izvodi preko `@risesolo/domain` `calculateLevel`).
+- `raid.ts` - `isGuildRaidComplete`: nedeljni cehovski izazov (ogledalo
+  licnog Boss Quest-a) se zavrsava kada zbir zavrsenih treninga SVIH
+  clanova te ISO nedelje dostigne `GUILD_RAID_TARGET_CONTRIBUTIONS`.
+- `treasury.ts` - `distributeTreasury`: LEADER deli riznicu ravnomerno
+  svim clanovima; ostatak od celobrojnog deljenja ostaje u riznici.
+
 ## Planirane domain granice (buduce faze)
 
 Svaka poslovna oblast dobija sopstveni podfolder pod `src/<context>/` u ovom
@@ -64,7 +87,7 @@ u `apps/api/src/modules/<context>/` (kontroleri, use-case orkestracija,
 perzistencija) - u skladu sa arhitektonskim pravilom da UI komponente i
 transportni sloj ne smeju sadrzati poslovna pravila.
 
-- `community` - izazovi, guild sistemi, rang-liste
+- `community` - rang-liste, prijateljstva
 - `economy` - prosireni gold/reward sistemi (van MVP fiksnih nagrada)
 - `recovery` - oporavak, mobilnost, eksplozivnost
 

@@ -43,5 +43,8 @@ export const completeWorkoutResponseSchema = z.object({
   questCompleted: z.boolean(),
   bossQuestCompleted: z.boolean(),
   streak: z.number().int(),
+  /** 0 ako korisnik nije u cehu - vidi apps/api/src/guilds. */
+  guildXpContributed: z.number().int(),
+  guildRaidCompleted: z.boolean(),
 });
 export type CompleteWorkoutResponse = z.infer<typeof completeWorkoutResponseSchema>;

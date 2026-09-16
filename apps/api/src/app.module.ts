@@ -10,6 +10,7 @@ import { QuestsModule } from "./quests/quests.module";
 import { WorkoutsModule } from "./workouts/workouts.module";
 import { TrainingPlansModule } from "./training-plans/training-plans.module";
 import { NutritionModule } from "./nutrition/nutrition.module";
+import { GuildsModule } from "./guilds/guilds.module";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { NutritionModule } from "./nutrition/nutrition.module";
     WorkoutsModule,
     TrainingPlansModule,
     NutritionModule,
+    GuildsModule,
   ],
 })
 export class AppModule {}

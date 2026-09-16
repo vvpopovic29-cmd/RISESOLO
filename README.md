@@ -7,7 +7,9 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > UI - `Auth -> Onboarding -> Home -> Exercises -> Workout -> Complete ->
 > XP/Level-up/Rewards -> Stat Points`. Server (NestJS + Prisma/PostgreSQL)
 > je jedini autoritet za XP/Level/Rank/Coins/Streak; mobile (Expo) ekrani
-> citaju/pisu iskljucivo preko `@risesolo/api-client`. AI, Guild, RevenueCat,
+> citaju/pisu iskljucivo preko `@risesolo/api-client`. AI trening planovi,
+> Boss Quest, Penalty System, Nutrition tracking i Guild sistem (upravljanje
+> cehom, cehovski nivo/raid, poruke, riznica) su implementirani. RevenueCat,
 > napredna nutrition analitika i EAS build su namerno van obima i dolaze u
 > narednim fazama.
 

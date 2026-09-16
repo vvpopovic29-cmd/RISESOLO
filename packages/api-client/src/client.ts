@@ -2,17 +2,25 @@ import {
   allocateStatPointsRequestSchema,
   authResponseSchema,
   bossQuestSchema,
+  changeGuildMemberRoleRequestSchema,
   completeWorkoutResponseSchema,
+  createGuildRequestSchema,
   createNutritionEntryRequestSchema,
   dailyNutritionSummarySchema,
   dailyQuestSchema,
+  donateToGuildRequestSchema,
   exerciseSchema,
   generateTrainingPlanRequestSchema,
+  guildDetailSchema,
+  guildMessageSchema,
+  guildSummarySchema,
   healthResponseSchema,
+  joinGuildRequestSchema,
   loginRequestSchema,
   nutritionEntrySchema,
   onboardProfileRequestSchema,
   playerStateSchema,
+  postGuildMessageRequestSchema,
   registerRequestSchema,
   trainingPlanDetailSchema,
   trainingPlanSummarySchema,
@@ -20,19 +28,27 @@ import {
   type AllocateStatPointsRequest,
   type AuthResponse,
   type BossQuestDto,
+  type ChangeGuildMemberRoleRequest,
   type CompleteWorkoutResponse,
+  type CreateGuildRequest,
   type CreateNutritionEntryRequest,
   type DailyNutritionSummaryDto,
   type DailyQuestDto,
+  type DonateToGuildRequest,
   type ExerciseDto,
   type GenerateTrainingPlanRequest,
+  type GuildDetailDto,
+  type GuildMessageDto,
+  type GuildSummaryDto,
   type HealthResponse,
+  type JoinGuildRequest,
   type ListExercisesQuery,
   type LoginRequest,
   type LogSetRequest,
   type NutritionEntryDto,
   type OnboardProfileRequest,
   type PlayerStateDto,
+  type PostGuildMessageRequest,
   type RegisterRequest,
   type StartWorkoutSessionRequest,
   type TrainingPlanDetailDto,
@@ -58,6 +74,8 @@ export function createApiClient(config: ApiClientConfig) {
   const request = createHttpClient(config);
   const exerciseListSchema = z.array(exerciseSchema);
   const trainingPlanListSchema = z.array(trainingPlanSummarySchema);
+  const guildListSchema = z.array(guildSummarySchema);
+  const guildMessageListSchema = z.array(guildMessageSchema);
 
   return {
     getHealth(): Promise<HealthResponse> {
@@ -165,6 +183,47 @@ export function createApiClient(config: ApiClientConfig) {
       },
       deleteEntry(id: string): Promise<void> {
         return request({ method: "DELETE", path: `/nutrition/entries/${encodeURIComponent(id)}` });
+      },
+    },
+
+    guilds: {
+      list(): Promise<GuildSummaryDto[]> {
+        return request({ method: "GET", path: "/guilds", schema: guildListSchema });
+      },
+      getMine(): Promise<GuildDetailDto> {
+        return request({ method: "GET", path: "/guilds/me", schema: guildDetailSchema });
+      },
+      create(dto: CreateGuildRequest): Promise<GuildDetailDto> {
+        createGuildRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/guilds", body: dto, schema: guildDetailSchema });
+      },
+      join(dto: JoinGuildRequest): Promise<GuildDetailDto> {
+        joinGuildRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/guilds/join", body: dto, schema: guildDetailSchema });
+      },
+      leave(): Promise<void> {
+        return request({ method: "POST", path: "/guilds/leave" });
+      },
+      kickMember(userId: string): Promise<void> {
+        return request({ method: "POST", path: `/guilds/members/${encodeURIComponent(userId)}/kick` });
+      },
+      changeMemberRole(userId: string, dto: ChangeGuildMemberRoleRequest): Promise<void> {
+        changeGuildMemberRoleRequestSchema.parse(dto);
+        return request({ method: "POST", path: `/guilds/members/${encodeURIComponent(userId)}/role`, body: dto });
+      },
+      getMessages(): Promise<GuildMessageDto[]> {
+        return request({ method: "GET", path: "/guilds/messages", schema: guildMessageListSchema });
+      },
+      postMessage(dto: PostGuildMessageRequest): Promise<GuildMessageDto> {
+        postGuildMessageRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/guilds/messages", body: dto, schema: guildMessageSchema });
+      },
+      donate(dto: DonateToGuildRequest): Promise<GuildDetailDto> {
+        donateToGuildRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/guilds/treasury/donate", body: dto, schema: guildDetailSchema });
+      },
+      distributeTreasury(): Promise<GuildDetailDto> {
+        return request({ method: "POST", path: "/guilds/treasury/distribute", schema: guildDetailSchema });
       },
     },
   };
