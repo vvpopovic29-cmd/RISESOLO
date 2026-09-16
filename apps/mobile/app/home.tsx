@@ -230,6 +230,12 @@ export default function HomeScreen() {
           testID="achievements-button"
         />
         <Button
+          label="Leaderboard"
+          variant="secondary"
+          onPress={() => router.push("/leaderboard")}
+          testID="leaderboard-button"
+        />
+        <Button
           label="RISESOLO Pro"
           variant="secondary"
           onPress={() => router.push("/paywall")}

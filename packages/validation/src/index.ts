@@ -119,4 +119,16 @@ export {
   type AchievementDto,
   type ListAchievementsResponse,
 } from "./contracts/achievements";
+export {
+  playerLeaderboardEntrySchema,
+  playerLeaderboardResponseSchema,
+  guildLeaderboardEntrySchema,
+  guildLeaderboardResponseSchema,
+  leaderboardQuerySchema,
+  type PlayerLeaderboardEntryDto,
+  type PlayerLeaderboardResponseDto,
+  type GuildLeaderboardEntryDto,
+  type GuildLeaderboardResponseDto,
+  type LeaderboardQuery,
+} from "./contracts/leaderboard";
 export { z } from "zod";

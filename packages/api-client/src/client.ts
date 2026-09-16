@@ -13,6 +13,7 @@ import {
   exerciseSchema,
   generateTrainingPlanRequestSchema,
   guildDetailSchema,
+  guildLeaderboardResponseSchema,
   guildMessageSchema,
   guildSummarySchema,
   healthResponseSchema,
@@ -20,6 +21,7 @@ import {
   loginRequestSchema,
   nutritionEntrySchema,
   onboardProfileRequestSchema,
+  playerLeaderboardResponseSchema,
   playerStateSchema,
   postGuildMessageRequestSchema,
   registerPushTokenRequestSchema,
@@ -43,6 +45,7 @@ import {
   type ExerciseDto,
   type GenerateTrainingPlanRequest,
   type GuildDetailDto,
+  type GuildLeaderboardResponseDto,
   type GuildMessageDto,
   type GuildSummaryDto,
   type HealthResponse,
@@ -52,6 +55,7 @@ import {
   type LogSetRequest,
   type NutritionEntryDto,
   type OnboardProfileRequest,
+  type PlayerLeaderboardResponseDto,
   type PlayerStateDto,
   type PostGuildMessageRequest,
   type RegisterPushTokenRequest,
@@ -256,6 +260,25 @@ export function createApiClient(config: ApiClientConfig) {
     achievements: {
       list(): Promise<AchievementDto[]> {
         return request({ method: "GET", path: "/achievements", schema: achievementListSchema });
+      },
+    },
+
+    leaderboard: {
+      players(limit?: number): Promise<PlayerLeaderboardResponseDto> {
+        return request({
+          method: "GET",
+          path: "/leaderboard/players",
+          query: { limit: limit !== undefined ? String(limit) : undefined },
+          schema: playerLeaderboardResponseSchema,
+        });
+      },
+      guilds(limit?: number): Promise<GuildLeaderboardResponseDto> {
+        return request({
+          method: "GET",
+          path: "/leaderboard/guilds",
+          query: { limit: limit !== undefined ? String(limit) : undefined },
+          schema: guildLeaderboardResponseSchema,
+        });
       },
     },
   };
