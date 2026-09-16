@@ -7,3 +7,4 @@ export * from "./training";
 export * from "./nutrition";
 export * from "./guild";
 export * from "./subscription";
+export * from "./achievements";

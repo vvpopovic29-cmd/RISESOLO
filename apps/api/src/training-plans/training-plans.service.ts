@@ -8,6 +8,7 @@ import type {
   TrainingPlanSummaryDto,
 } from "@risesolo/validation";
 import type { Prisma, TrainingPlan } from "@prisma/client";
+import { AchievementsService } from "../achievements/achievements.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { ExercisesService } from "../exercises/exercises.service";
 import { AiService } from "../ai/ai.service";
@@ -25,6 +26,7 @@ export class TrainingPlansService {
     private readonly exercisesService: ExercisesService,
     private readonly aiService: AiService,
     private readonly subscriptionsService: SubscriptionsService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   /**
@@ -92,6 +94,11 @@ export class TrainingPlansService {
         model: this.aiService.model,
       },
     });
+
+    this.achievementsService
+      .evaluateAndUnlock(userId)
+      .then((newlyUnlocked) => this.achievementsService.notifyNewlyUnlocked(userId, newlyUnlocked))
+      .catch(() => undefined);
 
     return this.hydrate(created);
   }

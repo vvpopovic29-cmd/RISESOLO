@@ -113,4 +113,10 @@ export {
   type RegisterPushTokenRequest,
   type UnregisterPushTokenRequest,
 } from "./contracts/notifications";
+export {
+  achievementSchema,
+  listAchievementsResponseSchema,
+  type AchievementDto,
+  type ListAchievementsResponse,
+} from "./contracts/achievements";
 export { z } from "zod";

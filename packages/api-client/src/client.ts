@@ -1,4 +1,5 @@
 import {
+  achievementSchema,
   allocateStatPointsRequestSchema,
   authResponseSchema,
   bossQuestSchema,
@@ -28,6 +29,7 @@ import {
   trainingPlanDetailSchema,
   trainingPlanSummarySchema,
   workoutSessionSchema,
+  type AchievementDto,
   type AllocateStatPointsRequest,
   type AuthResponse,
   type BossQuestDto,
@@ -82,6 +84,7 @@ export function createApiClient(config: ApiClientConfig) {
   const trainingPlanListSchema = z.array(trainingPlanSummarySchema);
   const guildListSchema = z.array(guildSummarySchema);
   const guildMessageListSchema = z.array(guildMessageSchema);
+  const achievementListSchema = z.array(achievementSchema);
 
   return {
     getHealth(): Promise<HealthResponse> {
@@ -247,6 +250,12 @@ export function createApiClient(config: ApiClientConfig) {
       unregisterToken(dto: UnregisterPushTokenRequest): Promise<void> {
         unregisterPushTokenRequestSchema.parse(dto);
         return request({ method: "DELETE", path: "/notifications/push-token", body: dto });
+      },
+    },
+
+    achievements: {
+      list(): Promise<AchievementDto[]> {
+        return request({ method: "GET", path: "/achievements", schema: achievementListSchema });
       },
     },
   };

@@ -2,12 +2,16 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { sumDailyMacros } from "@risesolo/domain";
 import type { CreateNutritionEntryRequest, DailyNutritionSummaryDto, NutritionEntryDto } from "@risesolo/validation";
 import type { NutritionEntry } from "@prisma/client";
+import { AchievementsService } from "../achievements/achievements.service";
 import { startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class NutritionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly achievementsService: AchievementsService,
+  ) {}
 
   async createEntry(userId: string, dto: CreateNutritionEntryRequest): Promise<NutritionEntryDto> {
     const entry = await this.prisma.nutritionEntry.create({
@@ -22,6 +26,12 @@ export class NutritionService {
         fatG: dto.fatG,
       },
     });
+
+    this.achievementsService
+      .evaluateAndUnlock(userId)
+      .then((newlyUnlocked) => this.achievementsService.notifyNewlyUnlocked(userId, newlyUnlocked))
+      .catch(() => undefined);
+
     return toDto(entry);
   }
 

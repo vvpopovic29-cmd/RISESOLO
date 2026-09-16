@@ -257,6 +257,36 @@ Arhitektura (server-authoritative, isti princip kao ostatak app-a):
    web exportu za standalone kredencijale - potreban je EAS development ili
    production build na fizickom uredjaju.
 
+## Achievements/Badges
+
+Trajni milestone-ovi (jednom otkljucan, zauvek ostaje otkljucan) - katalog
+zivi iskljucivo u `packages/domain/src/achievements` (`ACHIEVEMENT_DEFINITIONS`,
+18 achievement-a preko kategorija WORKOUTS/STREAK/LEVEL/QUESTS/NUTRITION/
+TRAINING_PLAN/GUILD).
+
+Isti "derive, don't cache" princip kao total_xp/level: server nikad ne pamti
+proizvoljan "level 10 badge" boolean koji moze da zaostane - umesto toga,
+`AchievementsService.evaluateAndUnlock` racuna svez `AchievementStatsSnapshot`
+iz postojecih tabela (broji `XpEvent` po izvoru, `NutritionEntry`,
+`TrainingPlan`, proverava `GuildMembership` - nema posebnih "counter" kolona)
+i perzistira samo novo otkljucane u `UserAchievement`
+(`@@unique([userId, achievementId])`, race-safe preko `skipDuplicates`).
+
+- **Trigeri** (svi POSLE glavne transakcije/upisa, fire-and-forget, isti
+  princip kao push notifikacije): zavrsen trening (`WorkoutsService`), unos u
+  dnevnik ishrane (`NutritionService`), generisan AI trening plan
+  (`TrainingPlansService`), osnivanje/pridruzivanje cehu (`GuildsService`).
+- **Lazy catch-up**: `GET /achievements` prvo poziva istu evaluaciju pre nego
+  sto vrati katalog - sustize propustene unlock-ove (npr. ako je achievement
+  dodat posle vec postojece statistike) bez cekanja na sledeci trening. Isti
+  princip kao "lazy" penalty provera u `PlayersService.getPlayerState`.
+- Push notifikacija se salje samo za unlock-ove otkrivene kroz stvarni
+  trigger (ne kroz lazy GET catch-up) - `AchievementsService.notifyNewlyUnlocked`.
+- `apps/mobile/app/achievements.tsx` - grid otkljucanih/zakljucanih badge-ova
+  (zakljucani vizuelno prigušeni), naziv/opis/ikonica su prikazni tekst u
+  `apps/mobile/src/achievements/achievement-display.ts` (namerno odvojeno od
+  domain sloja, isti princip kao `MEAL_TYPE_LABEL`).
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
