@@ -1,0 +1,30 @@
+import { useCallback, useEffect, useState } from "react";
+import { ApiError, type ApiClient } from "@risesolo/api-client";
+import type { ShopItemDto } from "@risesolo/validation";
+
+export type ShopResult =
+  | { status: "loading" }
+  | { status: "success"; data: ShopItemDto[] }
+  | { status: "error"; message: string };
+
+/** GET /shop - ceo katalog (owned/equipped flagovi vec izracunati na serveru). */
+export function useShop(apiClient: ApiClient): { state: ShopResult; refetch: () => void } {
+  const [state, setState] = useState<ShopResult>({ status: "loading" });
+
+  const refetch = useCallback(() => {
+    setState({ status: "loading" });
+    apiClient.shop
+      .list()
+      .then((data) => setState({ status: "success", data }))
+      .catch((error: unknown) => {
+        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        setState({ status: "error", message });
+      });
+  }, [apiClient]);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  return { state, refetch };
+}

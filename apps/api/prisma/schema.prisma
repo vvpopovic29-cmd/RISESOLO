@@ -42,6 +42,7 @@ model User {
   subscription    Subscription?
   pushTokens      PushToken[]
   achievements    UserAchievement[]
+  cosmetics       UserCosmetic[]
 
   @@map("users")
 }
@@ -56,6 +57,11 @@ model Profile {
   trainingType   String?   @map("training_type")
   experienceLevel String?  @map("experience_level")
   onboardedAt    DateTime? @map("onboarded_at")
+  /// Opremljeni Coin Shop predmeti - String (ne enum/FK) jer katalog zivi u
+  /// @risesolo/domain (SHOP_ITEMS), ne u bazi (isti princip kao UserAchievement.achievementId).
+  /// `null` = nista opremljeno za tu kategoriju.
+  equippedAvatarFrameId String? @map("equipped_avatar_frame_id")
+  equippedTitleId       String? @map("equipped_title_id")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
@@ -549,4 +555,26 @@ model UserAchievement {
   @@unique([userId, achievementId])
   @@index([userId])
   @@map("user_achievements")
+}
+
+// ---------------------------------------------------------------------------
+// Coin Shop / Avatar Customization
+// ---------------------------------------------------------------------------
+
+/// Kupljen kozmeticki predmet (jednom kupljen, zauvek u vlasnistvu - isti
+/// princip kao UserAchievement). `itemId` je String (ne enum/FK) - katalog
+/// (SHOP_ITEMS) zivi iskljucivo u @risesolo/domain, novi predmet se moze
+/// dodati bez migracije. `@@unique([userId, itemId])` sprecava duplu kupovinu
+/// (race-safe preko istog constraint-a, ne samo "provera pa upis").
+model UserCosmetic {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  itemId      String   @map("item_id")
+  purchasedAt DateTime @default(now()) @map("purchased_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId])
+  @@map("user_cosmetics")
 }

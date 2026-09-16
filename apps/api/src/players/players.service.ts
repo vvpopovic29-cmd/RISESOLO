@@ -15,6 +15,7 @@ import type {
 } from "@risesolo/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuestsService } from "../quests/quests.service";
+import { getShopItemDisplayById } from "../shop/shop-catalog";
 
 @Injectable()
 export class PlayersService {
@@ -60,6 +61,10 @@ export class PlayersService {
         trainingType: profile.trainingType,
         experienceLevel: profile.experienceLevel,
         onboarded: profile.onboardedAt !== null,
+        title: profile.equippedTitleId ? (getShopItemDisplayById(profile.equippedTitleId)?.name ?? null) : null,
+        avatarFrameColorHex: profile.equippedAvatarFrameId
+          ? (getShopItemDisplayById(profile.equippedAvatarFrameId)?.colorHex ?? null)
+          : null,
       },
       progression: {
         totalXp: progression.totalXp,

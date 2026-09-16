@@ -15,6 +15,8 @@ function samplePlayerState() {
       trainingType: null,
       experienceLevel: null,
       onboarded: true,
+      title: null,
+      avatarFrameColorHex: null,
     },
     progression: {
       totalXp: 250,

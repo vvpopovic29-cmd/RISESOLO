@@ -140,6 +140,8 @@ function samplePlayerState() {
       weightKg: null,
       trainingType: null,
       experienceLevel: null,
+      title: null,
+      avatarFrameColorHex: null,
     },
     progression: {
       totalXp: 0,

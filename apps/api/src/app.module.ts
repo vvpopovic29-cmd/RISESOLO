@@ -15,6 +15,7 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { AchievementsModule } from "./achievements/achievements.module";
 import { LeaderboardModule } from "./leaderboard/leaderboard.module";
+import { ShopModule } from "./shop/shop.module";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { LeaderboardModule } from "./leaderboard/leaderboard.module";
     NotificationsModule,
     AchievementsModule,
     LeaderboardModule,
+    ShopModule,
   ],
 })
 export class AppModule {}

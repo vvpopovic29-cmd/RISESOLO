@@ -34,6 +34,10 @@ export const playerProfileSchema = z.object({
   experienceLevel: z.string().nullable(),
   /** `true` nakon POST /players/me/onboarding - koristi klijent da odluci da li prikazuje onboarding ekran. */
   onboarded: z.boolean(),
+  /** Izvedeno iz Profile.equippedTitleId preko Coin Shop kataloga (vidi apps/api/src/shop) - `null` ako nista nije opremljeno. */
+  title: z.string().nullable(),
+  /** Izvedeno iz Profile.equippedAvatarFrameId - hex boja, `null` ako nista nije opremljeno. */
+  avatarFrameColorHex: z.string().nullable(),
 });
 export type PlayerProfileDto = z.infer<typeof playerProfileSchema>;
 
