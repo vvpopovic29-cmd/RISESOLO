@@ -7,11 +7,38 @@ export type StartWorkoutSessionRequest = z.infer<typeof startWorkoutSessionReque
 
 export const workoutSessionSchema = z.object({
   id: z.string(),
+  workoutId: z.string().nullable(),
   status: z.enum(["IN_PROGRESS", "COMPLETED", "ABANDONED"]),
   startedAt: z.string(),
   completedAt: z.string().nullable(),
 });
 export type WorkoutSessionDto = z.infer<typeof workoutSessionSchema>;
+
+/** Jedna vec ulogovana serija - koristi se za hidraciju kad se pauzirana sesija nastavlja. */
+export const workoutSetSchema = z.object({
+  exerciseId: z.string(),
+  exerciseSlug: z.string(),
+  exerciseName: z.string(),
+  setNumber: z.number().int(),
+  reps: z.number().int().nullable(),
+  durationSeconds: z.number().int().nullable(),
+  completed: z.boolean(),
+});
+export type WorkoutSetDto = z.infer<typeof workoutSetSchema>;
+
+/**
+ * GET /workouts/sessions/active - korisnikova trenutna IN_PROGRESS sesija
+ * (najvise jedna po korisniku, vidi WorkoutsService.startSession) sa vec
+ * ulogovanim serijama. `session: null` znaci da nema pauziranog treninga
+ * (NAMERNO ugnjezdeno, ne top-level null - NestJS/Express salje prazno telo
+ * bez Content-Type kad kontroler vrati "goli" null, sto razbija JSON parsing
+ * na klijentu).
+ */
+export const activeWorkoutSessionSchema = z.object({
+  session: workoutSessionSchema.nullable(),
+  sets: z.array(workoutSetSchema),
+});
+export type ActiveWorkoutSessionResponse = z.infer<typeof activeWorkoutSessionSchema>;
 
 export const logSetRequestSchema = z
   .object({

@@ -63,10 +63,14 @@ export {
   workoutSessionSchema,
   logSetRequestSchema,
   completeWorkoutResponseSchema,
+  workoutSetSchema,
+  activeWorkoutSessionSchema,
   type StartWorkoutSessionRequest,
   type WorkoutSessionDto,
   type LogSetRequest,
   type CompleteWorkoutResponse,
+  type WorkoutSetDto,
+  type ActiveWorkoutSessionResponse,
 } from "./contracts/workouts";
 export {
   workoutTemplateExerciseInputSchema,
