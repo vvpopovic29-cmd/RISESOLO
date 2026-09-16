@@ -100,4 +100,10 @@ export {
   type GuildSummaryDto,
   type GuildDetailDto,
 } from "./contracts/guild";
+export {
+  subscriptionStatusSchema,
+  revenueCatWebhookEventSchema,
+  type SubscriptionStatusDto,
+  type RevenueCatWebhookEvent,
+} from "./contracts/subscription";
 export { z } from "zod";

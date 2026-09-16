@@ -223,6 +223,12 @@ export default function HomeScreen() {
           onPress={() => router.push("/guild")}
           testID="guild-button"
         />
+        <Button
+          label="RISESOLO Pro"
+          variant="secondary"
+          onPress={() => router.push("/paywall")}
+          testID="paywall-button"
+        />
       </View>
     </Screen>
   );

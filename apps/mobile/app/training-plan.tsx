@@ -21,6 +21,7 @@ export default function TrainingPlanScreen() {
   const [goal, setGoal] = useState("");
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
 
   const [detail, setDetail] = useState<TrainingPlanDetailDto | null>(null);
   const [detailPlanId, setDetailPlanId] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export default function TrainingPlanScreen() {
   async function handleGenerate() {
     setGenerating(true);
     setGenerateError(null);
+    setLimitReached(false);
     try {
       const plan = await apiClient.trainingPlans.generate({
         daysPerWeek: Number(daysPerWeek),
@@ -58,7 +60,12 @@ export default function TrainingPlanScreen() {
       setDetail(plan);
       refetchPlans();
     } catch (error) {
-      setGenerateError(error instanceof ApiError ? error.message : "Generisanje plana nije uspelo.");
+      // 402 = besplatni limit dostignut (vidi apps/api training-plans.service.ts) - paywall, ne generalna greska.
+      if (error instanceof ApiError && error.status === 402) {
+        setLimitReached(true);
+      } else {
+        setGenerateError(error instanceof ApiError ? error.message : "Generisanje plana nije uspelo.");
+      }
     } finally {
       setGenerating(false);
     }
@@ -144,6 +151,15 @@ export default function TrainingPlanScreen() {
           testID="training-plan-goal-input"
         />
         {generateError ? <Text className="text-danger">{generateError}</Text> : null}
+        {limitReached ? (
+          <View className="gap-2 rounded-lg border border-premium/40 bg-premium/10 p-3" testID="training-plan-limit-banner">
+            <Text className="text-sm font-semibold text-premium">Dostigao si besplatni limit AI planova</Text>
+            <Text className="text-xs text-neutral-400 dark:text-neutral-700">
+              Nadogradi na RISESOLO Pro za neograniceno generisanje trening planova.
+            </Text>
+            <Button label="Pogledaj RISESOLO Pro" onPress={() => router.push("/paywall")} testID="upgrade-to-pro-button" />
+          </View>
+        ) : null}
         <Button
           label="Generisi plan"
           onPress={() => void handleGenerate()}

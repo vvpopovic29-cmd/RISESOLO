@@ -79,6 +79,20 @@ Guild Treasury & Rewards.
 - `treasury.ts` - `distributeTreasury`: LEADER deli riznicu ravnomerno
   svim clanovima; ostatak od celobrojnog deljenja ostaje u riznici.
 
+## `subscription` (implementirano)
+
+Subscriptions/RevenueCat (`apps/api/src/subscriptions`) - server-authoritative
+provera pretplate. RevenueCat webhook je jedini izvor istine; ovaj modul je
+namerno tanak (samo permisije/limiti), bez ikakve zavisnosti od RevenueCat
+SDK-a ili Prisma-e.
+
+- `entitlement.ts` - `PRO_ENTITLEMENT_ID` (`"pro_access"`),
+  `FREE_TRAINING_PLAN_LIMIT`, `isEntitlementActive` (izvodi "da li je
+  pretplata aktivna" iz `expiresAt` - isti princip kao `total_xp`, nikad se
+  ne cuva kao poseban boolean koji moze da zaostane), `canGenerateTrainingPlan`
+  (gate-uje `TrainingPlansService.generate` - besplatni korisnici imaju
+  ograniceni broj AI trening planova, `pro_access` uklanja limit).
+
 ## Planirane domain granice (buduce faze)
 
 Svaka poslovna oblast dobija sopstveni podfolder pod `src/<context>/` u ovom

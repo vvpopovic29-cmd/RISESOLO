@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import type { ApiClient } from "@risesolo/api-client";
 import type { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from "@risesolo/validation";
 import { useApiClient } from "../api/use-api-client";
+import { configurePurchases, logOutPurchases } from "../subscriptions/purchases";
 import { secureStorage } from "./secure-storage";
 
 const TOKEN_KEY = "risesolo.accessToken";
@@ -57,6 +58,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Pokriva i restore persistovane sesije i svez login/register (oba puta
+  // zavrsavaju u "signedIn" stanju) - RevenueCat app_user_id se vezuje za
+  // nas interni userId cim znamo ko je korisnik, ne cekajuci da otvori
+  // paywall (vidi src/subscriptions/purchases.ts).
+  useEffect(() => {
+    if (state.status === "signedIn") {
+      configurePurchases(state.user.id);
+    }
+  }, [state]);
+
   const persistSession = useCallback(async (response: AuthResponse) => {
     tokenRef.current = response.accessToken;
     await Promise.all([
@@ -84,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     tokenRef.current = null;
-    await Promise.all([secureStorage.deleteItem(TOKEN_KEY), secureStorage.deleteItem(USER_KEY)]);
+    await Promise.all([secureStorage.deleteItem(TOKEN_KEY), secureStorage.deleteItem(USER_KEY), logOutPurchases()]);
     setState({ status: "signedOut" });
   }, []);
 

@@ -12,8 +12,11 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > cehom, cehovski nivo/raid, poruke, riznica) su implementirani. EAS build je
 > konfigurisan (`apps/mobile/eas.json` + `expo-dev-client`) ali zahteva
 > korisnikov Expo/Apple/Google nalog da bi se stvarni build pokrenuo - vidi
-> "EAS Build" ispod. RevenueCat i napredna nutrition analitika su namerno
-> van obima i dolaze u narednim fazama.
+> "EAS Build" ispod. Subscriptions/RevenueCat infrastruktura (webhook,
+> entitlement gate na AI trening planovima, paywall, restore purchases) je
+> implementirana - vidi "Subscriptions/RevenueCat" ispod za sta jos zahteva
+> korisnikovu App Store Connect/Google Play Console/RevenueCat Dashboard
+> konfiguraciju. Napredna nutrition analitika je namerno van obima.
 
 ## Struktura
 
@@ -66,9 +69,11 @@ pnpm --filter @risesolo/mobile start
 
 Environment se validira Zod semama pri startu:
 - `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`, `REDIS_URL`,
-  `JWT_SECRET`, `JWT_EXPIRES_IN`.
+  `JWT_SECRET`, `JWT_EXPIRES_IN`, opciono `ANTHROPIC_API_KEY` i
+  `REVENUECAT_WEBHOOK_AUTH_HEADER`.
 - `apps/mobile/src/config/env.ts` - `EXPO_PUBLIC_API_URL` (sa default vrednošću
-  za lokalni razvoj ako promenljiva nije postavljena).
+  za lokalni razvoj ako promenljiva nije postavljena), opciono
+  `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`/`EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`.
 
 Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 `@risesolo/validation`) i aplikacija se namerno ne podiže (fail-fast).
@@ -161,6 +166,55 @@ Ne pokreće se automatski na push/PR i ostaje neaktivan (`if: secrets.EXPO_TOKEN
 dok vlasnik repoa sam ne doda `EXPO_TOKEN` secret (Settings -> Secrets and
 variables -> Actions) generisan preko `expo.dev/accounts/[nalog]/settings/access-tokens`.
 
+## Subscriptions/RevenueCat
+
+Server-authoritative pretplate preko RevenueCat-a - `pro_access` entitlement
+trenutno otkljucava neograniceno generisanje AI trening planova (besplatni
+korisnici imaju `FREE_TRAINING_PLAN_LIMIT` - vidi `packages/domain/src/subscription/entitlement.ts`).
+
+**Implementirano (kod, ova sesija):**
+- `apps/api/src/subscriptions` - `POST /subscriptions/webhook` (RevenueCat
+  server-to-server, autentifikovan preko custom `Authorization` header
+  vrednosti - vidi `REVENUECAT_WEBHOOK_AUTH_HEADER`) i `GET /subscriptions/me`
+  (JWT-gated status za trenutnog korisnika). Webhook je JEDINI nacin da
+  `Subscription` red u bazi postane aktivan - lokalni RevenueCat SDK na
+  klijentu se NIKAD direktno ne pita za entitlement u server-side gate-ovima.
+- `apps/api/src/training-plans/training-plans.service.ts` - `generate()`
+  proverava `canGenerateTrainingPlan` PRE poziva AI-a i vraca `402 Payment
+  Required` kada je besplatni limit dostignut.
+- `apps/mobile/src/subscriptions/purchases.ts` - tanak wrapper oko
+  `react-native-purchases` SDK-a (configure/purchasePackage/restorePurchases/
+  customer info listener), guard-ovan da NIKAD ne pravi stvarne pozive na
+  webu (`Platform.OS === "web"`) niti bez konfigurisanog API kljuca.
+- `apps/mobile/app/paywall.tsx` - paywall ekran (cene iz RevenueCat offerings
+  kada su dostupne, orijentaciona cena kao fallback), Restore Purchases
+  dugme, linkovi ka `app/legal/{terms,privacy}.tsx` i obavezna napomena o
+  automatskom obnavljanju/otkazivanju (Apple/Google zahtev). Dostupan sa
+  Home ekrana i automatski kada `POST /training-plans/generate` vrati 402.
+
+**Zahteva tvoju akciju (van ove sesije - nalozi kojima ova sesija nema pristup):**
+1. **App Store Connect** - kreirati `monthly_pro`/`annual_pro` proizvode,
+   Subscription Group (da korisnik ne moze imati dve aktivne pretplate
+   istovremeno), opciono uvodnu ponudu/free trial.
+2. **Google Play Console** - isto za Android (Play Console subscription
+   proizvodi + base plans).
+3. **RevenueCat Dashboard** - napraviti Project, povezati iOS/Android app
+   (API kljucevi za `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`/
+   `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`), kreirati `pro_access`
+   entitlement (MORA se zvati tacno tako - vidi `PRO_ENTITLEMENT_ID` u
+   `packages/domain/src/subscription/entitlement.ts` i
+   `apps/mobile/src/subscriptions/purchases.ts`), kreirati "Default Offering"
+   sa mesecnim/godisnjim paketom, i podesiti webhook (Project Settings ->
+   Integrations -> Webhooks) na `https://<tvoj-api-domen>/subscriptions/webhook`
+   sa "Authorization" header vrednoscu koju upisujes i u `REVENUECAT_WEBHOOK_AUTH_HEADER`.
+4. Stvarno testiranje kupovine zahteva EAS development/internal build (vidi
+   "EAS Build" iznad) - `react-native-purchases` je nativni modul, ne radi u
+   Expo Go niti u web exportu.
+5. Cene navedene u `app/paywall.tsx` (`ESTIMATED_PACKAGES`) su orijentacione
+   ($6.99/mesecno, $49.99/godisnje) - stvarna cena se podesava u App Store
+   Connect/Play Console i automatski se prikazuje preko RevenueCat offerings
+   kada su Store proizvodi kreirani.
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
@@ -201,3 +255,12 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 - `apps/api/prisma/seed-data/exercise-library.json` (247 vežbi) je
   template-generisan (vidi seed-data/README.md) - instructions/form_cues
   tekst treba fitness-content review pre produkcije.
+- Subscriptions/RevenueCat: kod je implementiran i testiran (webhook, gate,
+  paywall, restore purchases), ali App Store Connect/Google Play
+  Console/RevenueCat Dashboard konfiguracija (proizvodi, entitlement,
+  offering, webhook URL) nije zavrsena - vidi "Subscriptions/RevenueCat"
+  iznad. Bez toga `getCurrentOffering()` vraca `null` i paywall prikazuje
+  orijentacionu cenu umesto stvarnih Store paketa.
+- `app/legal/{terms,privacy}.tsx` sadrze placeholder pravni tekst - potrebna
+  je pravna revizija (uklj. GDPR/CCPA usaglasenost po ciljnim trzistima) pre
+  produkcije.

@@ -22,6 +22,7 @@ import {
   playerStateSchema,
   postGuildMessageRequestSchema,
   registerRequestSchema,
+  subscriptionStatusSchema,
   trainingPlanDetailSchema,
   trainingPlanSummarySchema,
   workoutSessionSchema,
@@ -51,6 +52,7 @@ import {
   type PostGuildMessageRequest,
   type RegisterRequest,
   type StartWorkoutSessionRequest,
+  type SubscriptionStatusDto,
   type TrainingPlanDetailDto,
   type TrainingPlanSummaryDto,
   type WorkoutSessionDto,
@@ -224,6 +226,12 @@ export function createApiClient(config: ApiClientConfig) {
       },
       distributeTreasury(): Promise<GuildDetailDto> {
         return request({ method: "POST", path: "/guilds/treasury/distribute", schema: guildDetailSchema });
+      },
+    },
+
+    subscriptions: {
+      getStatus(): Promise<SubscriptionStatusDto> {
+        return request({ method: "GET", path: "/subscriptions/me", schema: subscriptionStatusSchema });
       },
     },
   };
