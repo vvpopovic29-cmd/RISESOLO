@@ -9,9 +9,11 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > je jedini autoritet za XP/Level/Rank/Coins/Streak; mobile (Expo) ekrani
 > citaju/pisu iskljucivo preko `@risesolo/api-client`. AI trening planovi,
 > Boss Quest, Penalty System, Nutrition tracking i Guild sistem (upravljanje
-> cehom, cehovski nivo/raid, poruke, riznica) su implementirani. RevenueCat,
-> napredna nutrition analitika i EAS build su namerno van obima i dolaze u
-> narednim fazama.
+> cehom, cehovski nivo/raid, poruke, riznica) su implementirani. EAS build je
+> konfigurisan (`apps/mobile/eas.json` + `expo-dev-client`) ali zahteva
+> korisnikov Expo/Apple/Google nalog da bi se stvarni build pokrenuo - vidi
+> "EAS Build" ispod. RevenueCat i napredna nutrition analitika su namerno
+> van obima i dolaze u narednim fazama.
 
 ## Struktura
 
@@ -110,6 +112,55 @@ progres - `level`/`rank` se uvek izvode preko `@risesolo/domain` (vidi
 10. Svaka završena funkcija ima testove (Jest; `jest-expo` + React Native
     Testing Library za mobile).
 
+## EAS Build (native iOS/Android build)
+
+`apps/mobile/eas.json` definiše tri build profila (managed workflow - nema
+komitovanih `ios/`/`android/` foldera, EAS ih generiše u cloud-u iz `app.json`):
+
+- `development` - development client (`expo-dev-client`), interna distribucija;
+  koristi se za testiranje native modula (npr. budući RevenueCat SDK) koji ne
+  rade u Expo Go niti u web exportu.
+- `preview` - interna distribucija za QA/TestFlight internal testing.
+- `production` - App Store/Play Store submission, auto-increment build broja
+  (`appVersionSource: "remote"` - EAS upravlja `buildNumber`/`versionCode`).
+
+Preduslovi (rade se JEDNOM, van ove sesije - zahtevaju tvoj Expo/Apple/Google
+nalog; ova sesija nema pristup tim nalozima pa ne može sama da pokrene pravi build):
+
+1. `npm install -g eas-cli` (ili koristi `npx eas-cli@latest` preko skripti ispod).
+2. `pnpm --filter @risesolo/mobile run eas:login` - prijava na Expo nalog.
+3. `pnpm --filter @risesolo/mobile run eas:init` - povezuje projekat sa EAS-om
+   i upisuje `extra.eas.projectId` u `app.json` (namerno nije hardkodovano ovde).
+4. iOS build zahteva plaćen Apple Developer Program nalog; Android build
+   zahteva Google Play Console developer nalog.
+5. Zameniti `CHANGE_ME-*` placeholder URL-ove u `eas.json` (`EXPO_PUBLIC_API_URL`
+   po profilu) stvarnim deployed API adresama pre `preview`/`production` build-a.
+
+Komande (iz `apps/mobile`):
+
+```bash
+pnpm run build:dev          # development client (za testiranje native modula)
+pnpm run build:preview      # interni QA build
+pnpm run build:production   # store-ready build
+pnpm run submit:ios         # eas submit - App Store Connect
+pnpm run submit:android     # eas submit - Google Play Console
+```
+
+`ios.bundleIdentifier`/`android.package` su postavljeni na `com.risesolo.app`
+(placeholder - promeniti ako je stvarni bundle ID drugačiji pre prvog builda,
+jer se posle prve submisije na Store ne može menjati).
+
+Ova faza namerno NE pokreće stvarni cloud build - verifikovano je da je
+konfiguracija validna (`npx expo config`, `expo-doctor`) i da postojeći
+`expo export --platform web` build i dalje radi nakon dodavanja
+`expo-dev-client` zavisnosti.
+
+`.github/workflows/eas-build.yml` je opcioni manuelni (`workflow_dispatch`)
+GitHub Actions workflow koji pokreće `eas build` za izabrani profil/platformu.
+Ne pokreće se automatski na push/PR i ostaje neaktivan (`if: secrets.EXPO_TOKEN != ''`)
+dok vlasnik repoa sam ne doda `EXPO_TOKEN` secret (Settings -> Secrets and
+variables -> Actions) generisan preko `expo.dev/accounts/[nalog]/settings/access-tokens`.
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
@@ -143,8 +194,10 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   `expo-secure-store` nema pravu web implementaciju - vidi
   `apps/mobile/src/auth/secure-storage.ts`.
 - Mobile "build" u CI/lokalno je `expo export --platform web` (potvrđuje da se
-  JS bandluje ispravno) - native (iOS/Android) build zahteva Xcode/Android SDK
-  i nije deo ovog pipeline-a; jos nije testirano na fizickom uredjaju/simulatoru.
+  JS bandluje ispravno). Native (iOS/Android) build je konfigurisan preko EAS-a
+  (vidi "EAS Build" iznad) ali zahteva korisnikov Expo/Apple/Google nalog da bi
+  se stvarni cloud build pokrenuo - nije deo ovog CI pipeline-a i jos nije
+  testirano na fizičkom uređaju/simulatoru.
 - `apps/api/prisma/seed-data/exercise-library.json` (247 vežbi) je
   template-generisan (vidi seed-data/README.md) - instructions/form_cues
   tekst treba fitness-content review pre produkcije.

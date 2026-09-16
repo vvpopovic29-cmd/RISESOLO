@@ -1,0 +1,58 @@
+name: EAS Build
+
+# Manuelni trigger (workflow_dispatch) - NE pokrece se na svaki push/PR kao
+# ci.yml. Zahteva EXPO_TOKEN repo secret (https://expo.dev/accounts/[nalog]/settings/access-tokens),
+# koji ova sesija nema - workflow ostaje neaktivan dok vlasnik repoa sam ne
+# doda taj secret (Settings -> Secrets and variables -> Actions).
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profil (vidi apps/mobile/eas.json)"
+        required: true
+        default: preview
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+      platform:
+        description: "Ciljna platforma"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+
+jobs:
+  eas-build:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.EXPO_TOKEN != '' }}
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.3.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - name: EAS Build
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli@latest build --profile ${{ inputs.profile }} --platform ${{ inputs.platform }} --non-interactive --no-wait

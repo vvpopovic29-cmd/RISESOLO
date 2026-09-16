@@ -12,7 +12,14 @@
     "clean": "rimraf dist-web .expo",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "eas:login": "npx eas-cli@latest login",
+    "eas:init": "npx eas-cli@latest init",
+    "build:dev": "npx eas-cli@latest build --profile development",
+    "build:preview": "npx eas-cli@latest build --profile preview",
+    "build:production": "npx eas-cli@latest build --profile production",
+    "submit:ios": "npx eas-cli@latest submit --platform ios --profile production",
+    "submit:android": "npx eas-cli@latest submit --platform android --profile production"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.15",
@@ -22,6 +29,7 @@
     "babel-preset-expo": "~57.0.10",
     "expo": "~57.0.20",
     "expo-constants": "~57.0.17",
+    "expo-dev-client": "~57.0.19",
     "expo-linking": "~57.0.9",
     "expo-router": "~57.0.19",
     "expo-secure-store": "~57.0.4",
