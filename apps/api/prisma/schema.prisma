@@ -171,6 +171,7 @@ model Exercise {
   updatedAt         DateTime           @updatedAt @map("updated_at")
 
   workoutSets       WorkoutSet[]
+  templateUsages    WorkoutTemplateExercise[]
 
   @@index([category, difficulty])
   @@index([progressionChain, progressionOrder])
@@ -292,16 +293,36 @@ model Quest {
 /// Sesija (WorkoutSession) je stvarno izvrsenje - moze postojati i bez
 /// template-a (ad-hoc trening).
 model Workout {
-  id        String           @id @default(cuid())
-  userId    String           @map("user_id")
+  id        String                    @id @default(cuid())
+  userId    String                    @map("user_id")
   name      String
-  createdAt DateTime         @default(now()) @map("created_at")
-  updatedAt DateTime         @updatedAt @map("updated_at")
+  createdAt DateTime                  @default(now()) @map("created_at")
+  updatedAt DateTime                  @updatedAt @map("updated_at")
 
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions  WorkoutSession[]
+  exercises WorkoutTemplateExercise[]
 
   @@map("workouts")
+}
+
+/// Vezbe unutar jednog template-a ("Moji treninzi"), u redosledu prikaza.
+/// `targetSets` je samo predlog za UI (npr. "3 serije") - stvarne odradjene
+/// serije se i dalje logiraju preko WorkoutSet u toku sesije, template ne
+/// diktira izvrsenje.
+model WorkoutTemplateExercise {
+  id         String   @id @default(cuid())
+  workoutId  String   @map("workout_id")
+  exerciseId String   @map("exercise_id")
+  order      Int
+  targetSets Int?     @map("target_sets")
+
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutId, order])
+  @@index([workoutId])
+  @@map("workout_template_exercises")
 }
 
 enum WorkoutSessionStatus {

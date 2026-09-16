@@ -305,6 +305,27 @@ podrazumevano 20, max 100).
   istaknut (accent boja); ako korisnik nije u top listi, njegov red se
   prikazuje posebno na dnu ("TVOJA POZICIJA"/"TVOJ CEH").
 
+## Moji treninzi (Workout Templates)
+
+Imenovana, ponovo-upotrebljiva kolekcija vezbi - `Workout` model je postojao
+u schema.prisma jos od Faze 2 kao prazan template koncept (samo `name`),
+nikad stvarno iskoriscen do sada.
+
+- **`WorkoutTemplateExercise`** - join tabela (Workout <-> Exercise) sa
+  eksplicitnim `order` (izveden iz pozicije u nizu pri kreiranju, klijent ga
+  ne salje) i opcionim `targetSets` (samo predlog za UI, ne diktira
+  izvrsenje - serije se i dalje loguju preko `WorkoutSet` u toku sesije).
+- `POST/GET/DELETE /workouts/templates(/:id)` - CRUD sa ownership proverom
+  (404 i za nepostojeci i za tudji template).
+- `POST /workouts/sessions` je vec podrzavao opcioni `workoutId` (od Faze 2)
+  - ova faza ga PRVI PUT stvarno koristi: `apps/mobile/app/workout.tsx`
+    prima opcioni `workoutId` query param i prosledjuje ga pri pokretanju
+    sesije, povezujuci je sa template-om.
+- **Namerno ogranicen obim**: "Pokreni" iz template-a otvara POSTOJECI
+  single-exercise `workout.tsx` ekran za PRVU vezbu (bez redizajna
+  postojeceg workout flow-a). Vodjena sesija kroz SVE vezbe template-a
+  redom je van obima ove faze - vidi "Poznata ograničenja" ispod.
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
@@ -330,8 +351,9 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   provereni u pravom browseru (Playwright, `expo export --platform web`) -
   kompletan tok registracija -> onboarding -> trening -> XP/level-up ->
   raspodela stat poena -> odjava radi sa pravim podacima sa servera.
-  Nedostaje: pause/resume trening sesije, workout template-i ("Moji
-  treninzi"), i UX polish (animacije, System vizuelni efekti).
+  Nedostaje: pause/resume trening sesije. "Moji treninzi" (workout
+  template-i) su dodati - vidi sekciju ispod, uz napomenu o preostalom
+  ograničenju (nema vodjene sesije kroz SVE vezbe template-a odjednom).
 - JWT se na nativnim platformama (iOS/Android) cuva u `expo-secure-store`
   (keychain/keystore); na webu (samo za `expo export --platform web`
   build-check, ne primarna meta) pada na `localStorage` jer

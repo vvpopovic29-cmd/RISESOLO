@@ -35,6 +35,13 @@ export class ExercisesService {
     return exercises.map(toDto);
   }
 
+  /** Koristi WorkoutTemplatesService da obogati sacuvani template (exerciseId -> puni podaci o vezbi). */
+  async findManyByIds(ids: readonly string[]): Promise<ExerciseDto[]> {
+    if (ids.length === 0) return [];
+    const exercises = await this.prisma.exercise.findMany({ where: { id: { in: [...ids] } } });
+    return exercises.map(toDto);
+  }
+
   /**
    * Kandidat vezbe za AI trening plan (packages/domain selectCandidateExercises) -
    * namerno iskljucuje SKILL vezbe (handstand/muscle-up progresije), koje

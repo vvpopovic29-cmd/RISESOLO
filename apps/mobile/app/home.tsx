@@ -206,6 +206,12 @@ export default function HomeScreen() {
       <View className="gap-3">
         <Button label="Izaberi vezbu i zapocni trening" onPress={() => router.push("/exercises")} testID="start-workout-button" />
         <Button
+          label="Moji treninzi"
+          variant="secondary"
+          onPress={() => router.push("/workout-templates")}
+          testID="workout-templates-button"
+        />
+        <Button
           label="AI trening plan"
           variant="secondary"
           onPress={() => router.push("/training-plan")}
