@@ -16,7 +16,9 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > entitlement gate na AI trening planovima, paywall, restore purchases) je
 > implementirana - vidi "Subscriptions/RevenueCat" ispod za sta jos zahteva
 > korisnikovu App Store Connect/Google Play Console/RevenueCat Dashboard
-> konfiguraciju. Napredna nutrition analitika je namerno van obima.
+> konfiguraciju. Push notifikacije (Boss Quest/Guild Raid/kick iz ceha) su
+> implementirane preko Expo push servisa - vidi "Push Notifications" ispod.
+> Napredna nutrition analitika je namerno van obima.
 
 ## Struktura
 
@@ -215,6 +217,46 @@ korisnici imaju `FREE_TRAINING_PLAN_LIMIT` - vidi `packages/domain/src/subscript
    Connect/Play Console i automatski se prikazuje preko RevenueCat offerings
    kada su Store proizvodi kreirani.
 
+## Push Notifications
+
+Preko [Expo push servisa](https://exp.host) (besplatan, ne zahteva sopstveni
+notifikacioni backend/queue) - server salje notifikaciju na tri postojeca
+dogadjaja:
+
+- **Boss Quest pobedjen** - korisniku koji je zavrsio nedeljni izazov
+  (`apps/api/src/workouts/workouts.service.ts`).
+- **Cehovski raid zavrsen** - SVIM clanovima ceha, ne samo onome cijim je
+  treningom raid zavrsen (`GuildsService.sendRaidCompletionNotification`).
+- **Izbacen si iz ceha** - korisniku kog je LEADER/OFFICER izbacio
+  (`GuildsService.kickMember`).
+
+Namerno NEMA scheduled/cron podsetnika (npr. "nisi trenirao danas") - isto
+ogranicenje kao Redis/BullMQ (vidi "Poznata ograničenja" ispod), jer bi to
+zahtevalo pravi scheduler koji jos nije ozicen. Svi trigeri su event-driven
+(salju se odmah kad se dogadjaj desi na serveru), nikad na tajmer.
+
+Arhitektura (server-authoritative, isti princip kao ostatak app-a):
+- `apps/api/src/notifications` - `PushToken` model (jedan red po fizickom
+  uredjaju, `token` je globalno unique), `NotificationsService.sendToUser`/
+  `sendToUsers` (best-effort - mrezni poziv ka Expo servisu NIKAD ne baca
+  gresku na gore niti se poziva unutar DB transakcije, vidi komentare u
+  `notifications.service.ts`).
+- `apps/mobile/src/notifications/push-notifications.ts` - trazi dozvolu i
+  registruje token preko `expo-notifications`, guard-ovano da nikad ne radi
+  na webu niti bez EAS `projectId` (vidi ispod). Tap na notifikaciju
+  navigira preko `data.screen` polja (postavljeno na serveru).
+
+**Zahteva tvoju akciju (van ove sesije):**
+1. `getExpoPushTokenAsync` zahteva EAS `projectId` upisan u `app.json` ->
+   `extra.eas.projectId`, sto se desava tek nakon `eas init` (vidi "EAS
+   Build" iznad) - do tada je registracija tokena namerno no-op.
+2. Za standalone (EAS) Android build, potrebno je povezati Firebase Cloud
+   Messaging projekat preko `eas credentials` (Expo/EAS automatski upravlja
+   iOS APNs kredencijalima).
+3. Stvarno slanje/prijem notifikacije se ne moze testirati u Expo Go niti u
+   web exportu za standalone kredencijale - potreban je EAS development ili
+   production build na fizickom uredjaju.
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
@@ -264,3 +306,9 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 - `app/legal/{terms,privacy}.tsx` sadrze placeholder pravni tekst - potrebna
   je pravna revizija (uklj. GDPR/CCPA usaglasenost po ciljnim trzistima) pre
   produkcije.
+- Push notifikacije: backend (registracija tokena, slanje preko Expo push
+  servisa, trigeri) je implementiran i testiran, ali stvarna registracija
+  tokena zahteva EAS `projectId` (`eas init`, vidi "Push Notifications"
+  iznad) i standalone build za Android FCM kredencijale - do tada je
+  registracija no-op. Nema scheduled/cron podsetnika (isto ogranicenje kao
+  Redis/BullMQ ispod) - samo event-driven trigeri.

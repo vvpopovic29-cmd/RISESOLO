@@ -21,8 +21,10 @@ import {
   onboardProfileRequestSchema,
   playerStateSchema,
   postGuildMessageRequestSchema,
+  registerPushTokenRequestSchema,
   registerRequestSchema,
   subscriptionStatusSchema,
+  unregisterPushTokenRequestSchema,
   trainingPlanDetailSchema,
   trainingPlanSummarySchema,
   workoutSessionSchema,
@@ -50,11 +52,13 @@ import {
   type OnboardProfileRequest,
   type PlayerStateDto,
   type PostGuildMessageRequest,
+  type RegisterPushTokenRequest,
   type RegisterRequest,
   type StartWorkoutSessionRequest,
   type SubscriptionStatusDto,
   type TrainingPlanDetailDto,
   type TrainingPlanSummaryDto,
+  type UnregisterPushTokenRequest,
   type WorkoutSessionDto,
   z,
 } from "@risesolo/validation";
@@ -232,6 +236,17 @@ export function createApiClient(config: ApiClientConfig) {
     subscriptions: {
       getStatus(): Promise<SubscriptionStatusDto> {
         return request({ method: "GET", path: "/subscriptions/me", schema: subscriptionStatusSchema });
+      },
+    },
+
+    notifications: {
+      registerToken(dto: RegisterPushTokenRequest): Promise<void> {
+        registerPushTokenRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/notifications/push-token", body: dto });
+      },
+      unregisterToken(dto: UnregisterPushTokenRequest): Promise<void> {
+        unregisterPushTokenRequestSchema.parse(dto);
+        return request({ method: "DELETE", path: "/notifications/push-token", body: dto });
       },
     },
   };

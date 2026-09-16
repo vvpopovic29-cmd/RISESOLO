@@ -29,6 +29,7 @@ import type {
 } from "@risesolo/validation";
 import type { GuildMembership, GuildRaid, Prisma } from "@prisma/client";
 import { startOfIsoWeek } from "../common/date";
+import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
 
 type Db = PrismaService | Prisma.TransactionClient;
@@ -39,7 +40,10 @@ interface MembershipWithUsername extends GuildMembership {
 
 @Injectable()
 export class GuildsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   // -- Guild Management -------------------------------------------------
 
@@ -133,6 +137,13 @@ export class GuildsService {
       throw new ForbiddenException("Nemas dozvolu da izbacis ovog clana");
     }
     await this.prisma.guildMembership.delete({ where: { userId: targetUserId } });
+    this.notificationsService
+      .sendToUser(targetUserId, {
+        title: "Izbacen si iz ceha",
+        body: "Vise nisi clan ovog ceha.",
+        data: { screen: "/guild" },
+      })
+      .catch(() => undefined);
   }
 
   async changeMemberRole(actorUserId: string, targetUserId: string, dto: ChangeGuildMemberRoleRequest): Promise<void> {
@@ -236,6 +247,31 @@ export class GuildsService {
     }
 
     return { guildXpContributed, guildRaidCompleted };
+  }
+
+  /**
+   * Poziva se iz WorkoutsService.completeSession POSLE glavne transakcije
+   * (nikad unutar nje - mrezni poziv ka Expo push servisu ne sme da drzi
+   * DB transakciju otvorenu). Cita svez guild sastav (van tx) da obavesti
+   * SVE clanove, ne samo korisnika cijim je treningom raid zavrsen.
+   */
+  async sendRaidCompletionNotification(userId: string): Promise<void> {
+    const membership = await this.prisma.guildMembership.findUnique({ where: { userId } });
+    if (!membership) {
+      return;
+    }
+    const [guild, members] = await Promise.all([
+      this.prisma.guild.findUnique({ where: { id: membership.guildId }, select: { name: true } }),
+      this.prisma.guildMembership.findMany({ where: { guildId: membership.guildId }, select: { userId: true } }),
+    ]);
+    await this.notificationsService.sendToUsers(
+      members.map((member) => member.userId),
+      {
+        title: "Cehovski raid zavrsen!",
+        body: `${guild?.name ?? "Tvoj ceh"} je osvojio nedeljni raid - riznica je nagradjena.`,
+        data: { screen: "/guild" },
+      },
+    );
   }
 
   // -- Social & Chat ------------------------------------------------------

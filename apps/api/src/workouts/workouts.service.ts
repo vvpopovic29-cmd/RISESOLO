@@ -21,6 +21,7 @@ import { diffInUtcDays, startOfUtcDay } from "../common/date";
 // zahteva stvarnu klasu u constructor parametar tipu, ne obrisanu type-only
 // referencu.
 import { GuildsService } from "../guilds/guilds.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuestsService } from "../quests/quests.service";
 
@@ -30,6 +31,7 @@ export class WorkoutsService {
     private readonly prisma: PrismaService,
     private readonly questsService: QuestsService,
     private readonly guildsService: GuildsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async startSession(userId: string, dto: StartWorkoutSessionRequest): Promise<WorkoutSessionDto> {
@@ -100,7 +102,7 @@ export class WorkoutsService {
     }
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         await tx.workoutSession.update({
           where: { id: session.id },
           data: { status: "COMPLETED", completedAt: new Date() },
@@ -198,6 +200,24 @@ export class WorkoutsService {
           guildRaidCompleted,
         };
       });
+
+      // Push notifikacije se salju POSLE zavrsene transakcije (nikad unutar
+      // nje - mrezni poziv ka Expo servisu ne sme da drzi DB transakciju
+      // otvorenu niti da izazove rollback XP-a ako slanje ne uspe).
+      if (result.bossQuestCompleted) {
+        this.notificationsService
+          .sendToUser(userId, {
+            title: "Boss Quest pobedjen!",
+            body: "Osvojio si veliku nedeljnu nagradu.",
+            data: { screen: "/home" },
+          })
+          .catch(() => undefined);
+      }
+      if (result.guildRaidCompleted) {
+        this.guildsService.sendRaidCompletionNotification(userId).catch(() => undefined);
+      }
+
+      return result;
     } catch (error) {
       if (isUniqueConstraintError(error)) {
         // Session je vec bio zavrsen u paralelnom zahtevu (retry/dupli tap) - nema duple nagrade.
