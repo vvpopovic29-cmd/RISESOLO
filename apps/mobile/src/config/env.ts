@@ -7,14 +7,29 @@ import { envPrimitives, loadEnv, z } from "@risesolo/validation";
  */
 const mobileEnvSchema = z.object({
   EXPO_PUBLIC_API_URL: envPrimitives.url.default("http://localhost:3000"),
+  // RevenueCat SDK kljucevi su JAVNI (publishable) po dizajnu - identifikuju
+  // app RevenueCat-u, stvarna sigurnost je na App Store/Play receipt
+  // validaciji. Opciono: bez njih PurchasesService.configure() je no-op
+  // (vidi src/subscriptions/purchases.ts) - RevenueCat Dashboard/Store
+  // konfiguracija jos nije zavrsena (Faza: Subscriptions/RevenueCat).
+  EXPO_PUBLIC_REVENUECAT_IOS_API_KEY: z.string().min(1).optional(),
+  EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY: z.string().min(1).optional(),
 });
 
 const env = loadEnv(
   mobileEnvSchema,
-  { EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL },
+  {
+    EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
+    EXPO_PUBLIC_REVENUECAT_IOS_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY,
+    EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY,
+  },
   "apps/mobile",
 );
 
 export function getApiBaseUrl(): string {
   return env.EXPO_PUBLIC_API_URL;
+}
+
+export function getRevenueCatApiKey(platform: "ios" | "android"): string | undefined {
+  return platform === "ios" ? env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY : env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
 }

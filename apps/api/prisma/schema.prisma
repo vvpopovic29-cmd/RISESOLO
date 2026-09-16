@@ -39,6 +39,7 @@ model User {
   nutritionEntries NutritionEntry[]
   guildMembership GuildMembership?
   guildMessages   GuildMessage[]
+  subscription    Subscription?
 
   @@map("users")
 }
@@ -436,4 +437,41 @@ model GuildRaid {
 
   @@unique([guildId, weekStart])
   @@map("guild_raids")
+}
+
+// ---------------------------------------------------------------------------
+// Subscriptions / RevenueCat
+// ---------------------------------------------------------------------------
+
+enum SubscriptionStore {
+  APP_STORE
+  PLAY_STORE
+  STRIPE
+  PROMOTIONAL
+  UNKNOWN
+
+  @@map("subscription_store")
+}
+
+/// RevenueCat je izvor istine - ovaj red se popunjava ISKLJUCIVO preko
+/// RevenueCat webhook-a (apps/api/src/subscriptions), nikad direktno od
+/// klijenta. `expiresAt` je jedino perzistirano polje koje odredjuje
+/// aktivnost (isti princip kao `total_xp`) - da li je pretplata trenutno
+/// aktivna se UVEK izvodi preko @risesolo/domain `isEntitlementActive`,
+/// nikad ne cuva kao poseban "isActive" boolean.
+model Subscription {
+  id                    String            @id @default(cuid())
+  userId                String            @unique @map("user_id")
+  entitlementId         String            @map("entitlement_id")
+  productId             String?           @map("product_id")
+  store                 SubscriptionStore @default(UNKNOWN)
+  expiresAt             DateTime?         @map("expires_at")
+  willRenew             Boolean           @default(false) @map("will_renew")
+  originalTransactionId String?           @map("original_transaction_id")
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
 }

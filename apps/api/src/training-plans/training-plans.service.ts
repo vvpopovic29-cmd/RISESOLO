@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
-import { selectCandidateExercises, type CandidateDifficulty, type CandidateType } from "@risesolo/domain";
+import { HttpException, HttpStatus, Injectable, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
+import { canGenerateTrainingPlan, selectCandidateExercises, type CandidateDifficulty, type CandidateType } from "@risesolo/domain";
 import type {
   GenerateTrainingPlanRequest,
   TrainingPlanContent,
@@ -11,6 +11,7 @@ import type { Prisma, TrainingPlan } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { ExercisesService } from "../exercises/exercises.service";
 import { AiService } from "../ai/ai.service";
+import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 
 type TrainingTypeFilter = Extract<CandidateType, "CALISTHENICS" | "GYM">;
 
@@ -23,6 +24,7 @@ export class TrainingPlansService {
     private readonly prisma: PrismaService,
     private readonly exercisesService: ExercisesService,
     private readonly aiService: AiService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
 
   /**
@@ -31,11 +33,26 @@ export class TrainingPlansService {
    * pre poziva AI-a (selectCandidateExercises) da model bira iz malog,
    * relevantnog skupa umesto celog kataloga - i da mozemo da proverimo da
    * nije izmislio slug koji ne postoji.
+   *
+   * Besplatni korisnici imaju ograniceni broj planova (FREE_TRAINING_PLAN_LIMIT)
+   * - provera ide PRE poziva AI-a (ne trosi Anthropic budzet uzalud), analogno
+   * validaciji `daysPerWeek` iznad. `pro_access` (RevenueCat) uklanja limit.
    */
   async generate(userId: string, dto: GenerateTrainingPlanRequest): Promise<TrainingPlanDetailDto> {
     const profile = await this.prisma.profile.findUnique({ where: { userId } });
     if (!profile) {
       throw new NotFoundException("Profil igraca nije pronadjen");
+    }
+
+    const [existingPlanCount, hasProAccess] = await Promise.all([
+      this.prisma.trainingPlan.count({ where: { userId } }),
+      this.subscriptionsService.hasProAccess(userId),
+    ]);
+    if (!canGenerateTrainingPlan(existingPlanCount, hasProAccess)) {
+      throw new HttpException(
+        "Dostigao si besplatni limit AI trening planova - nadogradi na Pro za neograniceno generisanje.",
+        HttpStatus.PAYMENT_REQUIRED,
+      );
     }
 
     const trainingType = toCandidateType(profile.trainingType);

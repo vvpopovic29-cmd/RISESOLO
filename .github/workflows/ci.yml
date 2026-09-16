@@ -37,6 +37,10 @@ jobs:
       JWT_SECRET: ci-test-secret-do-not-use-in-production
       JWT_EXPIRES_IN: 7d
       NODE_ENV: test
+      # Test-only shared secret za RevenueCat webhook e2e testove (vidi
+      # apps/api/test/subscriptions.e2e-spec.ts) - NIJE stvaran RevenueCat
+      # nalog, samo omogucava testiranje naseg webhook auth koda.
+      REVENUECAT_WEBHOOK_AUTH_HEADER: ci-test-revenuecat-secret
     steps:
       - name: Checkout
         uses: actions/checkout@v4

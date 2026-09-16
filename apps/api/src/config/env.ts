@@ -10,6 +10,11 @@ export const apiEnvSchema = z.object({
   // Opciono - bez ovoga AI trening planovi vracaju 503 (vidi src/ai/ai.service.ts),
   // ostatak aplikacije radi normalno. Namerno placeholder-friendly (Faza 2: AI planovi).
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  // Opciono - vrednost "Authorization" header-a koju RevenueCat salje nazad
+  // sa svakim webhook pozivom (podeseno u RevenueCat Dashboard-u: Project
+  // Settings -> Integrations -> Webhooks). Bez ovoga je webhook FAIL-CLOSED
+  // (uvek 401), ne fail-open - vidi src/subscriptions/subscriptions.service.ts.
+  REVENUECAT_WEBHOOK_AUTH_HEADER: z.string().min(1).optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
