@@ -40,6 +40,7 @@ model User {
   guildMembership GuildMembership?
   guildMessages   GuildMessage[]
   subscription    Subscription?
+  pushTokens      PushToken[]
 
   @@map("users")
 }
@@ -474,4 +475,34 @@ model Subscription {
   user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+// ---------------------------------------------------------------------------
+// Push notifications
+// ---------------------------------------------------------------------------
+
+enum PushPlatform {
+  IOS
+  ANDROID
+
+  @@map("push_platform")
+}
+
+/// Jedan red po fizickom uredjaju (Expo push token), ne po korisniku - isti
+/// korisnik moze imati vise uredjaja. `token` je globalno unique (ne
+/// userId+token) jer je Expo push token vezan za konkretnu instalaciju
+/// aplikacije - ako se drugi korisnik uloguje na istom uredjaju, `upsert`
+/// po tokenu prebacuje vlasnistvo (vidi NotificationsService.registerToken).
+model PushToken {
+  id        String       @id @default(cuid())
+  userId    String       @map("user_id")
+  token     String       @unique
+  platform  PushPlatform
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_tokens")
 }

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import type { ApiClient } from "@risesolo/api-client";
 import type { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from "@risesolo/validation";
 import { useApiClient } from "../api/use-api-client";
+import { registerForPushNotificationsAsync } from "../notifications/push-notifications";
 import { configurePurchases, logOutPurchases } from "../subscriptions/purchases";
 import { secureStorage } from "./secure-storage";
 
@@ -32,6 +33,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: "loading" });
   const tokenRef = useRef<string | null>(null);
+  const pushTokenRef = useRef<string | null>(null);
   const apiClient = useApiClient(() => tokenRef.current);
 
   useEffect(() => {
@@ -65,8 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (state.status === "signedIn") {
       configurePurchases(state.user.id);
+      // Best-effort - `null` znaci web/bez EAS projectId/odbijena dozvola
+      // (vidi src/notifications/push-notifications.ts), nikad ne blokira login.
+      void registerForPushNotificationsAsync().then((result) => {
+        if (!result) return;
+        pushTokenRef.current = result.token;
+        apiClient.notifications.registerToken(result).catch(() => undefined);
+      });
     }
-  }, [state]);
+  }, [state, apiClient]);
 
   const persistSession = useCallback(async (response: AuthResponse) => {
     tokenRef.current = response.accessToken;
@@ -94,10 +103,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    // Odjava push tokena MORA da ide dok je tokenRef jos validan (apiClient
+    // cita JWT lenjo preko istog ref-a u trenutku poziva) - zato pre brisanja.
+    const pushToken = pushTokenRef.current;
+    pushTokenRef.current = null;
+    if (pushToken) {
+      await apiClient.notifications.unregisterToken({ token: pushToken }).catch(() => undefined);
+    }
+
     tokenRef.current = null;
     await Promise.all([secureStorage.deleteItem(TOKEN_KEY), secureStorage.deleteItem(USER_KEY), logOutPurchases()]);
     setState({ status: "signedOut" });
-  }, []);
+  }, [apiClient]);
 
   return (
     <AuthContext.Provider value={{ state, apiClient, login, register, logout }}>{children}</AuthContext.Provider>
