@@ -69,6 +69,18 @@ export {
   type CompleteWorkoutResponse,
 } from "./contracts/workouts";
 export {
+  workoutTemplateExerciseInputSchema,
+  createWorkoutTemplateRequestSchema,
+  workoutTemplateSummarySchema,
+  workoutTemplateExerciseDetailSchema,
+  workoutTemplateDetailSchema,
+  type WorkoutTemplateExerciseInput,
+  type CreateWorkoutTemplateRequest,
+  type WorkoutTemplateSummaryDto,
+  type WorkoutTemplateExerciseDetail,
+  type WorkoutTemplateDetailDto,
+} from "./contracts/workout-templates";
+export {
   createNutritionEntryRequestSchema,
   getNutritionDayQuerySchema,
   nutritionEntrySchema,

@@ -30,6 +30,9 @@ import {
   unregisterPushTokenRequestSchema,
   trainingPlanDetailSchema,
   trainingPlanSummarySchema,
+  createWorkoutTemplateRequestSchema,
+  workoutTemplateDetailSchema,
+  workoutTemplateSummarySchema,
   workoutSessionSchema,
   type AchievementDto,
   type AllocateStatPointsRequest,
@@ -39,6 +42,7 @@ import {
   type CompleteWorkoutResponse,
   type CreateGuildRequest,
   type CreateNutritionEntryRequest,
+  type CreateWorkoutTemplateRequest,
   type DailyNutritionSummaryDto,
   type DailyQuestDto,
   type DonateToGuildRequest,
@@ -66,6 +70,8 @@ import {
   type TrainingPlanSummaryDto,
   type UnregisterPushTokenRequest,
   type WorkoutSessionDto,
+  type WorkoutTemplateDetailDto,
+  type WorkoutTemplateSummaryDto,
   z,
 } from "@risesolo/validation";
 import { ApiError, createHttpClient, type HttpClientConfig } from "./http";
@@ -89,6 +95,7 @@ export function createApiClient(config: ApiClientConfig) {
   const guildListSchema = z.array(guildSummarySchema);
   const guildMessageListSchema = z.array(guildMessageSchema);
   const achievementListSchema = z.array(achievementSchema);
+  const workoutTemplateListSchema = z.array(workoutTemplateSummarySchema);
 
   return {
     getHealth(): Promise<HealthResponse> {
@@ -156,6 +163,25 @@ export function createApiClient(config: ApiClientConfig) {
           path: `/workouts/sessions/${sessionId}/complete`,
           schema: completeWorkoutResponseSchema,
         });
+      },
+      templates: {
+        create(dto: CreateWorkoutTemplateRequest): Promise<WorkoutTemplateDetailDto> {
+          createWorkoutTemplateRequestSchema.parse(dto);
+          return request({ method: "POST", path: "/workouts/templates", body: dto, schema: workoutTemplateDetailSchema });
+        },
+        list(): Promise<WorkoutTemplateSummaryDto[]> {
+          return request({ method: "GET", path: "/workouts/templates", schema: workoutTemplateListSchema });
+        },
+        getById(id: string): Promise<WorkoutTemplateDetailDto> {
+          return request({
+            method: "GET",
+            path: `/workouts/templates/${encodeURIComponent(id)}`,
+            schema: workoutTemplateDetailSchema,
+          });
+        },
+        delete(id: string): Promise<void> {
+          return request({ method: "DELETE", path: `/workouts/templates/${encodeURIComponent(id)}` });
+        },
       },
     },
 

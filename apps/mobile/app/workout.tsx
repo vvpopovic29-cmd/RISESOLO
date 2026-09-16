@@ -20,8 +20,12 @@ function firstParam(value: string | string[] | undefined): string | undefined {
 }
 
 export default function WorkoutScreen() {
-  const params = useLocalSearchParams<{ exerciseSlug?: string; exerciseName?: string }>();
+  const params = useLocalSearchParams<{ exerciseSlug?: string; exerciseName?: string; workoutId?: string }>();
   const exerciseSlug = firstParam(params.exerciseSlug);
+  // Opciono - postavljeno kad se trening pokrene iz "Mojih treninga"
+  // (vidi apps/mobile/app/workout-templates.tsx), da se sesija poveze sa
+  // template-om (WorkoutSession.workoutId, vec podrzano na backend-u).
+  const workoutId = firstParam(params.workoutId);
   const { apiClient } = useAuth();
 
   const [exercise, setExercise] = useState<ExerciseDto | null>(null);
@@ -133,7 +137,7 @@ export default function WorkoutScreen() {
 
   async function ensureSession(): Promise<string> {
     if (sessionId) return sessionId;
-    const session = await apiClient.workouts.startSession({});
+    const session = await apiClient.workouts.startSession(workoutId ? { workoutId } : {});
     setSessionId(session.id);
     return session.id;
   }
