@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from "@nestjs/common";
 import {
   logSetRequestSchema,
   startWorkoutSessionRequestSchema,
+  type ActiveWorkoutSessionResponse,
   type CompleteWorkoutResponse,
   type LogSetRequest,
   type StartWorkoutSessionRequest,
@@ -38,5 +39,16 @@ export class WorkoutsController {
   @Post(":id/complete")
   complete(@CurrentUser() user: AuthenticatedUser, @Param("id") sessionId: string): Promise<CompleteWorkoutResponse> {
     return this.workoutsService.completeSession(user.id, sessionId);
+  }
+
+  @Get("active")
+  getActive(@CurrentUser() user: AuthenticatedUser): Promise<ActiveWorkoutSessionResponse> {
+    return this.workoutsService.getActiveSession(user.id);
+  }
+
+  @Post(":id/abandon")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  abandon(@CurrentUser() user: AuthenticatedUser, @Param("id") sessionId: string): Promise<void> {
+    return this.workoutsService.abandonSession(user.id, sessionId);
   }
 }

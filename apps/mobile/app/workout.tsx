@@ -20,12 +20,21 @@ function firstParam(value: string | string[] | undefined): string | undefined {
 }
 
 export default function WorkoutScreen() {
-  const params = useLocalSearchParams<{ exerciseSlug?: string; exerciseName?: string; workoutId?: string }>();
+  const params = useLocalSearchParams<{
+    exerciseSlug?: string;
+    exerciseName?: string;
+    workoutId?: string;
+    resume?: string;
+  }>();
   const exerciseSlug = firstParam(params.exerciseSlug);
   // Opciono - postavljeno kad se trening pokrene iz "Mojih treninga"
   // (vidi apps/mobile/app/workout-templates.tsx), da se sesija poveze sa
   // template-om (WorkoutSession.workoutId, vec podrzano na backend-u).
   const workoutId = firstParam(params.workoutId);
+  // Postavljeno kad se ekran otvori preko "Nastavi" bannera na Home-u (vidi
+  // apps/mobile/app/home.tsx) - hidrira postojecu pauziranu sesiju umesto
+  // da ceka prvu "Dodaj seriju" da pokrene novu.
+  const resume = firstParam(params.resume) === "1";
   const { apiClient } = useAuth();
 
   const [exercise, setExercise] = useState<ExerciseDto | null>(null);
@@ -47,6 +56,39 @@ export default function WorkoutScreen() {
         setExerciseError(error instanceof ApiError ? error.message : "Vezba nije pronadjena.");
       });
   }, [apiClient, exerciseSlug]);
+
+  useEffect(() => {
+    if (!resume) return;
+    apiClient.workouts
+      .getActiveSession()
+      .then((active) => {
+        if (!active.session) return;
+        setSessionId(active.session.id);
+        setSets(
+          active.sets.map((set) =>
+            set.durationSeconds !== null
+              ? { setNumber: set.setNumber, durationSeconds: set.durationSeconds }
+              : { setNumber: set.setNumber, reps: set.reps ?? 0 },
+          ),
+        );
+      })
+      .catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pokrece se samo jednom pri otvaranju ekrana preko resume=1
+  }, []);
+
+  async function handleAbandon() {
+    if (!sessionId) return;
+    setBusy(true);
+    setActionError(null);
+    try {
+      await apiClient.workouts.abandonSession(sessionId);
+      router.dismissTo("/home");
+    } catch (error) {
+      setActionError(error instanceof ApiError ? error.message : "Odustajanje nije uspelo.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   if (!exerciseSlug) {
     return (
@@ -233,6 +275,25 @@ export default function WorkoutScreen() {
           disabled={sets.length === 0}
           testID="complete-workout-button"
         />
+        {sessionId ? (
+          <>
+            {/* Sesija je vec sacuvana na serveru (svaka "Dodaj seriju" je persistovana) -
+                napustanje ekrana bez API poziva je dovoljno za pauzu, Home banner je nastavlja. */}
+            <Button
+              label="Pauziraj"
+              variant="secondary"
+              onPress={() => router.dismissTo("/home")}
+              testID="pause-workout-button"
+            />
+            <Button
+              label="Odustani od treninga"
+              variant="secondary"
+              onPress={() => void handleAbandon()}
+              loading={busy}
+              testID="abandon-workout-button"
+            />
+          </>
+        ) : null}
       </View>
     </Screen>
   );

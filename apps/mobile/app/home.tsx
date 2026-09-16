@@ -7,6 +7,7 @@ import { useAuth } from "../src/auth/AuthContext";
 import { usePlayerState } from "../src/player/use-player-state";
 import { useTodayQuest } from "../src/player/use-today-quest";
 import { useBossQuest } from "../src/player/use-boss-quest";
+import { useActiveSession } from "../src/workout/use-active-session";
 import { StatAllocator } from "../src/player/StatAllocator";
 import { Button } from "../src/ui/Button";
 import { ErrorState } from "../src/ui/ErrorState";
@@ -25,8 +26,10 @@ export default function HomeScreen() {
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const { state: questState, refetch: refetchQuest } = useTodayQuest(apiClient);
   const { state: bossQuestState, refetch: refetchBossQuest } = useBossQuest(apiClient);
+  const { state: activeSessionState, refetch: refetchActiveSession } = useActiveSession(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
+  const [abandoning, setAbandoning] = useState(false);
 
   // Home ostaje mounted u navigation stack-u (router.dismissTo ga ponovo
   // fokusira umesto da montira novu instancu), pa refetch na focus
@@ -36,8 +39,21 @@ export default function HomeScreen() {
       refetchPlayer();
       refetchQuest();
       refetchBossQuest();
-    }, [refetchPlayer, refetchQuest, refetchBossQuest]),
+      refetchActiveSession();
+    }, [refetchPlayer, refetchQuest, refetchBossQuest, refetchActiveSession]),
   );
+
+  async function handleAbandonActive(sessionId: string) {
+    setAbandoning(true);
+    try {
+      await apiClient.workouts.abandonSession(sessionId);
+      refetchActiveSession();
+    } catch {
+      // Tiho ignorisemo - refetch ce svakako pokazati stvarno stanje sesije.
+    } finally {
+      setAbandoning(false);
+    }
+  }
 
   async function handleLogout() {
     await logout();
@@ -112,6 +128,15 @@ export default function HomeScreen() {
         </View>
         <Button label="Odjava" variant="secondary" onPress={() => void handleLogout()} testID="logout-button" />
       </View>
+
+      {activeSessionState.status === "success" && activeSessionState.data.session ? (
+        <ActiveSessionBanner
+          sessionId={activeSessionState.data.session.id}
+          firstSet={activeSessionState.data.sets[0] ?? null}
+          onAbandon={handleAbandonActive}
+          abandoning={abandoning}
+        />
+      ) : null}
 
       {penalty.applied ? (
         <View className="gap-1 rounded-lg border border-danger/40 bg-danger/10 p-3" testID="penalty-banner">
@@ -277,6 +302,45 @@ function StatCell({ label, value }: { label: string; value: number }) {
     <View className="w-[40%] gap-0.5">
       <Text className="text-xs text-neutral-500 dark:text-neutral-600">{label}</Text>
       <Text className="text-lg font-semibold text-neutral-50 dark:text-neutral-1000">{value}</Text>
+    </View>
+  );
+}
+
+function ActiveSessionBanner({
+  sessionId,
+  firstSet,
+  onAbandon,
+  abandoning,
+}: {
+  sessionId: string;
+  firstSet: { exerciseSlug: string; exerciseName: string } | null;
+  onAbandon: (sessionId: string) => void;
+  abandoning: boolean;
+}) {
+  return (
+    <View className="gap-2 rounded-lg border border-accent/40 bg-accent/10 p-3" testID="active-session-banner">
+      <Text className="text-sm font-semibold text-accent">TRENING U TOKU</Text>
+      <Text className="text-xs text-neutral-400 dark:text-neutral-700">
+        {firstSet ? `Pauzirano na vezbi: ${firstSet.exerciseName}` : "Pauziran trening bez ulogovanih serija."}
+      </Text>
+      <View className="flex-row gap-3">
+        {firstSet ? (
+          <Button
+            label="Nastavi"
+            onPress={() =>
+              router.push({ pathname: "/workout", params: { exerciseSlug: firstSet.exerciseSlug, resume: "1" } })
+            }
+            testID="resume-session-button"
+          />
+        ) : null}
+        <Button
+          label="Odustani"
+          variant="secondary"
+          onPress={() => onAbandon(sessionId)}
+          loading={abandoning}
+          testID="abandon-session-button"
+        />
+      </View>
     </View>
   );
 }

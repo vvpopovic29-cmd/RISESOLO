@@ -34,6 +34,7 @@ import {
   workoutTemplateDetailSchema,
   workoutTemplateSummarySchema,
   workoutSessionSchema,
+  activeWorkoutSessionSchema,
   shopItemSchema,
   purchaseShopItemRequestSchema,
   purchaseShopItemResponseSchema,
@@ -74,6 +75,7 @@ import {
   type TrainingPlanSummaryDto,
   type UnregisterPushTokenRequest,
   type WorkoutSessionDto,
+  type ActiveWorkoutSessionResponse,
   type WorkoutTemplateDetailDto,
   type WorkoutTemplateSummaryDto,
   type ShopItemDto,
@@ -172,6 +174,12 @@ export function createApiClient(config: ApiClientConfig) {
           path: `/workouts/sessions/${sessionId}/complete`,
           schema: completeWorkoutResponseSchema,
         });
+      },
+      getActiveSession(): Promise<ActiveWorkoutSessionResponse> {
+        return request({ method: "GET", path: "/workouts/sessions/active", schema: activeWorkoutSessionSchema });
+      },
+      abandonSession(sessionId: string): Promise<void> {
+        return request({ method: "POST", path: `/workouts/sessions/${sessionId}/abandon` });
       },
       templates: {
         create(dto: CreateWorkoutTemplateRequest): Promise<WorkoutTemplateDetailDto> {

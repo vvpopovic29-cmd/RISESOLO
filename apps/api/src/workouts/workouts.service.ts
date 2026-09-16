@@ -9,12 +9,14 @@ import {
   isBossQuestComplete,
 } from "@risesolo/domain";
 import type {
+  ActiveWorkoutSessionResponse,
   CompleteWorkoutResponse,
   LogSetRequest,
   StartWorkoutSessionRequest,
   WorkoutSessionDto,
+  WorkoutSetDto,
 } from "@risesolo/validation";
-import type { WorkoutSession } from "@prisma/client";
+import type { Prisma, WorkoutSession } from "@prisma/client";
 import { diffInUtcDays, startOfUtcDay } from "../common/date";
 // PrismaService/QuestsService/GuildsService MORAJU biti value import (ne
 // "import type") - NestJS DI se oslanja na emitDecoratorMetadata koji
@@ -44,10 +46,45 @@ export class WorkoutsService {
       }
     }
 
+    // Najvise jedna aktivna sesija po korisniku - sprecava "sirenje" napustenih
+    // treninga i cini GET /workouts/sessions/active jednoznacnim (vidi index
+    // [userId, status] u schema.prisma, ovde konacno iskoriscen).
+    const existingActive = await this.prisma.workoutSession.findFirst({
+      where: { userId, status: "IN_PROGRESS" },
+    });
+    if (existingActive) {
+      throw new ConflictException("Vec imas trening u toku. Nastavi ga ili odustani pre pokretanja novog.");
+    }
+
     const session = await this.prisma.workoutSession.create({
       data: { userId, workoutId: dto.workoutId ?? null },
     });
     return toSessionDto(session);
+  }
+
+  /** Korisnikova pauzirana (IN_PROGRESS) sesija sa vec ulogovanim serijama, ili null. */
+  async getActiveSession(userId: string): Promise<ActiveWorkoutSessionResponse> {
+    const session = await this.prisma.workoutSession.findFirst({
+      where: { userId, status: "IN_PROGRESS" },
+      include: {
+        sets: {
+          orderBy: { setNumber: "asc" },
+          include: { exercise: { select: { slug: true, name: true } } },
+        },
+      },
+    });
+    if (!session) {
+      return { session: null, sets: [] };
+    }
+    return { session: toSessionDto(session), sets: session.sets.map(toSetDto) };
+  }
+
+  async abandonSession(userId: string, sessionId: string): Promise<void> {
+    const session = await this.getOwnedInProgressSession(userId, sessionId);
+    await this.prisma.workoutSession.update({
+      where: { id: session.id },
+      data: { status: "ABANDONED" },
+    });
   }
 
   async logSet(userId: string, sessionId: string, dto: LogSetRequest): Promise<void> {
@@ -255,8 +292,25 @@ function isUniqueConstraintError(error: unknown): boolean {
 function toSessionDto(session: WorkoutSession): WorkoutSessionDto {
   return {
     id: session.id,
+    workoutId: session.workoutId,
     status: session.status,
     startedAt: session.startedAt.toISOString(),
     completedAt: session.completedAt ? session.completedAt.toISOString() : null,
+  };
+}
+
+type WorkoutSetWithExercise = Prisma.WorkoutSetGetPayload<{
+  include: { exercise: { select: { slug: true; name: true } } };
+}>;
+
+function toSetDto(set: WorkoutSetWithExercise): WorkoutSetDto {
+  return {
+    exerciseId: set.exerciseId,
+    exerciseSlug: set.exercise.slug,
+    exerciseName: set.exercise.name,
+    setNumber: set.setNumber,
+    reps: set.reps,
+    durationSeconds: set.durationSeconds,
+    completed: set.completed,
   };
 }
