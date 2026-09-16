@@ -81,6 +81,18 @@ export {
   type WorkoutTemplateDetailDto,
 } from "./contracts/workout-templates";
 export {
+  shopItemSchema,
+  listShopResponseSchema,
+  purchaseShopItemRequestSchema,
+  purchaseShopItemResponseSchema,
+  equipShopItemRequestSchema,
+  type ShopItemDto,
+  type ListShopResponse,
+  type PurchaseShopItemRequest,
+  type PurchaseShopItemResponse,
+  type EquipShopItemRequest,
+} from "./contracts/shop";
+export {
   createNutritionEntryRequestSchema,
   getNutritionDayQuerySchema,
   nutritionEntrySchema,

@@ -34,6 +34,10 @@ import {
   workoutTemplateDetailSchema,
   workoutTemplateSummarySchema,
   workoutSessionSchema,
+  shopItemSchema,
+  purchaseShopItemRequestSchema,
+  purchaseShopItemResponseSchema,
+  equipShopItemRequestSchema,
   type AchievementDto,
   type AllocateStatPointsRequest,
   type AuthResponse,
@@ -72,6 +76,10 @@ import {
   type WorkoutSessionDto,
   type WorkoutTemplateDetailDto,
   type WorkoutTemplateSummaryDto,
+  type ShopItemDto,
+  type PurchaseShopItemRequest,
+  type PurchaseShopItemResponse,
+  type EquipShopItemRequest,
   z,
 } from "@risesolo/validation";
 import { ApiError, createHttpClient, type HttpClientConfig } from "./http";
@@ -96,6 +104,7 @@ export function createApiClient(config: ApiClientConfig) {
   const guildMessageListSchema = z.array(guildMessageSchema);
   const achievementListSchema = z.array(achievementSchema);
   const workoutTemplateListSchema = z.array(workoutTemplateSummarySchema);
+  const shopItemListSchema = z.array(shopItemSchema);
 
   return {
     getHealth(): Promise<HealthResponse> {
@@ -304,6 +313,27 @@ export function createApiClient(config: ApiClientConfig) {
           path: "/leaderboard/guilds",
           query: { limit: limit !== undefined ? String(limit) : undefined },
           schema: guildLeaderboardResponseSchema,
+        });
+      },
+    },
+
+    shop: {
+      list(): Promise<ShopItemDto[]> {
+        return request({ method: "GET", path: "/shop", schema: shopItemListSchema });
+      },
+      purchase(dto: PurchaseShopItemRequest): Promise<PurchaseShopItemResponse> {
+        purchaseShopItemRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/shop/purchase", body: dto, schema: purchaseShopItemResponseSchema });
+      },
+      equip(dto: EquipShopItemRequest): Promise<ShopItemDto[]> {
+        equipShopItemRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/shop/equip", body: dto, schema: shopItemListSchema });
+      },
+      unequip(category: string): Promise<ShopItemDto[]> {
+        return request({
+          method: "DELETE",
+          path: `/shop/equip/${encodeURIComponent(category)}`,
+          schema: shopItemListSchema,
         });
       },
     },

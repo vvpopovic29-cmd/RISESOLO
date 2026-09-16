@@ -88,7 +88,21 @@ export default function HomeScreen() {
     <Screen>
       <View className="flex-row items-start justify-between">
         <View className="gap-1">
-          <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{profile.username}</Text>
+          <View className="flex-row items-center gap-2">
+            {profile.avatarFrameColorHex ? (
+              <View
+                testID="avatar-frame-dot"
+                style={{ backgroundColor: profile.avatarFrameColorHex }}
+                className="h-3 w-3 rounded-full"
+              />
+            ) : null}
+            <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{profile.username}</Text>
+          </View>
+          {profile.title ? (
+            <Text testID="equipped-title" className="text-xs font-semibold text-accent">
+              {profile.title}
+            </Text>
+          ) : null}
           <View className="flex-row items-center gap-2">
             <View className="rounded-full bg-premium/20 px-2.5 py-0.5">
               <Text className="text-xs font-bold text-premium">RANK {progression.rank}</Text>
@@ -240,6 +254,12 @@ export default function HomeScreen() {
           variant="secondary"
           onPress={() => router.push("/leaderboard")}
           testID="leaderboard-button"
+        />
+        <Button
+          label="Prodavnica"
+          variant="secondary"
+          onPress={() => router.push("/shop")}
+          testID="shop-button"
         />
         <Button
           label="RISESOLO Pro"

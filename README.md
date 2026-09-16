@@ -326,6 +326,32 @@ nikad stvarno iskoriscen do sada.
   postojeceg workout flow-a). Vodjena sesija kroz SVE vezbe template-a
   redom je van obima ove faze - vidi "Poznata ograničenja" ispod.
 
+## Coin Shop / Avatar Customization
+
+Kozmetika kupljena za coins - prva licna potrosnja coins-a (dosad je jedini
+"sink" bila guild riznica preko `GuildsService.donate`).
+
+- **`packages/domain/src/shop`** - `SHOP_ITEMS` katalog (kategorije
+  `AVATAR_FRAME`/`TITLE`, samo `id`/`category`/`price` - cist podatak bez
+  I/O), `canPurchaseShopItem` (ne moze kupiti nesto sto vec ima niti nesto
+  skuplje od trenutnih coins-a).
+- **`UserCosmetic`** - trajno vlasnistvo nad kupljenim predmetom (isti
+  princip kao `UserAchievement` - `itemId` je String, ne enum/FK, katalog
+  zivi iskljucivo u `@risesolo/domain`). `Profile.equippedAvatarFrameId`/
+  `equippedTitleId` cuvaju TRENUTNO opremljen predmet po kategoriji (`null`
+  = nista opremljeno).
+- `apps/api/src/shop/shop-catalog.ts` - prikazni tekst (naziv/opis/boja) po
+  predmetu, namerno odvojeno od domain sloja (isti princip kao
+  `ACHIEVEMENT_NOTIFICATION_CONTENT`).
+- `GET /shop` (ceo katalog sa owned/equipped), `POST /shop/purchase`
+  (atomska transakcija - provera coins-a i upis idu zajedno,
+  `@@unique([userId, itemId])` je poslednja linija odbrane), `POST /shop/equip`,
+  `DELETE /shop/equip/:category`.
+- `PlayerProfileDto.title`/`avatarFrameColorHex` su izvedeni na serveru iz
+  opremljenih predmeta (isti "derive, don't cache" princip kao level/rank) -
+  `apps/mobile/app/home.tsx` prikazuje titulu i obojenu tacku pored username-a
+  bez dodatnog round-trip-a.
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
