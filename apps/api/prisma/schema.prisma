@@ -37,6 +37,8 @@ model User {
   workoutSessions WorkoutSession[]
   trainingPlans   TrainingPlan[]
   nutritionEntries NutritionEntry[]
+  guildMembership GuildMembership?
+  guildMessages   GuildMessage[]
 
   @@map("users")
 }
@@ -344,4 +346,94 @@ model WorkoutSet {
   /// Cini logSet idempotentnim na retry (isti set_number za istu vezbu u istoj sesiji = upsert, ne duplikat).
   @@unique([sessionId, exerciseId, setNumber])
   @@map("workout_sets")
+}
+
+// ---------------------------------------------------------------------------
+// Guild sistem
+// ---------------------------------------------------------------------------
+
+enum GuildRole {
+  LEADER
+  OFFICER
+  MEMBER
+
+  @@map("guild_role")
+}
+
+/// `total_xp`/`treasury_coins` su jedini izvor istine (isti princip kao
+/// licni Progression) - cehovski nivo se uvek izvodi preko @risesolo/domain
+/// calculateLevel, nikad ne perzistira posebno.
+model Guild {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  tag           String   @unique
+  description   String?
+  totalXp       Int      @default(0) @map("total_xp")
+  treasuryCoins Int      @default(0) @map("treasury_coins")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  members       GuildMembership[]
+  messages      GuildMessage[]
+  raids         GuildRaid[]
+
+  @@map("guilds")
+}
+
+/// Jedan korisnik moze biti u najvise jednom cehu odjednom (`userId` je unique).
+model GuildMembership {
+  id       String    @id @default(cuid())
+  guildId  String    @map("guild_id")
+  userId   String    @unique @map("user_id")
+  role     GuildRole @default(MEMBER)
+  joinedAt DateTime  @default(now()) @map("joined_at")
+
+  guild    Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([guildId])
+  @@map("guild_memberships")
+}
+
+/// Osnovna komunikacija (Social & Chat) - polled feed, ne real-time (Redis/
+/// Socket.IO nisu ozicena u MVP-u - vidi README "Poznata ogranicenja").
+model GuildMessage {
+  id        String   @id @default(cuid())
+  guildId   String   @map("guild_id")
+  userId    String   @map("user_id")
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([guildId, createdAt])
+  @@map("guild_messages")
+}
+
+enum GuildRaidStatus {
+  AVAILABLE
+  COMPLETED
+  EXPIRED
+
+  @@map("guild_raid_status")
+}
+
+/// Nedeljni cehovski izazov (ogledalo licnog Boss Quest-a, agregirano preko
+/// svih clanova) - idempotentna generacija preko @@unique([guildId, weekStart]),
+/// isti princip kao Quest.date. Progres se NE cuva ovde - racuna se
+/// prebrojavanjem zavrsenih WorkoutSession svih clanova (vidi @risesolo/domain guild/raid.ts).
+model GuildRaid {
+  id                  String          @id @default(cuid())
+  guildId             String          @map("guild_id")
+  weekStart           DateTime        @map("week_start") @db.Date
+  targetContributions Int             @map("target_contributions")
+  coinReward          Int             @map("coin_reward")
+  status              GuildRaidStatus @default(AVAILABLE)
+  completedAt         DateTime?       @map("completed_at")
+  createdAt           DateTime        @default(now()) @map("created_at")
+
+  guild               Guild           @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, weekStart])
+  @@map("guild_raids")
 }

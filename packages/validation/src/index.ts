@@ -78,4 +78,26 @@ export {
   type NutritionEntryDto,
   type DailyNutritionSummaryDto,
 } from "./contracts/nutrition";
+export {
+  createGuildRequestSchema,
+  joinGuildRequestSchema,
+  changeGuildMemberRoleRequestSchema,
+  donateToGuildRequestSchema,
+  postGuildMessageRequestSchema,
+  guildMemberSchema,
+  guildRaidSchema,
+  guildMessageSchema,
+  guildSummarySchema,
+  guildDetailSchema,
+  type CreateGuildRequest,
+  type JoinGuildRequest,
+  type ChangeGuildMemberRoleRequest,
+  type DonateToGuildRequest,
+  type PostGuildMessageRequest,
+  type GuildMemberDto,
+  type GuildRaidDto,
+  type GuildMessageDto,
+  type GuildSummaryDto,
+  type GuildDetailDto,
+} from "./contracts/guild";
 export { z } from "zod";

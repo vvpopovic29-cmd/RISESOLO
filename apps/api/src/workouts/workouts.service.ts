@@ -16,9 +16,11 @@ import type {
 } from "@risesolo/validation";
 import type { WorkoutSession } from "@prisma/client";
 import { diffInUtcDays, startOfUtcDay } from "../common/date";
-// PrismaService/QuestsService MORAJU biti value import (ne "import type") -
-// NestJS DI se oslanja na emitDecoratorMetadata koji zahteva stvarnu klasu
-// u constructor parametar tipu, ne obrisanu type-only referencu.
+// PrismaService/QuestsService/GuildsService MORAJU biti value import (ne
+// "import type") - NestJS DI se oslanja na emitDecoratorMetadata koji
+// zahteva stvarnu klasu u constructor parametar tipu, ne obrisanu type-only
+// referencu.
+import { GuildsService } from "../guilds/guilds.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuestsService } from "../quests/quests.service";
 
@@ -27,6 +29,7 @@ export class WorkoutsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly questsService: QuestsService,
+    private readonly guildsService: GuildsService,
   ) {}
 
   async startSession(userId: string, dto: StartWorkoutSessionRequest): Promise<WorkoutSessionDto> {
@@ -145,6 +148,15 @@ export class WorkoutsService {
           }
         }
 
+        // Cehovski doprinos i raid provera - ako korisnik nije u cehu, nema efekta
+        // (vidi GuildsService.contributeWorkoutXp).
+        const { guildXpContributed, guildRaidCompleted } = await this.guildsService.contributeWorkoutXp(
+          userId,
+          xpGained,
+          today,
+          tx,
+        );
+
         const levelUpResult = detectLevelUp(totalXpBefore, xpGained);
         const statPointsGained = statPointsForLevelsGained(levelUpResult.levelsGained);
 
@@ -182,6 +194,8 @@ export class WorkoutsService {
           questCompleted,
           bossQuestCompleted,
           streak: newStreak,
+          guildXpContributed,
+          guildRaidCompleted,
         };
       });
     } catch (error) {

@@ -217,6 +217,12 @@ export default function HomeScreen() {
           onPress={() => router.push("/nutrition")}
           testID="nutrition-button"
         />
+        <Button
+          label="Ceh"
+          variant="secondary"
+          onPress={() => router.push("/guild")}
+          testID="guild-button"
+        />
       </View>
     </Screen>
   );
