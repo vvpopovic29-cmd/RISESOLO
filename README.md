@@ -287,6 +287,24 @@ i perzistira samo novo otkljucane u `UserAchievement`
   `apps/mobile/src/achievements/achievement-display.ts` (namerno odvojeno od
   domain sloja, isti princip kao `MEAL_TYPE_LABEL`).
 
+## Leaderboards
+
+Globalni rang igraca (po `total_xp`) i cehova (po `Guild.total_xp`) -
+`GET /leaderboard/players` i `GET /leaderboard/guilds` (opcioni `?limit=`,
+podrazumevano 20, max 100).
+
+- **Live upit, bez keširanja** (isti razlog kao odsustvo Redis-a - vidi
+  "Poznata ograničenja" ispod): `ORDER BY total_xp DESC LIMIT N` nad
+  `Progression`/`Guild`, dovoljno brzo na MVP skali. Nema periodicnog
+  snapshot-a niti materijalizovanog pogleda.
+- **`position`** van top liste racuna preko `count(total_xp > moj) + 1`
+  ("dense-ish" rangiranje - izjednacen `total_xp` deli istu poziciju).
+- **`me`/`myGuild`** su UVEK prisutni u odgovoru (cak i van top `limit`
+  liste) - jedan poziv umesto dva round-trip-a sa mobilnog klijenta.
+- `apps/mobile/app/leaderboard.tsx` - tabovi "Igraci"/"Cehovi", sopstveni red
+  istaknut (accent boja); ako korisnik nije u top listi, njegov red se
+  prikazuje posebno na dnu ("TVOJA POZICIJA"/"TVOJ CEH").
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).

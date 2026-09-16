@@ -14,6 +14,7 @@ import { GuildsModule } from "./guilds/guilds.module";
 import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { AchievementsModule } from "./achievements/achievements.module";
+import { LeaderboardModule } from "./leaderboard/leaderboard.module";
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AchievementsModule } from "./achievements/achievements.module";
     SubscriptionsModule,
     NotificationsModule,
     AchievementsModule,
+    LeaderboardModule,
   ],
 })
 export class AppModule {}
