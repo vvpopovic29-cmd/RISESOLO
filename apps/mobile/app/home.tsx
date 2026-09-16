@@ -224,6 +224,12 @@ export default function HomeScreen() {
           testID="guild-button"
         />
         <Button
+          label="Achievements"
+          variant="secondary"
+          onPress={() => router.push("/achievements")}
+          testID="achievements-button"
+        />
+        <Button
           label="RISESOLO Pro"
           variant="secondary"
           onPress={() => router.push("/paywall")}

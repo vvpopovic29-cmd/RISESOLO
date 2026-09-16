@@ -13,6 +13,7 @@ import { NutritionModule } from "./nutrition/nutrition.module";
 import { GuildsModule } from "./guilds/guilds.module";
 import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { AchievementsModule } from "./achievements/achievements.module";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { NotificationsModule } from "./notifications/notifications.module";
     GuildsModule,
     SubscriptionsModule,
     NotificationsModule,
+    AchievementsModule,
   ],
 })
 export class AppModule {}

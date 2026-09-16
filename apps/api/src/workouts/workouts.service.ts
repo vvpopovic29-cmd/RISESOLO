@@ -20,6 +20,7 @@ import { diffInUtcDays, startOfUtcDay } from "../common/date";
 // "import type") - NestJS DI se oslanja na emitDecoratorMetadata koji
 // zahteva stvarnu klasu u constructor parametar tipu, ne obrisanu type-only
 // referencu.
+import { AchievementsService } from "../achievements/achievements.service";
 import { GuildsService } from "../guilds/guilds.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -32,6 +33,7 @@ export class WorkoutsService {
     private readonly questsService: QuestsService,
     private readonly guildsService: GuildsService,
     private readonly notificationsService: NotificationsService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   async startSession(userId: string, dto: StartWorkoutSessionRequest): Promise<WorkoutSessionDto> {
@@ -216,6 +218,13 @@ export class WorkoutsService {
       if (result.guildRaidCompleted) {
         this.guildsService.sendRaidCompletionNotification(userId).catch(() => undefined);
       }
+
+      // Achievement evaluacija takodje ide POSLE transakcije - cita bas
+      // upisane XpEvent/Progression redove pa moze da otkljuca nove badge-ove.
+      this.achievementsService
+        .evaluateAndUnlock(userId)
+        .then((newlyUnlocked) => this.achievementsService.notifyNewlyUnlocked(userId, newlyUnlocked))
+        .catch(() => undefined);
 
       return result;
     } catch (error) {

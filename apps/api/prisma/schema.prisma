@@ -41,6 +41,7 @@ model User {
   guildMessages   GuildMessage[]
   subscription    Subscription?
   pushTokens      PushToken[]
+  achievements    UserAchievement[]
 
   @@map("users")
 }
@@ -505,4 +506,26 @@ model PushToken {
 
   @@index([userId])
   @@map("push_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Achievements / Badges
+// ---------------------------------------------------------------------------
+
+/// Trajno otkljucan milestone. `achievementId` je namerno String (ne enum) -
+/// katalog achievement-a zivi iskljucivo u @risesolo/domain
+/// (ACHIEVEMENT_DEFINITIONS) da bi se novi badge mogao dodati bez migracije;
+/// `@@unique([userId, achievementId])` sprecava duplo otkljucavanje istog
+/// achievement-a (idempotentno, isti princip kao XpEvent.sourceId).
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  achievementId String   @map("achievement_id")
+  unlockedAt    DateTime @default(now()) @map("unlocked_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
 }

@@ -28,6 +28,7 @@ import type {
   PostGuildMessageRequest,
 } from "@risesolo/validation";
 import type { GuildMembership, GuildRaid, Prisma } from "@prisma/client";
+import { AchievementsService } from "../achievements/achievements.service";
 import { startOfIsoWeek } from "../common/date";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -43,6 +44,7 @@ export class GuildsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   // -- Guild Management -------------------------------------------------
@@ -65,6 +67,8 @@ export class GuildsService {
       }
       throw error;
     }
+
+    this.notifyGuildJoinAchievement(userId);
 
     return this.getGuildDetail(userId);
   }
@@ -94,7 +98,17 @@ export class GuildsService {
       throw error;
     }
 
+    this.notifyGuildJoinAchievement(userId);
+
     return this.getGuildDetail(userId);
+  }
+
+  /** Fire-and-forget - i osnivanje i pridruzivanje cehu ispunjavaju GUILD_JOIN (snapshot samo proverava clanstvo). */
+  private notifyGuildJoinAchievement(userId: string): void {
+    this.achievementsService
+      .evaluateAndUnlock(userId)
+      .then((newlyUnlocked) => this.achievementsService.notifyNewlyUnlocked(userId, newlyUnlocked))
+      .catch(() => undefined);
   }
 
   /**
