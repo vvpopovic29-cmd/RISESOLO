@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { BOSS_QUEST_TARGET_SESSIONS, COIN_REWARDS, XP_REWARDS } from "@risesolo/domain";
-import type { BossQuestDto, DailyQuestDto } from "@risesolo/validation";
+import { BOSS_QUEST_TARGET_SESSIONS, COIN_REWARDS, XP_REWARDS, applyCoinPenalty, calculatePenaltyCoins } from "@risesolo/domain";
+import type { BossQuestDto, DailyQuestDto, PenaltyResultDto } from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
@@ -89,6 +89,37 @@ export class QuestsService {
       this.countCompletedSessionsThisWeek(userId, now),
     ]);
     return toBossDto(quest, progress);
+  }
+
+  /**
+   * Penalty System: svaki DAILY quest iz proslog dana koji nije COMPLETED
+   * postaje EXPIRED, a igrac gubi coins (nikad ispod 0; total_xp i stat
+   * poeni se ne diraju - level ne sme da "padne"). Prelazak u EXPIRED je
+   * sam po sebi idempotency marker - sledeci poziv vise ne nalazi taj
+   * quest medju "past due", pa se ne penalizuje dvaput. Poziva se iz
+   * PlayersService.getPlayerState (lazy provera, isti princip kao
+   * generateDailyQuest/generateBossQuest - nema cron/scheduler u MVP-u).
+   */
+  async expirePastDueDailyQuests(userId: string, now: Date, db: Db = this.prisma): Promise<PenaltyResultDto> {
+    const today = startOfUtcDay(now);
+    const pastDue = await db.quest.findMany({
+      where: { userId, type: "DAILY", status: { in: ["AVAILABLE", "IN_PROGRESS"] }, date: { lt: today } },
+    });
+    if (pastDue.length === 0) {
+      return { applied: false, missedQuestCount: 0, coinsLost: 0 };
+    }
+
+    await db.quest.updateMany({
+      where: { id: { in: pastDue.map((quest) => quest.id) } },
+      data: { status: "EXPIRED" },
+    });
+
+    const progression = await db.progression.findUniqueOrThrow({ where: { userId } });
+    const penaltyCoins = calculatePenaltyCoins(pastDue.length);
+    const newCoins = applyCoinPenalty(progression.coins, penaltyCoins);
+    await db.progression.update({ where: { userId }, data: { coins: newCoins } });
+
+    return { applied: true, missedQuestCount: pastDue.length, coinsLost: progression.coins - newCoins };
   }
 
   /**

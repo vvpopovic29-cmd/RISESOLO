@@ -78,7 +78,7 @@ export default function HomeScreen() {
     );
   }
 
-  const { profile, progression, stats } = playerState.data;
+  const { profile, progression, stats, penalty } = playerState.data;
 
   if (!profile.onboarded) {
     return <Redirect href="/onboarding" />;
@@ -98,6 +98,18 @@ export default function HomeScreen() {
         </View>
         <Button label="Odjava" variant="secondary" onPress={() => void handleLogout()} testID="logout-button" />
       </View>
+
+      {penalty.applied ? (
+        <View className="gap-1 rounded-lg border border-danger/40 bg-danger/10 p-3" testID="penalty-banner">
+          <Text className="text-sm font-semibold text-danger">PROPUSTEN DNEVNI QUEST</Text>
+          <Text className="text-xs text-neutral-400 dark:text-neutral-700">
+            Izgubio si {penalty.coinsLost} coins jer{" "}
+            {penalty.missedQuestCount === 1
+              ? "juce nisi zavrsio dnevni quest."
+              : `${penalty.missedQuestCount} dana nisi zavrsio dnevni quest.`}
+          </Text>
+        </View>
+      ) : null}
 
       <View className="gap-1.5">
         <ProgressBar progress={progression.progress} />

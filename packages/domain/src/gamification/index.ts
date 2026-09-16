@@ -23,3 +23,4 @@ export { COIN_REWARDS, XP_REWARDS, XP_SOURCES, type XpSource } from "./rewards";
 export { QUEST_STATUSES, canTransitionQuestStatus, type QuestStatus } from "./quest";
 export { computeStreakAfterCompletion, isStreakActive } from "./streak";
 export { BOSS_QUEST_TARGET_SESSIONS, isBossQuestComplete } from "./boss-quest";
+export { PENALTY_COINS_MISSED_DAILY_QUEST, calculatePenaltyCoins, applyCoinPenalty } from "./penalty";

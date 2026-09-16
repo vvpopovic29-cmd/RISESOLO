@@ -26,6 +26,12 @@ ostao stara vrednost).
   COMPLETED/EXPIRED`) i validacija dozvoljenih prelaza.
 - `streak.ts` - `computeStreakAfterCompletion` (idempotentno za isti dan,
   +1 za uzastopni dan, reset na propusten dan).
+- `boss-quest.ts` - `isBossQuestComplete`: nedeljni izazov se zavrsava kada
+  broj zavrsenih treninga te ISO nedelje dostigne `BOSS_QUEST_TARGET_SESSIONS`
+  (progres se ne cuva posebno - racuna se prebrojavanjem WorkoutSession).
+- `penalty.ts` - `calculatePenaltyCoins`/`applyCoinPenalty`: ako dnevni quest
+  ostane nezavrsen do kraja dana, igrac gubi coins (nikad ispod 0); `total_xp`
+  i stat poeni se namerno ne diraju - level ne sme da "padne".
 
 Svaka funkcija je cista (bez pristupa bazi/mrezi) i ima jedinicne testove -
 `apps/api` servisi (application sloj) je pozivaju i odgovorni su za

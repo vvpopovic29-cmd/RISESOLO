@@ -152,5 +152,6 @@ function samplePlayerState() {
       currentStreak: 0,
     },
     stats: { strength: 1, agility: 1, endurance: 1, vitality: 1, intelligence: 1, statPoints: 0 },
+    penalty: { applied: false, missedQuestCount: 0, coinsLost: 0 },
   };
 }
