@@ -37,10 +37,24 @@ export const playerProfileSchema = z.object({
 });
 export type PlayerProfileDto = z.infer<typeof playerProfileSchema>;
 
+/**
+ * Penalty System (apps/api/src/quests expirePastDueDailyQuests) - `applied`
+ * je `true` SAMO na pozivu koji je upravo primenio kaznu (propusteni quest
+ * postaje EXPIRED, sto sluzi kao idempotency marker - sledeci poziv vec
+ * vidi `applied: false` za isti propusteni dan).
+ */
+export const penaltyResultSchema = z.object({
+  applied: z.boolean(),
+  missedQuestCount: z.number().int().min(0),
+  coinsLost: z.number().int().min(0),
+});
+export type PenaltyResultDto = z.infer<typeof penaltyResultSchema>;
+
 export const playerStateSchema = z.object({
   profile: playerProfileSchema,
   progression: playerProgressionSchema,
   stats: playerStatsSchema,
+  penalty: penaltyResultSchema,
 });
 export type PlayerStateDto = z.infer<typeof playerStateSchema>;
 

@@ -14,17 +14,30 @@ import type {
   PlayerStateDto,
 } from "@risesolo/validation";
 import { PrismaService } from "../prisma/prisma.service";
+import { QuestsService } from "../quests/quests.service";
 
 @Injectable()
 export class PlayersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly questsService: QuestsService,
+  ) {}
 
   /**
    * `userId` dolazi ISKLJUCIVO iz JWT-a (CurrentUser decorator), nikad iz
    * URL parametra - ovo je nas ownership-guard ekvivalent Supabase RLS-a:
    * korisnik strukturno ne moze da zatrazi tudje stanje.
+   *
+   * Penalty System se proverava ovde (lazy, isti princip kao generisanje
+   * dnevnog/boss questa - nema cron/scheduler u MVP-u): ako je neki DAILY
+   * quest ostao nezavrsen iz proslog dana, ovde se to primeti i kaznjava
+   * PRE citanja progression-a, tako da vraceno stanje vec odrazava kaznu.
    */
   async getPlayerState(userId: string): Promise<PlayerStateDto> {
+    const penalty = await this.prisma.$transaction((tx) =>
+      this.questsService.expirePastDueDailyQuests(userId, new Date(), tx),
+    );
+
     const [profile, progression, stats] = await Promise.all([
       this.prisma.profile.findUnique({ where: { userId } }),
       this.prisma.progression.findUnique({ where: { userId } }),
@@ -66,6 +79,7 @@ export class PlayersService {
         intelligence: stats.intelligence,
         statPoints: stats.statPoints,
       },
+      penalty,
     };
   }
 
