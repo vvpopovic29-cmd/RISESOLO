@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "quests" ADD COLUMN     "kind" TEXT NOT NULL DEFAULT 'WORKOUT_COMPLETE';

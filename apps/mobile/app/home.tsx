@@ -21,6 +21,16 @@ const QUEST_STATUS_LABEL: Record<string, string> = {
   EXPIRED: "Istekao",
 };
 
+/**
+ * Dnevni quest sada ima varijetet kind-ova (vidi @risesolo/domain
+ * daily-quest-pool) - CTA na kartici vodi ka odgovarajucoj akciji umesto da
+ * uvek podrazumeva trening.
+ */
+const QUEST_KIND_CTA: Record<string, { label: string; route: "/exercises" | "/nutrition" }> = {
+  WORKOUT_COMPLETE: { label: "Idi na trening", route: "/exercises" },
+  LOG_NUTRITION: { label: "Idi na ishranu", route: "/nutrition" },
+};
+
 export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
@@ -205,6 +215,14 @@ export default function HomeScreen() {
                 {QUEST_STATUS_LABEL[questState.data.status] ?? questState.data.status}
               </Text>
             </View>
+            {questState.data.status === "AVAILABLE"
+              ? (() => {
+                  const cta = QUEST_KIND_CTA[questState.data.kind];
+                  return cta ? (
+                    <Button label={cta.label} variant="secondary" onPress={() => router.push(cta.route)} testID="daily-quest-cta" />
+                  ) : null;
+                })()
+              : null}
           </>
         )}
       </View>

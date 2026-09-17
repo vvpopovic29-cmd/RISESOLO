@@ -18,6 +18,9 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > korisnikovu App Store Connect/Google Play Console/RevenueCat Dashboard
 > konfiguraciju. Push notifikacije (Boss Quest/Guild Raid/kick iz ceha) su
 > implementirane preko Expo push servisa - vidi "Push Notifications" ispod.
+> Dnevni quest ima varijetet - pool od WORKOUT_COMPLETE/LOG_NUTRITION kind-ova
+> se bira deterministicki po (korisnik, datum), umesto jednog hardkodovanog
+> questa (vidi `packages/domain/src/gamification/daily-quest-pool.ts`).
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

@@ -1,5 +1,6 @@
 import { Test, type TestingModule } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
+import { selectDailyQuestKind, type DailyQuestKind } from "@risesolo/domain";
 import { PrismaClient } from "@prisma/client";
 import request from "supertest";
 import { AppModule } from "../src/app.module";
@@ -32,16 +33,36 @@ describe("Boss quest (e2e)", () => {
     await app.close();
   });
 
-  async function registerUser(suffix: string): Promise<{ accessToken: string }> {
-    const email = `test-${runId}-${suffix}@risesolo.test`;
-    const username = `boss${runId}${suffix}`;
+  let userSeq = 0;
+
+  async function registerUser(suffix: string): Promise<{ accessToken: string; userId: string }> {
+    userSeq += 1;
+    const email = `test-${runId}-${suffix}-${userSeq}@risesolo.test`;
+    const username = `boss${runId}${suffix}${userSeq}`.slice(0, 24);
     const response = await request(app.getHttpServer())
       .post("/auth/register")
       .send({ email, password: "correct-horse-battery-staple", username })
       .expect(201);
 
     createdUserIds.push(response.body.user.id);
-    return { accessToken: response.body.accessToken };
+    return { accessToken: response.body.accessToken, userId: response.body.user.id };
+  }
+
+  /**
+   * Neki testovi pretpostavljaju da workout zavrsava DANASNJI dnevni quest
+   * (WORKOUT_COMPLETE kind) da bi fiksni xpGained iznosi bili tacni - vidi
+   * @risesolo/domain daily-quest-pool (varijetet dnevnih questova). Registruje
+   * korisnike dok hash ne izabere zeljeni kind za danasnji datum (deterministicki,
+   * ocekivano par pokusaja jer DAILY_QUEST_KINDS ima samo 2 clana).
+   */
+  async function registerUserWithDailyQuestKind(suffix: string, desiredKind: DailyQuestKind): Promise<{ accessToken: string; userId: string }> {
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const user = await registerUser(`${suffix}${attempt}`);
+      if (selectDailyQuestKind(user.userId, new Date()) === desiredKind) {
+        return user;
+      }
+    }
+    throw new Error(`Nije pronadjen korisnik sa dnevnim kind-om ${desiredKind} posle 50 pokusaja`);
   }
 
   async function completeWorkout(accessToken: string, exerciseId: string): Promise<request.Response> {
@@ -76,7 +97,7 @@ describe("Boss quest (e2e)", () => {
   });
 
   it("zavrsava se na trecem zavrsenom treningu te nedelje i dodeljuje bonus nagradu", async () => {
-    const { accessToken } = await registerUser("loop");
+    const { accessToken } = await registerUserWithDailyQuestKind("loop", "WORKOUT_COMPLETE");
     const exercise = await prisma.exercise.findFirstOrThrow();
 
     const first = await completeWorkout(accessToken, exercise.id);

@@ -21,6 +21,7 @@ describe("useTodayQuest", () => {
       Promise.resolve({
         id: "quest-1",
         date: "2026-01-01",
+        kind: "WORKOUT_COMPLETE" as const,
         title: "Zavrsi danasnji trening",
         description: null,
         targetReps: null,

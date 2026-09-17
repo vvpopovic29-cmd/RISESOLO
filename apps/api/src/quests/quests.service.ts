@@ -1,25 +1,44 @@
 import { Injectable } from "@nestjs/common";
-import { BOSS_QUEST_TARGET_SESSIONS, COIN_REWARDS, XP_REWARDS, applyCoinPenalty, calculatePenaltyCoins } from "@risesolo/domain";
+import {
+  BOSS_QUEST_TARGET_SESSIONS,
+  COIN_REWARDS,
+  XP_REWARDS,
+  applyCoinPenalty,
+  calculatePenaltyCoins,
+  detectLevelUp,
+  selectDailyQuestKind,
+  statPointsForLevelsGained,
+  type DailyQuestKind,
+} from "@risesolo/domain";
 import type { BossQuestDto, DailyQuestDto, PenaltyResultDto } from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
+import { getDailyQuestDisplay } from "./daily-quest-catalog";
 
 type Db = PrismaService | Prisma.TransactionClient;
 
-const DAILY_QUEST_TITLE = "Zavrsi danasnji trening";
-const DAILY_QUEST_DESCRIPTION = "Odradi bar jedan kompletan trening danas da osvojis dnevnu nagradu.";
 const DAILY_QUEST_TARGET_SETS = 3;
 
 const BOSS_QUEST_TITLE = "Nedeljni Boss Quest";
 const BOSS_QUEST_DESCRIPTION = `Zavrsi ${BOSS_QUEST_TARGET_SESSIONS} treninga ove nedelje da pobedis Boss-a i osvojis veliku nagradu.`;
 
 interface QuestFields {
+  kind?: string;
   title: string;
   description: string;
   targetSets: number;
   xpReward: number;
   coinReward: number;
+}
+
+export interface DailyQuestRewardResult {
+  completed: boolean;
+  xpGained: number;
+  coinsGained: number;
+  levelUp: boolean;
+  newLevel: number;
+  statPointsGained: number;
 }
 
 @Injectable()
@@ -32,13 +51,17 @@ export class QuestsService {
    * u schema.prisma, ne samo "provere pa upisa" (race-safe).
    */
   async generateDailyQuest(userId: string, date: Date, db: Db = this.prisma): Promise<Quest> {
+    const questDate = startOfUtcDay(date);
+    const kind: DailyQuestKind = selectDailyQuestKind(userId, questDate);
+    const display = getDailyQuestDisplay(kind);
     return this.generateQuest(
       userId,
       "DAILY",
-      startOfUtcDay(date),
+      questDate,
       {
-        title: DAILY_QUEST_TITLE,
-        description: DAILY_QUEST_DESCRIPTION,
+        kind,
+        title: display.title,
+        description: display.description,
         targetSets: DAILY_QUEST_TARGET_SETS,
         xpReward: XP_REWARDS.DAILY_QUEST_COMPLETE,
         coinReward: COIN_REWARDS.DAILY_QUEST_COMPLETE,
@@ -138,6 +161,46 @@ export class QuestsService {
     });
   }
 
+  /**
+   * Zaseban, namerno UZI nagradni put za dnevne questove zavrsene van
+   * workout completion engine-a (trenutno samo LOG_NUTRITION kind - vidi
+   * NutritionService.createEntry). Daje XP/coins/level-up/stat poene kao i
+   * workout put, ali NAMERNO ne dira streak ni cehovski XP doprinos - oba
+   * su po domenskom dizajnu vezana iskljucivo za trening aktivnost.
+   */
+  async completeDailyQuestRewardIfPending(userId: string, questId: string, db: Db = this.prisma): Promise<DailyQuestRewardResult> {
+    const completedQuest = await this.completeQuestIfPending(questId, db);
+    if (!completedQuest) {
+      return { completed: false, xpGained: 0, coinsGained: 0, levelUp: false, newLevel: 0, statPointsGained: 0 };
+    }
+
+    const progressionBefore = await db.progression.findUniqueOrThrow({ where: { userId } });
+    await db.xpEvent.create({
+      data: { userId, source: "DAILY_QUEST_COMPLETE", sourceId: completedQuest.id, amount: completedQuest.xpReward },
+    });
+
+    const levelUpResult = detectLevelUp(progressionBefore.totalXp, completedQuest.xpReward);
+    const statPointsGained = statPointsForLevelsGained(levelUpResult.levelsGained);
+
+    await db.progression.update({
+      where: { userId },
+      data: { totalXp: { increment: completedQuest.xpReward }, coins: { increment: completedQuest.coinReward } },
+    });
+
+    if (statPointsGained > 0) {
+      await db.playerStats.update({ where: { userId }, data: { statPoints: { increment: statPointsGained } } });
+    }
+
+    return {
+      completed: true,
+      xpGained: completedQuest.xpReward,
+      coinsGained: completedQuest.coinReward,
+      levelUp: levelUpResult.leveledUp,
+      newLevel: levelUpResult.newLevel,
+      statPointsGained,
+    };
+  }
+
   private async generateQuest(userId: string, type: QuestType, date: Date, fields: QuestFields, db: Db): Promise<Quest> {
     const existing = await db.quest.findUnique({
       where: { userId_date_type: { userId, date, type } },
@@ -173,6 +236,7 @@ function toDailyDto(quest: Quest): DailyQuestDto {
   return {
     id: quest.id,
     date: quest.date.toISOString().slice(0, 10),
+    kind: quest.kind as DailyQuestKind,
     title: quest.title,
     description: quest.description,
     targetReps: quest.targetReps,
