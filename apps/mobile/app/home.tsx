@@ -251,6 +251,12 @@ export default function HomeScreen() {
           testID="workout-templates-button"
         />
         <Button
+          label="Istorija treninga"
+          variant="secondary"
+          onPress={() => router.push("/workout-history")}
+          testID="workout-history-button"
+        />
+        <Button
           label="AI trening plan"
           variant="secondary"
           onPress={() => router.push("/training-plan")}

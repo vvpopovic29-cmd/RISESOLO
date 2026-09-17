@@ -35,6 +35,8 @@ import {
   workoutTemplateSummarySchema,
   workoutSessionSchema,
   activeWorkoutSessionSchema,
+  workoutHistoryEntrySchema,
+  personalRecordSchema,
   shopItemSchema,
   purchaseShopItemRequestSchema,
   purchaseShopItemResponseSchema,
@@ -76,6 +78,8 @@ import {
   type UnregisterPushTokenRequest,
   type WorkoutSessionDto,
   type ActiveWorkoutSessionResponse,
+  type WorkoutHistoryEntryDto,
+  type PersonalRecordDto,
   type WorkoutTemplateDetailDto,
   type WorkoutTemplateSummaryDto,
   type ShopItemDto,
@@ -106,6 +110,8 @@ export function createApiClient(config: ApiClientConfig) {
   const guildMessageListSchema = z.array(guildMessageSchema);
   const achievementListSchema = z.array(achievementSchema);
   const workoutTemplateListSchema = z.array(workoutTemplateSummarySchema);
+  const workoutHistoryListSchema = z.array(workoutHistoryEntrySchema);
+  const personalRecordListSchema = z.array(personalRecordSchema);
   const shopItemListSchema = z.array(shopItemSchema);
 
   return {
@@ -180,6 +186,17 @@ export function createApiClient(config: ApiClientConfig) {
       },
       abandonSession(sessionId: string): Promise<void> {
         return request({ method: "POST", path: `/workouts/sessions/${sessionId}/abandon` });
+      },
+      history(limit?: number): Promise<WorkoutHistoryEntryDto[]> {
+        return request({
+          method: "GET",
+          path: "/workouts/history",
+          query: { limit: limit !== undefined ? String(limit) : undefined },
+          schema: workoutHistoryListSchema,
+        });
+      },
+      personalRecords(): Promise<PersonalRecordDto[]> {
+        return request({ method: "GET", path: "/workouts/personal-records", schema: personalRecordListSchema });
       },
       templates: {
         create(dto: CreateWorkoutTemplateRequest): Promise<WorkoutTemplateDetailDto> {
