@@ -43,6 +43,8 @@ model User {
   pushTokens      PushToken[]
   achievements    UserAchievement[]
   cosmetics       UserCosmetic[]
+  sentFriendRequests     Friendship[] @relation("FriendshipRequester")
+  receivedFriendRequests Friendship[] @relation("FriendshipAddressee")
 
   @@map("users")
 }
@@ -577,4 +579,37 @@ model UserCosmetic {
   @@unique([userId, itemId])
   @@index([userId])
   @@map("user_cosmetics")
+}
+
+// ---------------------------------------------------------------------------
+// Prijatelji / Rivali
+// ---------------------------------------------------------------------------
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+
+  @@map("friendship_status")
+}
+
+/// Usmerena veza (requester -> addressee). `status: ACCEPTED` = prijateljstvo,
+/// `PENDING` = zahtev na cekanju. Odbijanje/otkazivanje/uklanjanje prijatelja
+/// jednostavno brise red (nema istorije) - dozvoljava ponovni zahtev kasnije.
+/// `@@unique([requesterId, addresseeId])` sprecava duple zahteve u istom smeru;
+/// suprotan smer se proverava u FriendsService pre kreiranja.
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String           @map("requester_id")
+  addresseeId String           @map("addressee_id")
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  respondedAt DateTime?        @map("responded_at")
+
+  requester   User             @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User             @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+  @@index([requesterId, status])
+  @@map("friendships")
 }

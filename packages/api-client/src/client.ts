@@ -41,6 +41,11 @@ import {
   purchaseShopItemRequestSchema,
   purchaseShopItemResponseSchema,
   equipShopItemRequestSchema,
+  sendFriendRequestSchema,
+  friendRequestSchema,
+  friendSchema,
+  friendsOverviewSchema,
+  friendsLeaderboardResponseSchema,
   type AchievementDto,
   type AllocateStatPointsRequest,
   type AuthResponse,
@@ -86,6 +91,11 @@ import {
   type PurchaseShopItemRequest,
   type PurchaseShopItemResponse,
   type EquipShopItemRequest,
+  type SendFriendRequestRequest,
+  type FriendRequestDto,
+  type FriendDto,
+  type FriendsOverviewResponse,
+  type FriendsLeaderboardResponseDto,
   z,
 } from "@risesolo/validation";
 import { ApiError, createHttpClient, type HttpClientConfig } from "./http";
@@ -297,6 +307,32 @@ export function createApiClient(config: ApiClientConfig) {
       },
       distributeTreasury(): Promise<GuildDetailDto> {
         return request({ method: "POST", path: "/guilds/treasury/distribute", schema: guildDetailSchema });
+      },
+    },
+
+    friends: {
+      getOverview(): Promise<FriendsOverviewResponse> {
+        return request({ method: "GET", path: "/friends", schema: friendsOverviewSchema });
+      },
+      getLeaderboard(): Promise<FriendsLeaderboardResponseDto> {
+        return request({ method: "GET", path: "/friends/leaderboard", schema: friendsLeaderboardResponseSchema });
+      },
+      sendRequest(dto: SendFriendRequestRequest): Promise<FriendRequestDto> {
+        sendFriendRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/friends/requests", body: dto, schema: friendRequestSchema });
+      },
+      acceptRequest(requestId: string): Promise<FriendDto> {
+        return request({
+          method: "POST",
+          path: `/friends/requests/${encodeURIComponent(requestId)}/accept`,
+          schema: friendSchema,
+        });
+      },
+      removeRequest(requestId: string): Promise<void> {
+        return request({ method: "DELETE", path: `/friends/requests/${encodeURIComponent(requestId)}` });
+      },
+      removeFriend(userId: string): Promise<void> {
+        return request({ method: "DELETE", path: `/friends/${encodeURIComponent(userId)}` });
       },
     },
 
