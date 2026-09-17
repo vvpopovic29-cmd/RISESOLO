@@ -21,6 +21,11 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > Dnevni quest ima varijetet - pool od WORKOUT_COMPLETE/LOG_NUTRITION kind-ova
 > se bira deterministicki po (korisnik, datum), umesto jednog hardkodovanog
 > questa (vidi `packages/domain/src/gamification/daily-quest-pool.ts`).
+> Nedeljni quest (ODVOJEN od Boss Quest-a) daje drugi tier sedmicnog izazova -
+> XP_TARGET (osvoji X XP te nedelje iz bilo kog izvora) ili NUTRITION_LOG_DAYS
+> (uloguj obrok X razlicitih dana), progres izveden iz postojecih podataka i
+> zavrsava se lazy na `GET /quests/weekly` (vidi
+> `packages/domain/src/gamification/weekly-quest-pool.ts`).
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

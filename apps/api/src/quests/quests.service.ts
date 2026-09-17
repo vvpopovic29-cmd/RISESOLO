@@ -2,19 +2,26 @@ import { Injectable } from "@nestjs/common";
 import {
   BOSS_QUEST_TARGET_SESSIONS,
   COIN_REWARDS,
+  WEEKLY_NUTRITION_LOG_DAYS_TARGET,
+  WEEKLY_XP_TARGET,
   XP_REWARDS,
   applyCoinPenalty,
   calculatePenaltyCoins,
   detectLevelUp,
+  isWeeklyQuestComplete,
   selectDailyQuestKind,
+  selectWeeklyQuestKind,
   statPointsForLevelsGained,
   type DailyQuestKind,
+  type WeeklyQuestKind,
+  type XpSource,
 } from "@risesolo/domain";
-import type { BossQuestDto, DailyQuestDto, PenaltyResultDto } from "@risesolo/validation";
+import type { BossQuestDto, DailyQuestDto, PenaltyResultDto, WeeklyQuestDto } from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
 import { getDailyQuestDisplay } from "./daily-quest-catalog";
+import { getWeeklyQuestDisplay } from "./weekly-quest-catalog";
 
 type Db = PrismaService | Prisma.TransactionClient;
 
@@ -32,7 +39,7 @@ interface QuestFields {
   coinReward: number;
 }
 
-export interface DailyQuestRewardResult {
+export interface QuestRewardResult {
   completed: boolean;
   xpGained: number;
   coinsGained: number;
@@ -168,15 +175,99 @@ export class QuestsService {
    * workout put, ali NAMERNO ne dira streak ni cehovski XP doprinos - oba
    * su po domenskom dizajnu vezana iskljucivo za trening aktivnost.
    */
-  async completeDailyQuestRewardIfPending(userId: string, questId: string, db: Db = this.prisma): Promise<DailyQuestRewardResult> {
+  async completeDailyQuestRewardIfPending(userId: string, questId: string, db: Db = this.prisma): Promise<QuestRewardResult> {
     const completedQuest = await this.completeQuestIfPending(questId, db);
+    return this.grantQuestReward(userId, completedQuest, "DAILY_QUEST_COMPLETE", db);
+  }
+
+  /** Isti idempotency princip kao dnevni/boss quest, ali po ISO nedelji (date = ponedeljak te nedelje). */
+  async generateWeeklyQuest(userId: string, date: Date, db: Db = this.prisma): Promise<Quest> {
+    const weekStart = startOfIsoWeek(date);
+    const kind: WeeklyQuestKind = selectWeeklyQuestKind(userId, weekStart);
+    const display = getWeeklyQuestDisplay(kind);
+    return this.generateQuest(
+      userId,
+      "WEEKLY",
+      weekStart,
+      {
+        kind,
+        title: display.title,
+        description: display.description,
+        targetSets: kind === "XP_TARGET" ? WEEKLY_XP_TARGET : WEEKLY_NUTRITION_LOG_DAYS_TARGET,
+        xpReward: XP_REWARDS.WEEKLY_QUEST_COMPLETE,
+        coinReward: COIN_REWARDS.WEEKLY_QUEST_COMPLETE,
+      },
+      db,
+    );
+  }
+
+  /**
+   * Nedeljni quest progres se NAMERNO ne cuva - racuna se izvedeno po
+   * kind-u (isti princip kao Boss Quest): XP_TARGET prebrojava XpEvent
+   * amount-e u toj ISO nedelji (SVI izvori - trening, questovi, itd.),
+   * NUTRITION_LOG_DAYS prebrojava RAZLICITE dane sa unosom ishrane.
+   */
+  async getWeeklyQuestProgress(userId: string, kind: WeeklyQuestKind, date: Date, db: Db = this.prisma): Promise<number> {
+    const weekStart = startOfIsoWeek(date);
+    const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    if (kind === "XP_TARGET") {
+      const events = await db.xpEvent.findMany({
+        where: { userId, createdAt: { gte: weekStart, lt: weekEnd } },
+        select: { amount: true },
+      });
+      return events.reduce((sum, event) => sum + event.amount, 0);
+    }
+    const rows = await db.nutritionEntry.findMany({
+      where: { userId, date: { gte: weekStart, lt: weekEnd } },
+      distinct: ["date"],
+      select: { date: true },
+    });
+    return rows.length;
+  }
+
+  /**
+   * Kombinuje generisanje + progres + LAZY zavrsetak (ako je cilj vec
+   * dostignut u trenutku ocitavanja) - isti "lazy provera na pristup, bez
+   * cron-a" princip kao expirePastDueDailyQuests. GET /quests/weekly je
+   * jedino mesto gde se nedeljni quest zavrsava - nema posebnog trigera u
+   * WorkoutsService/NutritionService jer progres dolazi iz vec postojecih
+   * dogadjaja (XpEvent/NutritionEntry), ne iz jedne konkretne akcije.
+   */
+  async getCurrentWeeklyQuest(userId: string): Promise<WeeklyQuestDto> {
+    const now = new Date();
+    let quest = await this.generateWeeklyQuest(userId, now);
+    const kind = quest.kind as WeeklyQuestKind;
+    const targetProgress = quest.targetSets ?? WEEKLY_XP_TARGET;
+    const progress = await this.getWeeklyQuestProgress(userId, kind, now);
+
+    if (quest.status !== "COMPLETED" && quest.status !== "EXPIRED" && isWeeklyQuestComplete(progress, targetProgress)) {
+      const result = await this.completeWeeklyQuestRewardIfPending(userId, quest.id);
+      if (result.completed) {
+        quest = { ...quest, status: "COMPLETED" };
+      }
+    }
+
+    return toWeeklyDto(quest, progress, targetProgress);
+  }
+
+  /**
+   * Isti "uzi nagradni put" princip kao completeDailyQuestRewardIfPending -
+   * XP/coins/level-up/stat poeni, NAMERNO bez streak-a i cehovskog doprinosa
+   * (nedeljni quest nije trening aktivnost, samo posledica nje).
+   */
+  async completeWeeklyQuestRewardIfPending(userId: string, questId: string, db: Db = this.prisma): Promise<QuestRewardResult> {
+    const completedQuest = await this.completeQuestIfPending(questId, db);
+    return this.grantQuestReward(userId, completedQuest, "WEEKLY_QUEST_COMPLETE", db);
+  }
+
+  private async grantQuestReward(userId: string, completedQuest: Quest | null, source: XpSource, db: Db): Promise<QuestRewardResult> {
     if (!completedQuest) {
       return { completed: false, xpGained: 0, coinsGained: 0, levelUp: false, newLevel: 0, statPointsGained: 0 };
     }
 
     const progressionBefore = await db.progression.findUniqueOrThrow({ where: { userId } });
     await db.xpEvent.create({
-      data: { userId, source: "DAILY_QUEST_COMPLETE", sourceId: completedQuest.id, amount: completedQuest.xpReward },
+      data: { userId, source, sourceId: completedQuest.id, amount: completedQuest.xpReward },
     });
 
     const levelUpResult = detectLevelUp(progressionBefore.totalXp, completedQuest.xpReward);
@@ -256,6 +347,21 @@ function toBossDto(quest: Quest, progress: number): BossQuestDto {
     description: quest.description,
     targetSessions,
     progress: Math.min(progress, targetSessions),
+    xpReward: quest.xpReward,
+    coinReward: quest.coinReward,
+    status: quest.status,
+  };
+}
+
+function toWeeklyDto(quest: Quest, progress: number, targetProgress: number): WeeklyQuestDto {
+  return {
+    id: quest.id,
+    weekStart: quest.date.toISOString().slice(0, 10),
+    kind: quest.kind as WeeklyQuestKind,
+    title: quest.title,
+    description: quest.description,
+    targetProgress,
+    progress: Math.min(progress, targetProgress),
     xpReward: quest.xpReward,
     coinReward: quest.coinReward,
     status: quest.status,
