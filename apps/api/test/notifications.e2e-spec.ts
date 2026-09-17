@@ -218,4 +218,36 @@ describe("Notifications (e2e)", () => {
       expect.objectContaining({ title: expect.stringContaining("Izbacen") }),
     );
   });
+
+  it("salje push primaocu kada dobije zahtev za prijateljstvo", async () => {
+    const sender = await registerUser("freqsend");
+    const receiver = await registerUser("freqrecv");
+
+    await auth(sender.accessToken, request(app.getHttpServer()).post("/friends/requests"))
+      .send({ username: (await prisma.profile.findUniqueOrThrow({ where: { userId: receiver.userId } })).username })
+      .expect(201);
+
+    expect(sendToUserSpy).toHaveBeenCalledWith(
+      receiver.userId,
+      expect.objectContaining({ title: expect.stringContaining("zahtev za prijateljstvo") }),
+    );
+  });
+
+  it("salje push posiljaocu kada mu se prihvati zahtev za prijateljstvo", async () => {
+    const sender = await registerUser("faccsend");
+    const receiver = await registerUser("faccrecv");
+    const receiverUsername = (await prisma.profile.findUniqueOrThrow({ where: { userId: receiver.userId } })).username;
+
+    const created = await auth(sender.accessToken, request(app.getHttpServer()).post("/friends/requests"))
+      .send({ username: receiverUsername })
+      .expect(201);
+
+    sendToUserSpy.mockClear();
+    await auth(receiver.accessToken, request(app.getHttpServer()).post(`/friends/requests/${created.body.id}/accept`)).expect(201);
+
+    expect(sendToUserSpy).toHaveBeenCalledWith(
+      sender.userId,
+      expect.objectContaining({ title: expect.stringContaining("prihvacen") }),
+    );
+  });
 });
