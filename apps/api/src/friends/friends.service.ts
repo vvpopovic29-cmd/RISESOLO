@@ -8,6 +8,7 @@ import type {
   FriendsOverviewResponse,
 } from "@risesolo/validation";
 import type { Friendship } from "@prisma/client";
+import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
 
 interface UserWithProfileAndProgression {
@@ -23,10 +24,16 @@ interface FriendshipWithUsers extends Friendship {
 
 @Injectable()
 export class FriendsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async sendRequest(userId: string, username: string): Promise<FriendRequestDto> {
-    const targetProfile = await this.prisma.profile.findUnique({ where: { username } });
+    const [targetProfile, senderProfile] = await Promise.all([
+      this.prisma.profile.findUnique({ where: { username } }),
+      this.prisma.profile.findUnique({ where: { userId } }),
+    ]);
     if (!targetProfile) {
       throw new NotFoundException("Korisnik sa tim korisnickim imenom nije pronadjen");
     }
@@ -44,6 +51,16 @@ export class FriendsService {
     const created = await this.prisma.friendship.create({
       data: { requesterId: userId, addresseeId: targetProfile.userId },
     });
+
+    // Push notifikacija ide POSLE upisa, nikad ne sme da obori kreiranje zahteva (isti princip kao guilds/workouts).
+    this.notificationsService
+      .sendToUser(targetProfile.userId, {
+        title: "Novi zahtev za prijateljstvo",
+        body: `${senderProfile?.username ?? "Neko"} zeli da ti bude prijatelj.`,
+        data: { screen: "/friends" },
+      })
+      .catch(() => undefined);
+
     return { id: created.id, userId: targetProfile.userId, username, createdAt: created.createdAt.toISOString() };
   }
 
@@ -58,7 +75,20 @@ export class FriendsService {
       data: { status: "ACCEPTED", respondedAt: new Date() },
     });
 
-    return this.buildFriendDto(request.requesterId);
+    const [friendDto, accepterProfile] = await Promise.all([
+      this.buildFriendDto(request.requesterId),
+      this.prisma.profile.findUnique({ where: { userId } }),
+    ]);
+
+    this.notificationsService
+      .sendToUser(request.requesterId, {
+        title: "Zahtev za prijateljstvo prihvacen",
+        body: `${accepterProfile?.username ?? "Neko"} je prihvatio/la tvoj zahtev za prijateljstvo.`,
+        data: { screen: "/friends" },
+      })
+      .catch(() => undefined);
+
+    return friendDto;
   }
 
   /** Otkazivanje (od strane posiljaoca) i odbijanje (od strane primaoca) su isti postupak - brisanje reda na cekanju. */

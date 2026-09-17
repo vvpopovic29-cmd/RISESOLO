@@ -220,7 +220,7 @@ korisnici imaju `FREE_TRAINING_PLAN_LIMIT` - vidi `packages/domain/src/subscript
 ## Push Notifications
 
 Preko [Expo push servisa](https://exp.host) (besplatan, ne zahteva sopstveni
-notifikacioni backend/queue) - server salje notifikaciju na tri postojeca
+notifikacioni backend/queue) - server salje notifikaciju na pet postojecih
 dogadjaja:
 
 - **Boss Quest pobedjen** - korisniku koji je zavrsio nedeljni izazov
@@ -229,6 +229,10 @@ dogadjaja:
   treningom raid zavrsen (`GuildsService.sendRaidCompletionNotification`).
 - **Izbacen si iz ceha** - korisniku kog je LEADER/OFFICER izbacio
   (`GuildsService.kickMember`).
+- **Novi zahtev za prijateljstvo** - primaocu, sa korisnickim imenom
+  posiljaoca (`FriendsService.sendRequest`).
+- **Zahtev za prijateljstvo prihvacen** - posiljaocu, sa korisnickim imenom
+  onoga ko je prihvatio (`FriendsService.acceptRequest`).
 
 Namerno NEMA scheduled/cron podsetnika (npr. "nisi trenirao danas") - isto
 ogranicenje kao Redis/BullMQ (vidi "Poznata ograničenja" ispod), jer bi to
