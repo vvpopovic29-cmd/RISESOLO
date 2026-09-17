@@ -7,6 +7,7 @@ import { useAuth } from "../src/auth/AuthContext";
 import { usePlayerState } from "../src/player/use-player-state";
 import { useTodayQuest } from "../src/player/use-today-quest";
 import { useBossQuest } from "../src/player/use-boss-quest";
+import { useWeeklyQuest } from "../src/player/use-weekly-quest";
 import { useActiveSession } from "../src/workout/use-active-session";
 import { StatAllocator } from "../src/player/StatAllocator";
 import { Button } from "../src/ui/Button";
@@ -31,11 +32,22 @@ const QUEST_KIND_CTA: Record<string, { label: string; route: "/exercises" | "/nu
   LOG_NUTRITION: { label: "Idi na ishranu", route: "/nutrition" },
 };
 
+/**
+ * Nedeljni quest je ODVOJEN od Boss Quest-a (koji je uvek "N treninga ove
+ * nedelje") - progres se tumaci po kind-u (osvojen XP ili razliciti dani sa
+ * unosom ishrane, vidi @risesolo/domain weekly-quest-pool).
+ */
+const WEEKLY_QUEST_KIND_UNIT: Record<string, string> = {
+  XP_TARGET: "XP ove nedelje",
+  NUTRITION_LOG_DAYS: "dana sa ishranom ove nedelje",
+};
+
 export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const { state: questState, refetch: refetchQuest } = useTodayQuest(apiClient);
   const { state: bossQuestState, refetch: refetchBossQuest } = useBossQuest(apiClient);
+  const { state: weeklyQuestState, refetch: refetchWeeklyQuest } = useWeeklyQuest(apiClient);
   const { state: activeSessionState, refetch: refetchActiveSession } = useActiveSession(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
@@ -49,8 +61,9 @@ export default function HomeScreen() {
       refetchPlayer();
       refetchQuest();
       refetchBossQuest();
+      refetchWeeklyQuest();
       refetchActiveSession();
-    }, [refetchPlayer, refetchQuest, refetchBossQuest, refetchActiveSession]),
+    }, [refetchPlayer, refetchQuest, refetchBossQuest, refetchWeeklyQuest, refetchActiveSession]),
   );
 
   async function handleAbandonActive(sessionId: string) {
@@ -254,6 +267,43 @@ export default function HomeScreen() {
               </Text>
               <Text className="text-xs text-reward">
                 +{bossQuestState.data.xpReward} XP · +{bossQuestState.data.coinReward} coins
+              </Text>
+            </View>
+          </>
+        )}
+      </View>
+
+      <View className="gap-2 rounded-lg border border-accent/40 p-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-sm font-semibold text-accent">NEDELJNI QUEST</Text>
+          {weeklyQuestState.status === "success" && weeklyQuestState.data.status === "COMPLETED" ? (
+            <Text className="text-xs font-bold text-accent">ZAVRSEN</Text>
+          ) : null}
+        </View>
+        {weeklyQuestState.status === "loading" ? (
+          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        ) : weeklyQuestState.status === "error" ? (
+          <ErrorState message={weeklyQuestState.message} onRetry={refetchWeeklyQuest} />
+        ) : (
+          <>
+            <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
+              {weeklyQuestState.data.title}
+            </Text>
+            {weeklyQuestState.data.description ? (
+              <Text className="text-sm text-neutral-500 dark:text-neutral-600">{weeklyQuestState.data.description}</Text>
+            ) : null}
+            <ProgressBar
+              progress={weeklyQuestState.data.progress / weeklyQuestState.data.targetProgress}
+              colorClassName="bg-accent"
+              testID="weekly-quest-progress"
+            />
+            <View className="flex-row items-center justify-between pt-1">
+              <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                {weeklyQuestState.data.progress} / {weeklyQuestState.data.targetProgress}{" "}
+                {WEEKLY_QUEST_KIND_UNIT[weeklyQuestState.data.kind] ?? ""}
+              </Text>
+              <Text className="text-xs text-reward">
+                +{weeklyQuestState.data.xpReward} XP · +{weeklyQuestState.data.coinReward} coins
               </Text>
             </View>
           </>

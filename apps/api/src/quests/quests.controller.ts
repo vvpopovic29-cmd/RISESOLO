@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import type { BossQuestDto, DailyQuestDto } from "@risesolo/validation";
+import type { BossQuestDto, DailyQuestDto, WeeklyQuestDto } from "@risesolo/validation";
 import { CurrentUser, type AuthenticatedUser } from "../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { QuestsService } from "./quests.service";
@@ -19,5 +19,12 @@ export class QuestsController {
   @Get("boss")
   getBoss(@CurrentUser() user: AuthenticatedUser): Promise<BossQuestDto> {
     return this.questsService.getCurrentBossQuest(user.id);
+  }
+
+  // Nedeljni quest se zavrsava LAZY unutar GET-a (progres je izveden iz
+  // vec postojecih dogadjaja - vidi QuestsService.getCurrentWeeklyQuest).
+  @Get("weekly")
+  getWeekly(@CurrentUser() user: AuthenticatedUser): Promise<WeeklyQuestDto> {
+    return this.questsService.getCurrentWeeklyQuest(user.id);
   }
 }

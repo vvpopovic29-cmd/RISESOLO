@@ -111,6 +111,7 @@ enum XpSource {
   WORKOUT_COMPLETE
   DAILY_QUEST_COMPLETE
   BOSS_QUEST_COMPLETE
+  WEEKLY_QUEST_COMPLETE
 
   @@map("xp_source")
 }
@@ -252,6 +253,7 @@ model NutritionEntry {
 
 enum QuestType {
   DAILY
+  WEEKLY
   BOSS
 
   @@map("quest_type")
