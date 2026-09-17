@@ -157,10 +157,14 @@ export class WorkoutsService {
         let xpGained = XP_REWARDS.WORKOUT_COMPLETE;
         let coinsGained = COIN_REWARDS.WORKOUT_COMPLETE;
 
-        // Danasnji quest se automatski zavrsava prvim zavrsenim treningom u danu (ako vec nije).
+        // Danasnji quest se automatski zavrsava prvim zavrsenim treningom u danu (ako vec nije)
+        // - ali SAMO ako je danasnji quest WORKOUT_COMPLETE kind (varijetet dnevnih questova,
+        // vidi @risesolo/domain daily-quest-pool). LOG_NUTRITION kind se zavrsava iskljucivo
+        // iz NutritionService.createEntry.
         const today = new Date();
         const quest = await this.questsService.generateDailyQuest(userId, today, tx);
-        const completedQuest = await this.questsService.completeQuestIfPending(quest.id, tx);
+        const completedQuest =
+          quest.kind === "WORKOUT_COMPLETE" ? await this.questsService.completeQuestIfPending(quest.id, tx) : null;
         const questCompleted = completedQuest !== null;
         if (questCompleted) {
           await tx.xpEvent.create({

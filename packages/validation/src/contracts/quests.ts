@@ -1,9 +1,10 @@
-import { QUEST_STATUSES } from "@risesolo/domain";
+import { DAILY_QUEST_KINDS, QUEST_STATUSES } from "@risesolo/domain";
 import { z } from "zod";
 
 export const dailyQuestSchema = z.object({
   id: z.string(),
   date: z.string(),
+  kind: z.enum(DAILY_QUEST_KINDS),
   title: z.string(),
   description: z.string().nullable(),
   targetReps: z.number().int().nullable(),

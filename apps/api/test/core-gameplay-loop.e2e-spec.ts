@@ -1,5 +1,6 @@
 import { Test, type TestingModule } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
+import { selectDailyQuestKind, type DailyQuestKind } from "@risesolo/domain";
 import { PrismaClient } from "@prisma/client";
 import request from "supertest";
 import { AppModule } from "../src/app.module";
@@ -48,6 +49,23 @@ describe("Core gameplay loop (e2e)", () => {
 
     createdUserIds.push(response.body.user.id);
     return { accessToken: response.body.accessToken, userId: response.body.user.id };
+  }
+
+  /**
+   * Neki testovi pretpostavljaju da workout zavrsava DANASNJI dnevni quest
+   * (WORKOUT_COMPLETE kind) da bi fiksni xpGained iznosi bili tacni - vidi
+   * @risesolo/domain daily-quest-pool (varijetet dnevnih questova). Registruje
+   * korisnike dok hash ne izabere zeljeni kind za danasnji datum (deterministicki,
+   * ocekivano par pokusaja jer DAILY_QUEST_KINDS ima samo 2 clana).
+   */
+  async function registerUserWithDailyQuestKind(suffix: string, desiredKind: DailyQuestKind): Promise<{ accessToken: string; userId: string }> {
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const user = await registerUser(`${suffix}${attempt}`);
+      if (selectDailyQuestKind(user.userId, new Date()) === desiredKind) {
+        return user;
+      }
+    }
+    throw new Error(`Nije pronadjen korisnik sa dnevnim kind-om ${desiredKind} posle 50 pokusaja`);
   }
 
   it("odbija pristup bez tokena (401)", async () => {
@@ -108,7 +126,7 @@ describe("Core gameplay loop (e2e)", () => {
   });
 
   it("kompletira ceo gameplay loop: workout + daily quest u istom danu daju XP, level-up, coins i streak=1", async () => {
-    const { accessToken } = await registerUser("loop");
+    const { accessToken } = await registerUserWithDailyQuestKind("loop", "WORKOUT_COMPLETE");
     const auth = (req: request.Test) => req.set("Authorization", `Bearer ${accessToken}`);
 
     const exercise = await prisma.exercise.findFirstOrThrow();

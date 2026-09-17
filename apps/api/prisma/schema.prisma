@@ -276,6 +276,10 @@ model Quest {
   userId      String      @map("user_id")
   date        DateTime    @db.Date
   type        QuestType
+  /// Podtip u okviru `type` (npr. DAILY: "WORKOUT_COMPLETE"/"LOG_NUTRITION") - plain String
+  /// katalog u @risesolo/domain, ne Prisma enum, da bi novi kind mogao da se doda bez migracije
+  /// (isti princip kao UserAchievement.achievementId i UserCosmetic.itemId).
+  kind        String      @default("WORKOUT_COMPLETE")
   title       String
   description String?
   targetReps  Int?        @map("target_reps")
