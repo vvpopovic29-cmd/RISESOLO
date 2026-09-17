@@ -85,6 +85,16 @@ export {
   type WorkoutTemplateDetailDto,
 } from "./contracts/workout-templates";
 export {
+  workoutHistoryQuerySchema,
+  workoutHistoryExerciseSchema,
+  workoutHistoryEntrySchema,
+  personalRecordSchema,
+  type WorkoutHistoryQuery,
+  type WorkoutHistoryExerciseDto,
+  type WorkoutHistoryEntryDto,
+  type PersonalRecordDto,
+} from "./contracts/workout-history";
+export {
   shopItemSchema,
   listShopResponseSchema,
   purchaseShopItemRequestSchema,
