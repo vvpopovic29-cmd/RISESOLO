@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import type { BossQuestDto, DailyQuestDto, WeeklyQuestDto } from "@risesolo/validation";
+import type { BossQuestDto, DailyQuestDto, MainQuestDto, WeeklyQuestDto } from "@risesolo/validation";
 import { CurrentUser, type AuthenticatedUser } from "../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { QuestsService } from "./quests.service";
@@ -26,5 +26,12 @@ export class QuestsController {
   @Get("weekly")
   getWeekly(@CurrentUser() user: AuthenticatedUser): Promise<WeeklyQuestDto> {
     return this.questsService.getCurrentWeeklyQuest(user.id);
+  }
+
+  // Main Quest NIKAD ne istice/resetuje se po datumu - lanac napreduje kroz
+  // stat-ove (vidi QuestsService.getCurrentMainQuest).
+  @Get("main")
+  getMain(@CurrentUser() user: AuthenticatedUser): Promise<MainQuestDto> {
+    return this.questsService.getCurrentMainQuest(user.id);
   }
 }

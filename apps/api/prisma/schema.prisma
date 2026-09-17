@@ -112,6 +112,7 @@ enum XpSource {
   DAILY_QUEST_COMPLETE
   BOSS_QUEST_COMPLETE
   WEEKLY_QUEST_COMPLETE
+  MAIN_QUEST_COMPLETE
 
   @@map("xp_source")
 }
@@ -255,6 +256,7 @@ enum QuestType {
   DAILY
   WEEKLY
   BOSS
+  MAIN
 
   @@map("quest_type")
 }
