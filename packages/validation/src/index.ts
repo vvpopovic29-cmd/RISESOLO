@@ -169,4 +169,18 @@ export {
   type GuildLeaderboardResponseDto,
   type LeaderboardQuery,
 } from "./contracts/leaderboard";
+export {
+  sendFriendRequestSchema,
+  friendRequestSchema,
+  friendSchema,
+  friendsOverviewSchema,
+  friendLeaderboardEntrySchema,
+  friendsLeaderboardResponseSchema,
+  type SendFriendRequestRequest,
+  type FriendRequestDto,
+  type FriendDto,
+  type FriendsOverviewResponse,
+  type FriendLeaderboardEntryDto,
+  type FriendsLeaderboardResponseDto,
+} from "./contracts/friends";
 export { z } from "zod";

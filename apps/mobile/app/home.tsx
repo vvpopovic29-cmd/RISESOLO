@@ -275,6 +275,12 @@ export default function HomeScreen() {
           testID="guild-button"
         />
         <Button
+          label="Prijatelji"
+          variant="secondary"
+          onPress={() => router.push("/friends")}
+          testID="friends-button"
+        />
+        <Button
           label="Achievements"
           variant="secondary"
           onPress={() => router.push("/achievements")}
