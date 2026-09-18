@@ -33,4 +33,9 @@ export class InventoryController {
   ): Promise<CraftWorkshopItemResponse> {
     return this.inventoryService.craftWorkshopItem(user.id, dto.itemId);
   }
+
+  @Get("guild")
+  listGuildItems(@CurrentUser() user: AuthenticatedUser): Promise<InventoryItemDto[]> {
+    return this.inventoryService.listGuildItems(user.id);
+  }
 }

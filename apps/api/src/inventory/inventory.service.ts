@@ -1,18 +1,24 @@
 import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import {
+  GUILD_ITEM_DEFINITIONS,
   HIDDEN_ITEM_DEFINITIONS,
   WORKSHOP_ITEMS,
   calculateLevel,
   canCraftWorkshopItem,
+  evaluateNewlyDiscoveredGuildItems,
   evaluateNewlyDiscoveredHiddenItems,
   getWorkshopItem,
+  type GuildItemId,
+  type GuildItemStatsSnapshot,
   type HiddenItemId,
   type HiddenItemStatsSnapshot,
   type WorkshopItemDefinition,
 } from "@risesolo/domain";
 import type { CraftWorkshopItemResponse, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import type { Prisma } from "@prisma/client";
+import { diffInUtcDays } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
+import { getGuildItemDisplay } from "./guild-item-catalog";
 import { getHiddenItemDisplay } from "./inventory-catalog";
 import { getWorkshopItemDisplay } from "./workshop-catalog";
 
@@ -170,6 +176,82 @@ export class InventoryService {
       }
       throw error;
     }
+  }
+
+  private async computeGuildSnapshot(userId: string, db: Db): Promise<GuildItemStatsSnapshot> {
+    const membership = await db.guildMembership.findUnique({ where: { userId } });
+    if (!membership) {
+      return {
+        isGuildLeader: false,
+        currentGuildRaidsCompleted: 0,
+        currentGuildTreasuryCoins: 0,
+        guildMembershipDays: 0,
+        currentGuildLevel: 0,
+      };
+    }
+
+    const [guild, raidsCompleted] = await Promise.all([
+      db.guild.findUniqueOrThrow({ where: { id: membership.guildId } }),
+      db.guildRaid.count({ where: { guildId: membership.guildId, status: "COMPLETED" } }),
+    ]);
+
+    return {
+      isGuildLeader: membership.role === "LEADER",
+      currentGuildRaidsCompleted: raidsCompleted,
+      currentGuildTreasuryCoins: guild.treasuryCoins,
+      guildMembershipDays: diffInUtcDays(new Date(), membership.joinedAt),
+      currentGuildLevel: calculateLevel(guild.totalXp),
+    };
+  }
+
+  /** Vraca ID-jeve novo otkrivenih Guild Item-a (prazan niz ako nema novih). */
+  async evaluateAndDiscoverGuild(userId: string, db: Db = this.prisma): Promise<GuildItemId[]> {
+    const [snapshot, discoveredRows] = await Promise.all([
+      this.computeGuildSnapshot(userId, db),
+      db.inventoryItem.findMany({ where: { userId, source: "GUILD" }, select: { itemId: true } }),
+    ]);
+
+    const alreadyDiscovered = new Set(discoveredRows.map((row) => row.itemId as GuildItemId));
+    const newlyDiscovered = evaluateNewlyDiscoveredGuildItems(snapshot, alreadyDiscovered);
+    if (newlyDiscovered.length === 0) {
+      return [];
+    }
+
+    await db.inventoryItem.createMany({
+      data: newlyDiscovered.map((itemId) => ({ userId, itemId, source: "GUILD" as const })),
+      skipDuplicates: true,
+    });
+
+    return newlyDiscovered;
+  }
+
+  /**
+   * GET /inventory/guild - prvo "sustize" propustena otkrivanja (lazy, isti
+   * princip kao Hidden Item), pa vraca ceo katalog. Za razliku od Hidden
+   * Item-a, name/description se UVEK salju (Guild katalog je unapred
+   * vidljiv, isti princip kao Achievements pragovi).
+   */
+  async listGuildItems(userId: string): Promise<InventoryItemDto[]> {
+    await this.evaluateAndDiscoverGuild(userId);
+
+    const discoveredRows = await this.prisma.inventoryItem.findMany({
+      where: { userId, source: "GUILD" },
+      select: { itemId: true, discoveredAt: true },
+    });
+    const discoveredByItemId = new Map(discoveredRows.map((row) => [row.itemId, row.discoveredAt]));
+
+    return GUILD_ITEM_DEFINITIONS.map((definition) => {
+      const discoveredAt = discoveredByItemId.get(definition.id) ?? null;
+      const display = getGuildItemDisplay(definition.id);
+      return {
+        id: definition.id,
+        source: "GUILD" as const,
+        discovered: discoveredAt !== null,
+        discoveredAt: discoveredAt !== null ? discoveredAt.toISOString() : null,
+        name: display.name,
+        description: display.description,
+      };
+    });
   }
 }
 

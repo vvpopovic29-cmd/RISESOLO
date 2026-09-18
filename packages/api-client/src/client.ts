@@ -438,6 +438,9 @@ export function createApiClient(config: ApiClientConfig) {
       list(): Promise<InventoryItemDto[]> {
         return request({ method: "GET", path: "/inventory", schema: inventoryItemListSchema });
       },
+      guild(): Promise<InventoryItemDto[]> {
+        return request({ method: "GET", path: "/inventory/guild", schema: inventoryItemListSchema });
+      },
       workshop: {
         list(): Promise<WorkshopItemDto[]> {
           return request({ method: "GET", path: "/inventory/workshop", schema: workshopItemListSchema });

@@ -59,7 +59,12 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > igrac mora AKTIVNO da izradi predmet (`POST /inventory/workshop/craft`) uz
 > dovoljan nivo I coins zajedno (za razliku od Coin Shop-a koji trazi samo
 > coins, bez praga nivoa) - vidi `packages/domain/src/inventory/workshop-item.ts`.
-> Ostali izvori (Event/AI-generated/Recovery/Custom) dolaze u narednim fazama.
+> Guild Items su treci izvor - katalog je, kao i Workshop, UNAPRED vidljiv,
+> ali se, kao Hidden Item, AUTOMATSKI dodeljuje (GET-only, bez akcije igraca)
+> na osnovu cehovske aktivnosti (uloga LEADER, broj zavrsenih cehovskih
+> rejdova, saldo riznice, duzina clanstva, nivo ceha) - vidi
+> `packages/domain/src/inventory/guild-item.ts`. Ostali izvori (Event/
+> AI-generated/Recovery/Custom) dolaze u narednim fazama.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

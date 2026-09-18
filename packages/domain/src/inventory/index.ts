@@ -15,3 +15,11 @@ export {
   type WorkshopItemId,
   type WorkshopItemDefinition,
 } from "./workshop-item";
+export {
+  GUILD_ITEM_IDS,
+  GUILD_ITEM_DEFINITIONS,
+  evaluateNewlyDiscoveredGuildItems,
+  type GuildItemId,
+  type GuildItemDefinition,
+  type GuildItemStatsSnapshot,
+} from "./guild-item";
