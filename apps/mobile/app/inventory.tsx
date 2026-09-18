@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import { ApiError } from "@risesolo/api-client";
-import type { InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
+import type { EventItemDto, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
+import { useEventItems } from "../src/inventory/use-event-items";
 import { useGuildItems } from "../src/inventory/use-guild-items";
 import { useInventory } from "../src/inventory/use-inventory";
 import { useWorkshop } from "../src/inventory/use-workshop";
@@ -17,18 +18,22 @@ import { Screen } from "../src/ui/Screen";
  * Workshop Items (unapred vidljiv katalog, izradjuje se preko POST
  * /inventory/workshop/craft uz nivo+coins, vidi workshop-item.ts) i Guild
  * Items (unapred vidljiv katalog, AUTOMATSKI dodeljen na osnovu cehovske
- * aktivnosti, GET-only kao Hidden, vidi guild-item.ts) su prva tri izvora
- * (B2). Ekran samo prikazuje ono sto server posalje, bez lokalnog kataloga
- * prikaznog teksta.
+ * aktivnosti, GET-only kao Hidden, vidi guild-item.ts) i Event Items
+ * (unapred vidljiv katalog, prisvaja se BESPLATNO preko POST
+ * /inventory/event/claim ali samo unutar godisnjeg kalendarskog prozora,
+ * vidi event-item.ts) su prva cetiri izvora (B2). Ekran samo prikazuje ono
+ * sto server posalje, bez lokalnog kataloga prikaznog teksta.
  */
 export default function InventoryScreen() {
   const { apiClient } = useAuth();
   const { state, refetch } = useInventory(apiClient);
   const { state: workshopState, refetch: refetchWorkshop } = useWorkshop(apiClient);
   const { state: guildState, refetch: refetchGuild } = useGuildItems(apiClient);
+  const { state: eventState, refetch: refetchEvent } = useEventItems(apiClient);
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [craftError, setCraftError] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
 
   const level = playerState.status === "success" ? playerState.data.progression.level : null;
   const coins = playerState.status === "success" ? playerState.data.progression.coins : null;
@@ -42,6 +47,19 @@ export default function InventoryScreen() {
       refetchPlayer();
     } catch (error) {
       setCraftError(error instanceof ApiError ? error.message : "Izrada nije uspela.");
+    } finally {
+      setBusyItemId(null);
+    }
+  }
+
+  async function handleClaim(item: EventItemDto) {
+    setBusyItemId(item.id);
+    setClaimError(null);
+    try {
+      await apiClient.inventory.event.claim({ itemId: item.id });
+      refetchEvent();
+    } catch (error) {
+      setClaimError(error instanceof ApiError ? error.message : "Prisvajanje nije uspelo.");
     } finally {
       setBusyItemId(null);
     }
@@ -119,6 +137,30 @@ export default function InventoryScreen() {
           ))}
         </View>
       )}
+
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">EVENT</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
+        Sezonski predmeti - prisvajaju se besplatno, ali samo u toku godisnjeg vremenskog prozora.
+      </Text>
+
+      {claimError ? <Text className="text-center text-danger">{claimError}</Text> : null}
+
+      {eventState.status === "loading" ? (
+        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+      ) : eventState.status === "error" ? (
+        <ErrorState message={eventState.message} onRetry={refetchEvent} testID="event-items-error" />
+      ) : (
+        <View className="gap-3">
+          {eventState.data.map((item) => (
+            <EventItemCard
+              key={item.id}
+              item={item}
+              busy={busyItemId === item.id}
+              onClaim={() => void handleClaim(item)}
+            />
+          ))}
+        </View>
+      )}
     </Screen>
   );
 }
@@ -193,6 +235,47 @@ function WorkshopItemCard({
           loading={busy}
           disabled={!meetsLevel || !canAfford}
           testID={`craft-${item.id}`}
+        />
+      )}
+    </View>
+  );
+}
+
+function EventItemCard({
+  item,
+  busy,
+  onClaim,
+}: {
+  item: EventItemDto;
+  busy: boolean;
+  onClaim: () => void;
+}) {
+  return (
+    <View
+      testID={`event-item-${item.id}`}
+      className={`flex-row items-center justify-between gap-3 rounded-lg border p-3 ${
+        item.owned ? "border-premium bg-premium/10" : "border-neutral-700 dark:border-neutral-400"
+      }`}
+    >
+      <View className="flex-1 gap-0.5">
+        <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{item.name}</Text>
+        <Text className="text-xs text-neutral-500 dark:text-neutral-600">{item.description}</Text>
+        {!item.owned ? (
+          <Text className={`text-xs ${item.active ? "text-reward" : "text-neutral-500 dark:text-neutral-600"}`}>
+            {item.active ? "Dostupno sada" : "Trenutno nije u sezoni"}
+          </Text>
+        ) : null}
+      </View>
+
+      {item.owned ? (
+        <Text className="text-xs text-premium">Prisvojeno</Text>
+      ) : (
+        <Button
+          label="Prisvoji"
+          onPress={onClaim}
+          loading={busy}
+          disabled={!item.active}
+          testID={`claim-${item.id}`}
         />
       )}
     </View>

@@ -1,23 +1,29 @@
 import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import {
+  EVENT_ITEMS,
   GUILD_ITEM_DEFINITIONS,
   HIDDEN_ITEM_DEFINITIONS,
   WORKSHOP_ITEMS,
   calculateLevel,
+  canClaimEventItem,
   canCraftWorkshopItem,
   evaluateNewlyDiscoveredGuildItems,
   evaluateNewlyDiscoveredHiddenItems,
+  getEventItem,
   getWorkshopItem,
+  isEventActive,
+  type EventItemDefinition,
   type GuildItemId,
   type GuildItemStatsSnapshot,
   type HiddenItemId,
   type HiddenItemStatsSnapshot,
   type WorkshopItemDefinition,
 } from "@risesolo/domain";
-import type { CraftWorkshopItemResponse, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
+import type { ClaimEventItemResponse, CraftWorkshopItemResponse, EventItemDto, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import type { Prisma } from "@prisma/client";
 import { diffInUtcDays } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
+import { getEventItemDisplay } from "./event-item-catalog";
 import { getGuildItemDisplay } from "./guild-item-catalog";
 import { getHiddenItemDisplay } from "./inventory-catalog";
 import { getWorkshopItemDisplay } from "./workshop-catalog";
@@ -253,6 +259,55 @@ export class InventoryService {
       };
     });
   }
+
+  /** GET /inventory/event - ceo katalog, unapred vidljiv. `active` govori da li se moze prisvojiti SADA (godisnji kalendarski prozor). */
+  async listEvent(userId: string): Promise<EventItemDto[]> {
+    const ownedRows = await this.prisma.inventoryItem.findMany({
+      where: { userId, source: "EVENT" },
+      select: { itemId: true },
+    });
+    const ownedIds = new Set(ownedRows.map((row) => row.itemId));
+    const now = new Date();
+
+    return EVENT_ITEMS.map((item) => toEventDto(item, ownedIds.has(item.id), now));
+  }
+
+  /**
+   * Prisvajanje je atomsko (jedna transakcija): provera aktivnog prozora i
+   * upis InventoryItem reda idu zajedno da ne bi doslo do trke - isti
+   * princip kao craftWorkshopItem, samo BEZ cene (Event Item je besplatan,
+   * vremenski gate je jedini uslov). `@@unique([userId, itemId])` je
+   * poslednja linija odbrane ako i transakcija promasi.
+   */
+  async claimEventItem(userId: string, itemId: string): Promise<ClaimEventItemResponse> {
+    const itemDefinition = getEventItem(itemId);
+    if (!itemDefinition) {
+      throw new NotFoundException("Predmet nije pronadjen");
+    }
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const existing = await tx.inventoryItem.findUnique({ where: { userId_itemId: { userId, itemId } } });
+        const now = new Date();
+
+        if (!canClaimEventItem(itemDefinition, now, existing !== null)) {
+          if (existing !== null) {
+            throw new ForbiddenException("Vec imas ovaj predmet");
+          }
+          throw new ForbiddenException("Ovaj dogadjaj trenutno nije aktivan");
+        }
+
+        await tx.inventoryItem.create({ data: { userId, itemId, source: "EVENT" } });
+      });
+
+      return { item: toEventDto(itemDefinition, true, new Date()) };
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new ForbiddenException("Vec imas ovaj predmet");
+      }
+      throw error;
+    }
+  }
 }
 
 function toWorkshopDto(definition: WorkshopItemDefinition, owned: boolean): WorkshopItemDto {
@@ -261,6 +316,16 @@ function toWorkshopDto(definition: WorkshopItemDefinition, owned: boolean): Work
     id: definition.id,
     levelRequirement: definition.levelRequirement,
     coinCost: definition.coinCost,
+    owned,
+    ...display,
+  };
+}
+
+function toEventDto(definition: EventItemDefinition, owned: boolean, now: Date): EventItemDto {
+  const display = getEventItemDisplay(definition.id);
+  return {
+    id: definition.id,
+    active: isEventActive(definition, now),
     owned,
     ...display,
   };

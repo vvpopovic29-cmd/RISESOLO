@@ -53,3 +53,33 @@ export const craftWorkshopItemResponseSchema = z.object({
   coins: z.number().int().min(0),
 });
 export type CraftWorkshopItemResponse = z.infer<typeof craftWorkshopItemResponseSchema>;
+
+/**
+ * GET /inventory/event - ceo katalog (i prisvojeno i neprisvojeno). Kao
+ * Workshop, katalog je unapred vidljiv (name/description se uvek salju), ali
+ * BEZ cene/nivoa - umesto toga `active` govori da li je tekuci datum unutar
+ * godisnjeg prozora dogadjaja (vidi @risesolo/domain isEventActive). Van
+ * prozora se ne moze prisvojiti (POST /inventory/event/claim odbija), cak i
+ * ako igrac zadovoljava sve ostalo.
+ */
+export const eventItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  active: z.boolean(),
+  owned: z.boolean(),
+});
+export type EventItemDto = z.infer<typeof eventItemSchema>;
+
+export const listEventResponseSchema = z.array(eventItemSchema);
+export type ListEventResponse = z.infer<typeof listEventResponseSchema>;
+
+export const claimEventItemRequestSchema = z.object({
+  itemId: z.string().min(1),
+});
+export type ClaimEventItemRequest = z.infer<typeof claimEventItemRequestSchema>;
+
+export const claimEventItemResponseSchema = z.object({
+  item: eventItemSchema,
+});
+export type ClaimEventItemResponse = z.infer<typeof claimEventItemResponseSchema>;

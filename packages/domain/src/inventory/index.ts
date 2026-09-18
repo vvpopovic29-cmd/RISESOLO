@@ -23,3 +23,13 @@ export {
   type GuildItemDefinition,
   type GuildItemStatsSnapshot,
 } from "./guild-item";
+export {
+  EVENT_ITEM_IDS,
+  EVENT_ITEMS,
+  getEventItem,
+  isEventActive,
+  canClaimEventItem,
+  type EventItemId,
+  type EventItemDefinition,
+  type MonthDay,
+} from "./event-item";
