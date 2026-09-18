@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import {
   BOSS_QUEST_TARGET_SESSIONS,
   COIN_REWARDS,
+  PENALTY_QUEST_KIND,
+  PENALTY_QUEST_TARGET_SESSIONS,
   SIDE_QUEST_KIND,
   SIDE_QUEST_TARGET,
   WEEKLY_NUTRITION_LOG_DAYS_TARGET,
@@ -21,11 +23,20 @@ import {
   statPointsForLevelsGained,
   type DailyQuestKind,
   type MainQuestKind,
+  type PenaltyQuestKind,
   type SideQuestKind,
   type WeeklyQuestKind,
   type XpSource,
 } from "@risesolo/domain";
-import type { BossQuestDto, DailyQuestDto, MainQuestDto, PenaltyResultDto, SideQuestDto, WeeklyQuestDto } from "@risesolo/validation";
+import type {
+  BossQuestDto,
+  DailyQuestDto,
+  MainQuestDto,
+  PenaltyQuestDto,
+  PenaltyResultDto,
+  SideQuestDto,
+  WeeklyQuestDto,
+} from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
@@ -40,6 +51,9 @@ const DAILY_QUEST_TARGET_SETS = 3;
 
 const BOSS_QUEST_TITLE = "Nedeljni Boss Quest";
 const BOSS_QUEST_DESCRIPTION = `Zavrsi ${BOSS_QUEST_TARGET_SESSIONS} treninga ove nedelje da pobedis Boss-a i osvojis veliku nagradu.`;
+
+const PENALTY_QUEST_TITLE = "Iskupljenje";
+const PENALTY_QUEST_DESCRIPTION = `Zavrsi ${PENALTY_QUEST_TARGET_SESSIONS} treninga danas da povratis coins izgubljene propustenim dnevnim questom.`;
 
 /**
  * Main Quest nema prirodan vremenski period (za razliku od Daily/Weekly/Boss)
@@ -155,6 +169,12 @@ export class QuestsService {
    * quest medju "past due", pa se ne penalizuje dvaput. Poziva se iz
    * PlayersService.getPlayerState (lazy provera, isti princip kao
    * generateDailyQuest/generateBossQuest - nema cron/scheduler u MVP-u).
+   *
+   * Kada se kazna primeni, generise se i Penalty Quest za DANAS (vidi
+   * generatePenaltyQuest) - igracu se daje NACIN da povrati bas TOLIKO
+   * coins-a koliko je stvarno izgubio (`coinsLost`, VEC klampovano na
+   * trenutno stanje - ne teorijski `penaltyCoins`, da refund ne bi bio
+   * veci od stvarnog gubitka).
    */
   async expirePastDueDailyQuests(userId: string, now: Date, db: Db = this.prisma): Promise<PenaltyResultDto> {
     const today = startOfUtcDay(now);
@@ -175,7 +195,77 @@ export class QuestsService {
     const newCoins = applyCoinPenalty(progression.coins, penaltyCoins);
     await db.progression.update({ where: { userId }, data: { coins: newCoins } });
 
-    return { applied: true, missedQuestCount: pastDue.length, coinsLost: progression.coins - newCoins };
+    const coinsLost = progression.coins - newCoins;
+    await this.generatePenaltyQuest(userId, now, coinsLost, db);
+
+    return { applied: true, missedQuestCount: pastDue.length, coinsLost };
+  }
+
+  /**
+   * Penalty Quest = "iskupljenje" - za razliku od Boss/Daily/Weekly/Main/Side
+   * Questa, NIKAD se ne generise samostalno na proizvoljan GET; postoji
+   * ISKLJUCIVO kao posledica primenjene kazne (poziva se samo iz
+   * expirePastDueDailyQuests, jednom po danu kada je kazna primenjena).
+   * `coinRefund` je fiksiran na tacan iznos izgubljenih coins-a za TU kaznu.
+   */
+  async generatePenaltyQuest(userId: string, date: Date, coinRefund: number, db: Db = this.prisma): Promise<Quest> {
+    return this.generateQuest(
+      userId,
+      "PENALTY",
+      startOfUtcDay(date),
+      {
+        kind: PENALTY_QUEST_KIND,
+        title: PENALTY_QUEST_TITLE,
+        description: PENALTY_QUEST_DESCRIPTION,
+        targetSets: PENALTY_QUEST_TARGET_SESSIONS,
+        xpReward: XP_REWARDS.PENALTY_QUEST_COMPLETE,
+        coinReward: coinRefund,
+      },
+      db,
+    );
+  }
+
+  /**
+   * Isti "prebrojavanje zavrsenih WorkoutSession" princip kao Boss Quest
+   * (countCompletedSessionsThisWeek), samo po KALENDARSKOM DANU umesto po
+   * ISO nedelji.
+   */
+  async countCompletedSessionsToday(userId: string, date: Date, db: Db = this.prisma): Promise<number> {
+    const dayStart = startOfUtcDay(date);
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+    return db.workoutSession.count({
+      where: { userId, status: "COMPLETED", completedAt: { gte: dayStart, lt: dayEnd } },
+    });
+  }
+
+  /**
+   * Read-only i namerno NE generise quest ako ne postoji (za razliku od
+   * getCurrentBossQuest/getTodayQuest) - Penalty Quest postoji SAMO kada je
+   * kazna stvarno primenjena danas (vidi expirePastDueDailyQuests). `quest:
+   * null` je normalno/najcesce stanje (vecina dana nema propusten quest).
+   *
+   * Poziva expirePastDueDailyQuests OVDE takodje (ne samo u
+   * PlayersService.getPlayerState) - Home ekran poziva GET /players/me i
+   * GET /quests/penalty PARALELNO (nezavisni hook-ovi), pa bez ovoga bi
+   * postojala trka: ako bi GET /quests/penalty stigao do baze PRE nego sto
+   * GET /players/me primeni kaznu, ovaj poziv bi (tacno u tom trenutku)
+   * legitimno vratio `quest: null`, ali bi ta vrednost ostala "zaglavljena"
+   * u React state-u do sledeceg fokusa - korisnik ne bi vidio kartu iako je
+   * kazna vec primenjena. expirePastDueDailyQuests je idempotentan (drugi
+   * poziv istog dana ne nalazi vise "past due" questove pa ne kaznjava
+   * dvaput), pa je ovo bezbedno.
+   */
+  async getCurrentPenaltyQuest(userId: string): Promise<{ quest: PenaltyQuestDto | null }> {
+    const now = new Date();
+    await this.expirePastDueDailyQuests(userId, now);
+    const quest = await this.prisma.quest.findUnique({
+      where: { userId_date_type: { userId, date: startOfUtcDay(now), type: "PENALTY" } },
+    });
+    if (!quest) {
+      return { quest: null };
+    }
+    const progress = await this.countCompletedSessionsToday(userId, now);
+    return { quest: toPenaltyDto(quest, progress) };
   }
 
   /**
@@ -584,6 +674,23 @@ function toSideDto(quest: Quest): SideQuestDto {
     description: quest.description,
     targetProgress,
     progress: quest.status === "COMPLETED" ? targetProgress : 0,
+    xpReward: quest.xpReward,
+    coinReward: quest.coinReward,
+    status: quest.status,
+  };
+}
+
+/** Isti "prebrojani progres, klampovan na cilj" princip kao Boss Quest. */
+function toPenaltyDto(quest: Quest, progress: number): PenaltyQuestDto {
+  const kind = quest.kind as PenaltyQuestKind;
+  const targetProgress = quest.targetSets ?? PENALTY_QUEST_TARGET_SESSIONS;
+  return {
+    id: quest.id,
+    kind,
+    title: quest.title,
+    description: quest.description,
+    targetProgress,
+    progress: Math.min(progress, targetProgress),
     xpReward: quest.xpReward,
     coinReward: quest.coinReward,
     status: quest.status,

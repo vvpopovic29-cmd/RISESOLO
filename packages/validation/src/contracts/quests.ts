@@ -1,4 +1,11 @@
-import { DAILY_QUEST_KINDS, MAIN_QUEST_KINDS, QUEST_STATUSES, SIDE_QUEST_KINDS, WEEKLY_QUEST_KINDS } from "@risesolo/domain";
+import {
+  DAILY_QUEST_KINDS,
+  MAIN_QUEST_KINDS,
+  PENALTY_QUEST_KINDS,
+  QUEST_STATUSES,
+  SIDE_QUEST_KINDS,
+  WEEKLY_QUEST_KINDS,
+} from "@risesolo/domain";
 import { z } from "zod";
 
 export const dailyQuestSchema = z.object({
@@ -105,3 +112,34 @@ export const sideQuestResponseSchema = z.object({
   quest: sideQuestSchema.nullable(),
 });
 export type SideQuestResponse = z.infer<typeof sideQuestResponseSchema>;
+
+/**
+ * Penalty Quest = "iskupljenje" - postoji SAMO kada je Penalty System stvarno
+ * primenio kaznu danas (vidi QuestsService.expirePastDueDailyQuests). Za
+ * razliku od svih ostalih questova, `coinReward` NIJE fiksan iz kataloga -
+ * jednak je tacnom iznosu izgubljenih coins-a za tu konkretnu kaznu.
+ * `progress`/`targetProgress` = broj zavrsenih treninga DANAS (isti princip
+ * kao Boss Quest, samo po kalendarskom danu umesto po ISO nedelji).
+ */
+export const penaltyQuestSchema = z.object({
+  id: z.string(),
+  kind: z.enum(PENALTY_QUEST_KINDS),
+  title: z.string(),
+  description: z.string().nullable(),
+  targetProgress: z.number().int(),
+  progress: z.number().int(),
+  xpReward: z.number().int(),
+  coinReward: z.number().int(),
+  status: z.enum(QUEST_STATUSES),
+});
+export type PenaltyQuestDto = z.infer<typeof penaltyQuestSchema>;
+
+/**
+ * `quest: null` je NORMALNO/najcesce stanje (vecina dana nema propusten
+ * dnevni quest, pa nema ni Penalty Quest-a za iskupljenje) - namerno uvijeno
+ * u objekat, isti anti-"prazno telo" princip kao sideQuestResponseSchema.
+ */
+export const penaltyQuestResponseSchema = z.object({
+  quest: penaltyQuestSchema.nullable(),
+});
+export type PenaltyQuestResponse = z.infer<typeof penaltyQuestResponseSchema>;

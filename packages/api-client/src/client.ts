@@ -49,6 +49,7 @@ import {
   weeklyQuestSchema,
   mainQuestSchema,
   sideQuestResponseSchema,
+  penaltyQuestResponseSchema,
   type AchievementDto,
   type AllocateStatPointsRequest,
   type AuthResponse,
@@ -102,6 +103,7 @@ import {
   type WeeklyQuestDto,
   type MainQuestDto,
   type SideQuestResponse,
+  type PenaltyQuestResponse,
   z,
 } from "@risesolo/validation";
 import { ApiError, createHttpClient, type HttpClientConfig } from "./http";
@@ -189,6 +191,9 @@ export function createApiClient(config: ApiClientConfig) {
       },
       side(): Promise<SideQuestResponse> {
         return request({ method: "GET", path: "/quests/side", schema: sideQuestResponseSchema });
+      },
+      penalty(): Promise<PenaltyQuestResponse> {
+        return request({ method: "GET", path: "/quests/penalty", schema: penaltyQuestResponseSchema });
       },
     },
 

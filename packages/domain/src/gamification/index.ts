@@ -49,3 +49,10 @@ export {
   isSideQuestComplete,
   type SideQuestKind,
 } from "./side-quest";
+export {
+  PENALTY_QUEST_KIND,
+  PENALTY_QUEST_KINDS,
+  PENALTY_QUEST_TARGET_SESSIONS,
+  isPenaltyQuestComplete,
+  type PenaltyQuestKind,
+} from "./penalty-quest";

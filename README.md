@@ -36,6 +36,11 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > Weekly/Main Questa, `GET /quests/side` je read-only (nikad ne zavrsava
 > quest) - zavrsetak se desava iskljucivo unutar workout completion engine-a
 > (vidi `packages/domain/src/gamification/side-quest.ts`).
+> Penalty Quest ("Iskupljenje") je "iskupljenje" za Penalty System - postoji
+> SAMO kada je dnevni quest danas stvarno propusten i kaznjen (nikad se ne
+> generise proizvoljno, za razliku od svih ostalih questova). Zavrsava se na
+> 2. zavrsenom treningu istog dana i vraca TACAN iznos izgubljenih coins-a
+> (vidi `packages/domain/src/gamification/penalty-quest.ts`).
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

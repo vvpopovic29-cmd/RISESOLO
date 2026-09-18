@@ -10,6 +10,7 @@ import { useBossQuest } from "../src/player/use-boss-quest";
 import { useWeeklyQuest } from "../src/player/use-weekly-quest";
 import { useMainQuest } from "../src/player/use-main-quest";
 import { useSideQuest } from "../src/player/use-side-quest";
+import { usePenaltyQuest } from "../src/player/use-penalty-quest";
 import { useActiveSession } from "../src/workout/use-active-session";
 import { StatAllocator } from "../src/player/StatAllocator";
 import { Button } from "../src/ui/Button";
@@ -68,6 +69,16 @@ const SIDE_QUEST_KIND_LABEL: Record<string, string> = {
   NEW_EXERCISE: "nova vezba zavrsena",
 };
 
+/**
+ * Penalty Quest = "iskupljenje" za Penalty System (vidi @risesolo/domain
+ * penalty.ts) - postoji SAMO kada je dnevni quest danas propusten i kaznjen
+ * (za razliku od svih drugih questova, NIKAD se ne generise proizvoljno).
+ * Karticа se sakriva kad je `data === null` (normalno/najcesce stanje).
+ */
+const PENALTY_QUEST_KIND_LABEL: Record<string, string> = {
+  REDEMPTION_WORKOUT: "treninga danas",
+};
+
 export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
@@ -76,6 +87,7 @@ export default function HomeScreen() {
   const { state: weeklyQuestState, refetch: refetchWeeklyQuest } = useWeeklyQuest(apiClient);
   const { state: mainQuestState, refetch: refetchMainQuest } = useMainQuest(apiClient);
   const { state: sideQuestState, refetch: refetchSideQuest } = useSideQuest(apiClient);
+  const { state: penaltyQuestState, refetch: refetchPenaltyQuest } = usePenaltyQuest(apiClient);
   const { state: activeSessionState, refetch: refetchActiveSession } = useActiveSession(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
@@ -92,6 +104,7 @@ export default function HomeScreen() {
       refetchWeeklyQuest();
       refetchMainQuest();
       refetchSideQuest();
+      refetchPenaltyQuest();
       refetchActiveSession();
     }, [
       refetchPlayer,
@@ -100,6 +113,7 @@ export default function HomeScreen() {
       refetchWeeklyQuest,
       refetchMainQuest,
       refetchSideQuest,
+      refetchPenaltyQuest,
       refetchActiveSession,
     ]),
   );
@@ -427,6 +441,53 @@ export default function HomeScreen() {
                   variant="secondary"
                   onPress={() => router.push("/exercises")}
                   testID="side-quest-cta-button"
+                />
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      )}
+
+      {penaltyQuestState.status === "success" && penaltyQuestState.data === null ? null : (
+        <View className="gap-2 rounded-lg border border-danger/40 p-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-semibold text-danger">QUEST ISKUPLJENJA</Text>
+            {penaltyQuestState.status === "success" && penaltyQuestState.data && penaltyQuestState.data.status === "COMPLETED" ? (
+              <Text className="text-xs font-bold text-danger">ZAVRSEN</Text>
+            ) : null}
+          </View>
+          {penaltyQuestState.status === "loading" ? (
+            <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          ) : penaltyQuestState.status === "error" ? (
+            <ErrorState message={penaltyQuestState.message} onRetry={refetchPenaltyQuest} />
+          ) : penaltyQuestState.data ? (
+            <>
+              <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
+                {penaltyQuestState.data.title}
+              </Text>
+              {penaltyQuestState.data.description ? (
+                <Text className="text-sm text-neutral-500 dark:text-neutral-600">{penaltyQuestState.data.description}</Text>
+              ) : null}
+              <ProgressBar
+                progress={penaltyQuestState.data.progress / penaltyQuestState.data.targetProgress}
+                colorClassName="bg-danger"
+                testID="penalty-quest-progress"
+              />
+              <View className="flex-row items-center justify-between pt-1">
+                <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                  {penaltyQuestState.data.progress} / {penaltyQuestState.data.targetProgress}{" "}
+                  {PENALTY_QUEST_KIND_LABEL[penaltyQuestState.data.kind] ?? ""}
+                </Text>
+                <Text className="text-xs text-reward">
+                  +{penaltyQuestState.data.xpReward} XP · +{penaltyQuestState.data.coinReward} coins
+                </Text>
+              </View>
+              {penaltyQuestState.data.status !== "COMPLETED" ? (
+                <Button
+                  label="Idi na trening"
+                  variant="secondary"
+                  onPress={() => router.push("/exercises")}
+                  testID="penalty-quest-cta-button"
                 />
               ) : null}
             </>
