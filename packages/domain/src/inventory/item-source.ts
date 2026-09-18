@@ -7,5 +7,5 @@
  * vrednost preko `ALTER TYPE ... ADD VALUE`, ne menja postojece).
  */
 
-export const ITEM_SOURCES = ["HIDDEN"] as const;
+export const ITEM_SOURCES = ["HIDDEN", "WORKSHOP"] as const;
 export type ItemSource = (typeof ITEM_SOURCES)[number];

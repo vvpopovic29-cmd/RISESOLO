@@ -204,7 +204,15 @@ export {
 export {
   inventoryItemSchema,
   listInventoryResponseSchema,
+  workshopItemSchema,
+  listWorkshopResponseSchema,
+  craftWorkshopItemRequestSchema,
+  craftWorkshopItemResponseSchema,
   type InventoryItemDto,
   type ListInventoryResponse,
+  type WorkshopItemDto,
+  type ListWorkshopResponse,
+  type CraftWorkshopItemRequest,
+  type CraftWorkshopItemResponse,
 } from "./contracts/inventory";
 export { z } from "zod";
