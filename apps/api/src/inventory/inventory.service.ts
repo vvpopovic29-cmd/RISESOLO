@@ -4,6 +4,7 @@ import {
   EVENT_ITEMS,
   GUILD_ITEM_DEFINITIONS,
   HIDDEN_ITEM_DEFINITIONS,
+  RECOVERY_ITEM_DEFINITIONS,
   WORKSHOP_ITEMS,
   calculateLevel,
   calculateRank,
@@ -12,6 +13,7 @@ import {
   evaluateNewlyDiscoveredAiItems,
   evaluateNewlyDiscoveredGuildItems,
   evaluateNewlyDiscoveredHiddenItems,
+  evaluateNewlyDiscoveredRecoveryItems,
   getEventItem,
   getWorkshopItem,
   isEventActive,
@@ -21,17 +23,20 @@ import {
   type GuildItemStatsSnapshot,
   type HiddenItemId,
   type HiddenItemStatsSnapshot,
+  type RecoveryItemId,
+  type RecoveryItemStatsSnapshot,
   type WorkshopItemDefinition,
 } from "@risesolo/domain";
 import type { ClaimEventItemResponse, CraftWorkshopItemResponse, EventItemDto, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import type { Prisma } from "@prisma/client";
 import { AiService } from "../ai/ai.service";
-import { diffInUtcDays } from "../common/date";
+import { diffInUtcDays, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { getEventItemDisplay } from "./event-item-catalog";
 import { getGuildItemDisplay } from "./guild-item-catalog";
 import { getHiddenItemDisplay } from "./inventory-catalog";
+import { getRecoveryItemDisplay } from "./recovery-item-catalog";
 import { getWorkshopItemDisplay } from "./workshop-catalog";
 
 type Db = PrismaService | Prisma.TransactionClient;
@@ -411,6 +416,92 @@ export class InventoryService {
         discoveredAt: row !== null ? row.discoveredAt.toISOString() : null,
         name: row?.generatedName ?? null,
         description: row?.generatedDescription ?? null,
+      };
+    });
+  }
+
+  /**
+   * Racuna RAZLICITE kalendarske dane (UTC) sa bar jednim zavrsenim
+   * treningom, sortirane, pa izvodi maxGapDays/restfulGapCount iz razmaka
+   * izmedju uzastopnih dana - nista se ne belezi posebno, isti "derive,
+   * don't cache" princip kao Hidden/Guild snapshot.
+   */
+  private async computeRecoverySnapshot(userId: string, db: Db): Promise<RecoveryItemStatsSnapshot> {
+    const completedSessions = await db.workoutSession.findMany({
+      where: { userId, status: "COMPLETED", completedAt: { not: null } },
+      select: { completedAt: true },
+    });
+
+    const distinctDayMs = new Set(
+      completedSessions
+        .filter((session): session is { completedAt: Date } => session.completedAt !== null)
+        .map((session) => startOfUtcDay(session.completedAt).getTime()),
+    );
+    const sortedDays = [...distinctDayMs].sort((a, b) => a - b).map((ms) => new Date(ms));
+
+    let maxGapDays = 0;
+    let restfulGapCount = 0;
+    let previousDay: Date | null = null;
+    for (const day of sortedDays) {
+      if (previousDay !== null) {
+        const gap = diffInUtcDays(day, previousDay);
+        maxGapDays = Math.max(maxGapDays, gap);
+        if (gap >= 2) {
+          restfulGapCount += 1;
+        }
+      }
+      previousDay = day;
+    }
+
+    return { maxGapDays, restfulGapCount, totalTrainingDays: sortedDays.length };
+  }
+
+  /** Vraca ID-jeve novo otkrivenih Recovery Item-a (prazan niz ako nema novih). */
+  async evaluateAndDiscoverRecovery(userId: string, db: Db = this.prisma): Promise<RecoveryItemId[]> {
+    const [snapshot, discoveredRows] = await Promise.all([
+      this.computeRecoverySnapshot(userId, db),
+      db.inventoryItem.findMany({ where: { userId, source: "RECOVERY" }, select: { itemId: true } }),
+    ]);
+
+    const alreadyDiscovered = new Set(discoveredRows.map((row) => row.itemId as RecoveryItemId));
+    const newlyDiscovered = evaluateNewlyDiscoveredRecoveryItems(snapshot, alreadyDiscovered);
+    if (newlyDiscovered.length === 0) {
+      return [];
+    }
+
+    await db.inventoryItem.createMany({
+      data: newlyDiscovered.map((itemId) => ({ userId, itemId, source: "RECOVERY" as const })),
+      skipDuplicates: true,
+    });
+
+    return newlyDiscovered;
+  }
+
+  /**
+   * GET /inventory/recovery - prvo "sustize" propustena otkrivanja (lazy,
+   * isti princip kao Guild Item), pa vraca ceo katalog. Unapred vidljiv kao
+   * Guild (name/description se uvek salju) - "tajna" postoji samo kod
+   * Hidden/AI-Generated Item-a.
+   */
+  async listRecoveryItems(userId: string): Promise<InventoryItemDto[]> {
+    await this.evaluateAndDiscoverRecovery(userId);
+
+    const discoveredRows = await this.prisma.inventoryItem.findMany({
+      where: { userId, source: "RECOVERY" },
+      select: { itemId: true, discoveredAt: true },
+    });
+    const discoveredByItemId = new Map(discoveredRows.map((row) => [row.itemId, row.discoveredAt]));
+
+    return RECOVERY_ITEM_DEFINITIONS.map((definition) => {
+      const discoveredAt = discoveredByItemId.get(definition.id) ?? null;
+      const display = getRecoveryItemDisplay(definition.id);
+      return {
+        id: definition.id,
+        source: "RECOVERY" as const,
+        discovered: discoveredAt !== null,
+        discoveredAt: discoveredAt !== null ? discoveredAt.toISOString() : null,
+        name: display.name,
+        description: display.description,
       };
     });
   }

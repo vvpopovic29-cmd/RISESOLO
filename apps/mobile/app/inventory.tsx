@@ -8,6 +8,7 @@ import { useAiItems } from "../src/inventory/use-ai-items";
 import { useEventItems } from "../src/inventory/use-event-items";
 import { useGuildItems } from "../src/inventory/use-guild-items";
 import { useInventory } from "../src/inventory/use-inventory";
+import { useRecoveryItems } from "../src/inventory/use-recovery-items";
 import { useWorkshop } from "../src/inventory/use-workshop";
 import { usePlayerState } from "../src/player/use-player-state";
 import { Button } from "../src/ui/Button";
@@ -22,10 +23,12 @@ import { Screen } from "../src/ui/Screen";
  * aktivnosti, GET-only kao Hidden, vidi guild-item.ts), Event Items
  * (unapred vidljiv katalog, prisvaja se BESPLATNO preko POST
  * /inventory/event/claim ali samo unutar godisnjeg kalendarskog prozora,
- * vidi event-item.ts) i AI-Generated Items (tajan katalog kao Hidden, ali
- * name/description generise Claude po igracu, Pro-gated, vidi ai-item.ts)
- * su prvih pet izvora (B2). Ekran samo prikazuje ono sto server posalje,
- * bez lokalnog kataloga prikaznog teksta.
+ * vidi event-item.ts), AI-Generated Items (tajan katalog kao Hidden, ali
+ * name/description generise Claude po igracu, Pro-gated, vidi ai-item.ts) i
+ * Recovery Items (unapred vidljiv katalog kao Guild, AUTOMATSKI dodeljen na
+ * osnovu LICNOG obrasca odmora izmedju treninga, vidi recovery-item.ts) su
+ * prvih sest izvora (B2). Ekran samo prikazuje ono sto server posalje, bez
+ * lokalnog kataloga prikaznog teksta.
  */
 export default function InventoryScreen() {
   const { apiClient } = useAuth();
@@ -34,6 +37,7 @@ export default function InventoryScreen() {
   const { state: guildState, refetch: refetchGuild } = useGuildItems(apiClient);
   const { state: eventState, refetch: refetchEvent } = useEventItems(apiClient);
   const { state: aiState, refetch: refetchAi } = useAiItems(apiClient);
+  const { state: recoveryState, refetch: refetchRecovery } = useRecoveryItems(apiClient);
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [craftError, setCraftError] = useState<string | null>(null);
@@ -179,6 +183,23 @@ export default function InventoryScreen() {
         <View className="gap-3">
           {aiState.data.map((item) => (
             <InventoryItemCard key={item.id} item={item} />
+          ))}
+        </View>
+      )}
+
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">RECOVERY</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
+        Trofeji za zdrav ritam treninga - dodeljuju se automatski na osnovu odmora izmedju treninga.
+      </Text>
+
+      {recoveryState.status === "loading" ? (
+        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+      ) : recoveryState.status === "error" ? (
+        <ErrorState message={recoveryState.message} onRetry={refetchRecovery} testID="recovery-items-error" />
+      ) : (
+        <View className="gap-3">
+          {recoveryState.data.map((item) => (
+            <InventoryItemCard key={item.id} item={item} revealAlways />
           ))}
         </View>
       )}

@@ -60,4 +60,9 @@ export class InventoryController {
   listAiItems(@CurrentUser() user: AuthenticatedUser): Promise<InventoryItemDto[]> {
     return this.inventoryService.listAiItems(user.id);
   }
+
+  @Get("recovery")
+  listRecoveryItems(@CurrentUser() user: AuthenticatedUser): Promise<InventoryItemDto[]> {
+    return this.inventoryService.listRecoveryItems(user.id);
+  }
 }
