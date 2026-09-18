@@ -83,3 +83,17 @@ export const claimEventItemResponseSchema = z.object({
   item: eventItemSchema,
 });
 export type ClaimEventItemResponse = z.infer<typeof claimEventItemResponseSchema>;
+
+/**
+ * Sirov AI izlaz (vidi apps/api/src/ai/ai.service.ts generateItemFlavor) pre
+ * nego sto se upise u InventoryItem red kao generatedName/
+ * generatedDescription - isti princip kao aiQuestFlavorSchema u
+ * contracts/quests.ts. NIJE javni DTO - AI_GENERATED predmeti na GET
+ * /inventory/ai koriste ISTI inventoryItemSchema kao Hidden Items (tajan
+ * katalog, "???" dok se ne otkrije).
+ */
+export const aiItemFlavorSchema = z.object({
+  name: z.string().min(1).max(120),
+  description: z.string().min(1).max(400),
+});
+export type AiItemFlavorOutput = z.infer<typeof aiItemFlavorSchema>;

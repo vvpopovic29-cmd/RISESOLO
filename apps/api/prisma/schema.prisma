@@ -614,6 +614,7 @@ enum ItemSource {
   WORKSHOP
   GUILD
   EVENT
+  AI_GENERATED
 
   @@map("item_source")
 }
@@ -626,12 +627,21 @@ enum ItemSource {
 /// moze dodati bez migracije (isti princip kao UserAchievement.achievementId
 /// i UserCosmetic.itemId). `@@unique([userId, itemId])` sprecava duplo
 /// otkrivanje (race-safe preko istog constraint-a).
+/// `generatedName`/`generatedDescription` su NAMERAN izuzetak od "derive,
+/// don't cache" - koriste se SAMO za source=AI_GENERATED, gde Claude
+/// generise personalizovan tekst po igracu (vidi @risesolo/domain
+/// ai-item.ts) i taj tekst se MORA perzistirati (ne postoji staticna
+/// katalog funkcija iz koje bi se ponovo izveo na svaki GET). Svi ostali
+/// izvori ih ostavljaju `null` i izvode prikaz preko sopstvene *-catalog.ts
+/// funkcije.
 model InventoryItem {
-  id           String     @id @default(cuid())
-  userId       String     @map("user_id")
-  itemId       String     @map("item_id")
-  source       ItemSource
-  discoveredAt DateTime   @default(now()) @map("discovered_at")
+  id                    String     @id @default(cuid())
+  userId                String     @map("user_id")
+  itemId                String     @map("item_id")
+  source                ItemSource
+  discoveredAt          DateTime   @default(now()) @map("discovered_at")
+  generatedName         String?    @map("generated_name")
+  generatedDescription  String?    @map("generated_description")
 
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -349,6 +349,10 @@ export class WorkoutsService {
       // promene koje su se desile posle ovog treninga (npr. raid upravo
       // zavrsen istom transakcijom iznad).
       this.inventoryService.evaluateAndDiscoverGuild(userId).catch(() => undefined);
+      // AI Item evaluacija - isti princip, hvata nivo koji je upravo
+      // dostignut ovim treningom. Pro/AI gate zivi u InventoryService, tako
+      // da za besplatne korisnike ovo tiho ne radi nista.
+      this.inventoryService.evaluateAndDiscoverAi(userId).catch(() => undefined);
 
       return result;
     } catch (error) {
