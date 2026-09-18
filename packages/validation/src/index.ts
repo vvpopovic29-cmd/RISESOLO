@@ -41,6 +41,9 @@ export {
   sideQuestResponseSchema,
   penaltyQuestSchema,
   penaltyQuestResponseSchema,
+  aiQuestFlavorSchema,
+  aiQuestSchema,
+  aiQuestResponseSchema,
   type DailyQuestDto,
   type BossQuestDto,
   type WeeklyQuestDto,
@@ -49,6 +52,9 @@ export {
   type SideQuestResponse,
   type PenaltyQuestDto,
   type PenaltyQuestResponse,
+  type AiQuestFlavorOutput,
+  type AiQuestDto,
+  type AiQuestResponse,
 } from "./contracts/quests";
 export {
   trainingPlanExerciseSchema,

@@ -11,6 +11,7 @@ import { useWeeklyQuest } from "../src/player/use-weekly-quest";
 import { useMainQuest } from "../src/player/use-main-quest";
 import { useSideQuest } from "../src/player/use-side-quest";
 import { usePenaltyQuest } from "../src/player/use-penalty-quest";
+import { useAiQuest } from "../src/player/use-ai-quest";
 import { useActiveSession } from "../src/workout/use-active-session";
 import { StatAllocator } from "../src/player/StatAllocator";
 import { Button } from "../src/ui/Button";
@@ -79,6 +80,17 @@ const PENALTY_QUEST_KIND_LABEL: Record<string, string> = {
   REDEMPTION_WORKOUT: "treninga danas",
 };
 
+/**
+ * AI Quest - Pro-gated bonus quest ciji title/description generise Claude,
+ * personalizovano po nivou/rangu/stat-ovima/streak-u (vidi apps/api/src/ai
+ * generateQuestFlavor). Zavrsava se identicno Daily Quest-ovom
+ * WORKOUT_COMPLETE kind-u (bilo koji zavrsen trening danas). Karticа se
+ * sakriva kad je `data === null` (besplatan korisnik ili AI nedostupan).
+ */
+const AI_QUEST_KIND_LABEL: Record<string, string> = {
+  AI_PERSONALIZED: "trening danas",
+};
+
 export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
@@ -88,6 +100,7 @@ export default function HomeScreen() {
   const { state: mainQuestState, refetch: refetchMainQuest } = useMainQuest(apiClient);
   const { state: sideQuestState, refetch: refetchSideQuest } = useSideQuest(apiClient);
   const { state: penaltyQuestState, refetch: refetchPenaltyQuest } = usePenaltyQuest(apiClient);
+  const { state: aiQuestState, refetch: refetchAiQuest } = useAiQuest(apiClient);
   const { state: activeSessionState, refetch: refetchActiveSession } = useActiveSession(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
@@ -105,6 +118,7 @@ export default function HomeScreen() {
       refetchMainQuest();
       refetchSideQuest();
       refetchPenaltyQuest();
+      refetchAiQuest();
       refetchActiveSession();
     }, [
       refetchPlayer,
@@ -114,6 +128,7 @@ export default function HomeScreen() {
       refetchMainQuest,
       refetchSideQuest,
       refetchPenaltyQuest,
+      refetchAiQuest,
       refetchActiveSession,
     ]),
   );
@@ -488,6 +503,50 @@ export default function HomeScreen() {
                   variant="secondary"
                   onPress={() => router.push("/exercises")}
                   testID="penalty-quest-cta-button"
+                />
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      )}
+
+      {aiQuestState.status === "success" && aiQuestState.data === null ? null : (
+        <View className="gap-2 rounded-lg border border-premium/40 p-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-semibold text-premium">AI QUEST</Text>
+            {aiQuestState.status === "success" && aiQuestState.data && aiQuestState.data.status === "COMPLETED" ? (
+              <Text className="text-xs font-bold text-premium">ZAVRSEN</Text>
+            ) : null}
+          </View>
+          {aiQuestState.status === "loading" ? (
+            <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          ) : aiQuestState.status === "error" ? (
+            <ErrorState message={aiQuestState.message} onRetry={refetchAiQuest} />
+          ) : aiQuestState.data ? (
+            <>
+              <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">{aiQuestState.data.title}</Text>
+              {aiQuestState.data.description ? (
+                <Text className="text-sm text-neutral-500 dark:text-neutral-600">{aiQuestState.data.description}</Text>
+              ) : null}
+              <ProgressBar
+                progress={aiQuestState.data.progress / aiQuestState.data.targetProgress}
+                colorClassName="bg-premium"
+                testID="ai-quest-progress"
+              />
+              <View className="flex-row items-center justify-between pt-1">
+                <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                  {aiQuestState.data.progress} / {aiQuestState.data.targetProgress} {AI_QUEST_KIND_LABEL[aiQuestState.data.kind] ?? ""}
+                </Text>
+                <Text className="text-xs text-reward">
+                  +{aiQuestState.data.xpReward} XP · +{aiQuestState.data.coinReward} coins
+                </Text>
+              </View>
+              {aiQuestState.data.status !== "COMPLETED" ? (
+                <Button
+                  label="Idi na trening"
+                  variant="secondary"
+                  onPress={() => router.push("/exercises")}
+                  testID="ai-quest-cta-button"
                 />
               ) : null}
             </>

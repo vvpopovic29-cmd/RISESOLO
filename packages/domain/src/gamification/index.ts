@@ -56,3 +56,4 @@ export {
   isPenaltyQuestComplete,
   type PenaltyQuestKind,
 } from "./penalty-quest";
+export { AI_QUEST_KIND, AI_QUEST_KINDS, AI_QUEST_TARGET, type AiQuestKind } from "./ai-quest";

@@ -1,6 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import {
+  AI_QUEST_KIND,
+  AI_QUEST_TARGET,
   BOSS_QUEST_TARGET_SESSIONS,
+  calculateLevel,
+  calculateRank,
   COIN_REWARDS,
   PENALTY_QUEST_KIND,
   PENALTY_QUEST_TARGET_SESSIONS,
@@ -21,6 +25,7 @@ import {
   selectMainQuestKind,
   selectWeeklyQuestKind,
   statPointsForLevelsGained,
+  type AiQuestKind,
   type DailyQuestKind,
   type MainQuestKind,
   type PenaltyQuestKind,
@@ -29,6 +34,7 @@ import {
   type XpSource,
 } from "@risesolo/domain";
 import type {
+  AiQuestDto,
   BossQuestDto,
   DailyQuestDto,
   MainQuestDto,
@@ -39,7 +45,12 @@ import type {
 } from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
+// AiService/SubscriptionsService MORAJU biti value import (ne "import type") -
+// NestJS DI se oslanja na emitDecoratorMetadata koji zahteva stvarnu klasu u
+// constructor parametar tipu, ne obrisanu type-only referencu.
+import { AiService } from "../ai/ai.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { getDailyQuestDisplay } from "./daily-quest-catalog";
 import { getMainQuestDisplay } from "./main-quest-catalog";
 import { getSideQuestDisplay } from "./side-quest-catalog";
@@ -90,7 +101,11 @@ export interface QuestRewardResult {
 
 @Injectable()
 export class QuestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
+    private readonly subscriptionsService: SubscriptionsService,
+  ) {}
 
   /**
    * Idempotentno: drugi poziv za isti (userId, date) vraca POSTOJECI quest
@@ -266,6 +281,81 @@ export class QuestsService {
     }
     const progress = await this.countCompletedSessionsToday(userId, now);
     return { quest: toPenaltyDto(quest, progress) };
+  }
+
+  /**
+   * AI Quest - Pro-gated bonus quest ciji title/description generise Claude
+   * (vidi apps/api/src/ai/ai.service.ts generateQuestFlavor). Za razliku od
+   * svih drugih questova, sadrzaj dolazi iz AI poziva, ne fiksnog kataloga.
+   * Generise se NAJVISE JEDNOM po danu (ista idempotency provera kao
+   * Daily/Boss Quest - findUnique PRE poziva AI-a, da se ne trosi Anthropic
+   * budzet uzalud ako je vec generisan danas). `quest: null` je normalno
+   * stanje za besplatne korisnike (AI Quest je Pro-gated) i za bilo koji dan
+   * kada AI servis nije dostupan ili poziv ne uspe - graceful degradation,
+   * NIKAD greska koja bi oborila ucitavanje Home ekrana.
+   */
+  async getCurrentAiQuest(userId: string): Promise<{ quest: AiQuestDto | null }> {
+    const now = new Date();
+    const today = startOfUtcDay(now);
+
+    const existing = await this.prisma.quest.findUnique({
+      where: { userId_date_type: { userId, date: today, type: "AI_GENERATED" } },
+    });
+    if (existing) {
+      return { quest: toAiDto(existing) };
+    }
+
+    if (!this.aiService.isConfigured) {
+      return { quest: null };
+    }
+    const hasProAccess = await this.subscriptionsService.hasProAccess(userId);
+    if (!hasProAccess) {
+      return { quest: null };
+    }
+
+    const [progression, stats] = await Promise.all([
+      this.prisma.progression.findUnique({ where: { userId } }),
+      this.prisma.playerStats.findUnique({ where: { userId } }),
+    ]);
+    if (!progression || !stats) {
+      return { quest: null };
+    }
+
+    const level = calculateLevel(progression.totalXp);
+    let flavor: { title: string; description: string };
+    try {
+      flavor = await this.aiService.generateQuestFlavor({
+        level,
+        rank: calculateRank(level),
+        stats: {
+          strength: stats.strength,
+          agility: stats.agility,
+          endurance: stats.endurance,
+          vitality: stats.vitality,
+          intelligence: stats.intelligence,
+        },
+        currentStreak: progression.currentStreak,
+      });
+    } catch {
+      return { quest: null };
+    }
+
+    const quest = await this.generateQuest(
+      userId,
+      "AI_GENERATED",
+      today,
+      {
+        kind: AI_QUEST_KIND,
+        title: flavor.title,
+        description: flavor.description,
+        targetSets: AI_QUEST_TARGET,
+        xpReward: XP_REWARDS.AI_QUEST_COMPLETE,
+        coinReward: COIN_REWARDS.AI_QUEST_COMPLETE,
+      },
+      this.prisma,
+    );
+
+    return { quest: toAiDto(quest) };
   }
 
   /**
@@ -691,6 +781,27 @@ function toPenaltyDto(quest: Quest, progress: number): PenaltyQuestDto {
     description: quest.description,
     targetProgress,
     progress: Math.min(progress, targetProgress),
+    xpReward: quest.xpReward,
+    coinReward: quest.coinReward,
+    status: quest.status,
+  };
+}
+
+/**
+ * Isti "progres nije izveden iz posebnog upita" princip kao Side Quest -
+ * ili je 0 (jos nezavrseno) ili targetProgress (zavrseno), jer se AI Quest
+ * zavrsava iskljucivo unutar WorkoutsService.completeSession.
+ */
+function toAiDto(quest: Quest): AiQuestDto {
+  const kind = quest.kind as AiQuestKind;
+  const targetProgress = quest.targetSets ?? AI_QUEST_TARGET;
+  return {
+    id: quest.id,
+    kind,
+    title: quest.title,
+    description: quest.description,
+    targetProgress,
+    progress: quest.status === "COMPLETED" ? targetProgress : 0,
     xpReward: quest.xpReward,
     coinReward: quest.coinReward,
     status: quest.status,

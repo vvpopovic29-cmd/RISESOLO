@@ -12,6 +12,7 @@ export const XP_SOURCES = [
   "MAIN_QUEST_COMPLETE",
   "SIDE_QUEST_COMPLETE",
   "PENALTY_QUEST_COMPLETE",
+  "AI_QUEST_COMPLETE",
 ] as const;
 export type XpSource = (typeof XP_SOURCES)[number];
 
@@ -23,6 +24,7 @@ export const XP_REWARDS: Readonly<Record<XpSource, number>> = {
   MAIN_QUEST_COMPLETE: 400,
   SIDE_QUEST_COMPLETE: 50,
   PENALTY_QUEST_COMPLETE: 50,
+  AI_QUEST_COMPLETE: 150,
 };
 
 /**
@@ -39,4 +41,5 @@ export const COIN_REWARDS: Readonly<Record<XpSource, number>> = {
   MAIN_QUEST_COMPLETE: 100,
   SIDE_QUEST_COMPLETE: 10,
   PENALTY_QUEST_COMPLETE: 0,
+  AI_QUEST_COMPLETE: 30,
 };

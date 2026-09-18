@@ -1,4 +1,5 @@
 import {
+  AI_QUEST_KINDS,
   DAILY_QUEST_KINDS,
   MAIN_QUEST_KINDS,
   PENALTY_QUEST_KINDS,
@@ -143,3 +144,50 @@ export const penaltyQuestResponseSchema = z.object({
   quest: penaltyQuestSchema.nullable(),
 });
 export type PenaltyQuestResponse = z.infer<typeof penaltyQuestResponseSchema>;
+
+/**
+ * Sema koju AiService trazi od Claude-a preko tool-use-a za AI Quest flavor
+ * tekst (title/description personalizovan po igracu) - vidi
+ * apps/api/src/ai/ai.service.ts generateQuestFlavor. Odvojeno od
+ * aiQuestSchema ispod (koji je javni Quest DTO) jer ovo je samo sirovi AI
+ * izlaz pre nego sto se upise u Quest red.
+ */
+export const aiQuestFlavorSchema = z.object({
+  title: z.string().min(1).max(120),
+  description: z.string().min(1).max(400),
+});
+export type AiQuestFlavorOutput = z.infer<typeof aiQuestFlavorSchema>;
+
+/**
+ * AI Quest - Pro-gated bonus quest ciji title/description generise Claude
+ * (personalizovano po nivou/rangu/stat-ovima/streak-u), za razliku od svih
+ * ostalih questova koji koriste staticni katalog. Kompletiranje je
+ * identicno Daily Quest-ovom WORKOUT_COMPLETE kind-u (bilo koji zavrsen
+ * trening tog dana) - vidi apps/api/src/workouts/workouts.service.ts.
+ * `progress` NIJE izvedeno iz posebnog upita (isti princip kao Side Quest) -
+ * ili je 0 (jos nezavrseno) ili targetProgress (zavrseno).
+ */
+export const aiQuestSchema = z.object({
+  id: z.string(),
+  kind: z.enum(AI_QUEST_KINDS),
+  title: z.string(),
+  description: z.string().nullable(),
+  targetProgress: z.number().int(),
+  progress: z.number().int(),
+  xpReward: z.number().int(),
+  coinReward: z.number().int(),
+  status: z.enum(QUEST_STATUSES),
+});
+export type AiQuestDto = z.infer<typeof aiQuestSchema>;
+
+/**
+ * `quest: null` je normalno stanje za besplatne korisnike (AI Quest je
+ * Pro-gated), i za Pro korisnike na dane kada AI servis nije dostupan
+ * (graceful degradation - nikad greska, vidi QuestsService.getCurrentAiQuest).
+ * Namerno uvijeno u objekat, isti anti-"prazno telo" princip kao
+ * sideQuestResponseSchema/penaltyQuestResponseSchema.
+ */
+export const aiQuestResponseSchema = z.object({
+  quest: aiQuestSchema.nullable(),
+});
+export type AiQuestResponse = z.infer<typeof aiQuestResponseSchema>;

@@ -1,5 +1,6 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import type {
+  AiQuestResponse,
   BossQuestDto,
   DailyQuestDto,
   MainQuestDto,
@@ -56,5 +57,13 @@ export class QuestsController {
   @Get("penalty")
   getPenalty(@CurrentUser() user: AuthenticatedUser): Promise<PenaltyQuestResponse> {
     return this.questsService.getCurrentPenaltyQuest(user.id);
+  }
+
+  // Read-only, Pro-gated - `quest: null` znaci besplatan korisnik ili AI
+  // servis trenutno nedostupan (graceful degradation, vidi
+  // QuestsService.getCurrentAiQuest). Zavrsava se u WorkoutsService.completeSession.
+  @Get("ai")
+  getAi(@CurrentUser() user: AuthenticatedUser): Promise<AiQuestResponse> {
+    return this.questsService.getCurrentAiQuest(user.id);
   }
 }
