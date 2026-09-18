@@ -113,8 +113,10 @@ describe("Varijetet dnevnih questova (e2e)", () => {
     const afterNutrition = await getTodayQuest(accessToken);
     expect(afterNutrition.body.status).toBe("AVAILABLE");
 
+    // WORKOUT_COMPLETE (150) + dnevni quest (100) + Side Quest "nova vezba" bonus za PRVU
+    // ikad zavrsenu vezbu ovog korisnika (50) = 300 XP; coins 15+25+10=50 (vidi side-quest.e2e-spec.ts).
     const completion = await completeWorkout(accessToken, exercise.id);
-    expect(completion.body).toMatchObject({ questCompleted: true, xpGained: 250, coinsGained: 40 });
+    expect(completion.body).toMatchObject({ questCompleted: true, xpGained: 300, coinsGained: 50 });
 
     const afterWorkout = await getTodayQuest(accessToken);
     expect(afterWorkout.body.status).toBe("COMPLETED");
@@ -124,9 +126,10 @@ describe("Varijetet dnevnih questova (e2e)", () => {
     const { accessToken } = await registerUserWithDailyQuestKind("nutrikind", "LOG_NUTRITION");
     const exercise = await prisma.exercise.findFirstOrThrow();
 
-    // Trening pre loga ishrane ne sme da zavrsi LOG_NUTRITION quest - samo workout XP (150).
+    // Trening pre loga ishrane ne sme da zavrsi LOG_NUTRITION quest - workout XP (150) + Side
+    // Quest "nova vezba" bonus za PRVU ikad zavrsenu vezbu ovog korisnika (50) = 200.
     const workoutFirst = await completeWorkout(accessToken, exercise.id);
-    expect(workoutFirst.body).toMatchObject({ questCompleted: false, xpGained: 150 });
+    expect(workoutFirst.body).toMatchObject({ questCompleted: false, xpGained: 200 });
 
     const beforeNutrition = await getTodayQuest(accessToken);
     expect(beforeNutrition.body.status).toBe("AVAILABLE");

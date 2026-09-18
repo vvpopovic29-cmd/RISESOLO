@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import type { BossQuestDto, DailyQuestDto, MainQuestDto, WeeklyQuestDto } from "@risesolo/validation";
+import type { BossQuestDto, DailyQuestDto, MainQuestDto, SideQuestResponse, WeeklyQuestDto } from "@risesolo/validation";
 import { CurrentUser, type AuthenticatedUser } from "../auth/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { QuestsService } from "./quests.service";
@@ -33,5 +33,13 @@ export class QuestsController {
   @Get("main")
   getMain(@CurrentUser() user: AuthenticatedUser): Promise<MainQuestDto> {
     return this.questsService.getCurrentMainQuest(user.id);
+  }
+
+  // Read-only - Side Quest se NIKAD ne zavrsava ovde (vidi
+  // QuestsService.getCurrentSideQuest); `quest: null` znaci da je korisnik
+  // iscrpeo biblioteku vezbi.
+  @Get("side")
+  getSide(@CurrentUser() user: AuthenticatedUser): Promise<SideQuestResponse> {
+    return this.questsService.getCurrentSideQuest(user.id);
   }
 }

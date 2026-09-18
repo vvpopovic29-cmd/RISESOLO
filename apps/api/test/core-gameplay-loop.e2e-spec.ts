@@ -140,22 +140,23 @@ describe("Core gameplay loop (e2e)", () => {
 
     const completion = await auth(request(app.getHttpServer()).post(`/workouts/sessions/${sessionId}/complete`)).expect(201);
 
-    // WORKOUT_COMPLETE (150) + prvi DAILY_QUEST_COMPLETE istog dana (100) = 250 XP -> level 1 -> 2.
+    // WORKOUT_COMPLETE (150) + prvi DAILY_QUEST_COMPLETE istog dana (100) + Side Quest "nova
+    // vezba" bonus za PRVU ikad zavrsenu vezbu ovog korisnika (50) = 300 XP -> level 1 -> 2.
     expect(completion.body).toMatchObject({
       success: true,
-      xpGained: 250,
-      totalXp: 250,
+      xpGained: 300,
+      totalXp: 300,
       level: 2,
       levelUp: true,
       statPointsGained: 3,
-      coinsGained: 40,
-      coins: 40,
+      coinsGained: 50,
+      coins: 50,
       questCompleted: true,
       streak: 1,
     });
 
     const state = await auth(request(app.getHttpServer()).get("/players/me")).expect(200);
-    expect(state.body.progression).toMatchObject({ totalXp: 250, level: 2, rank: "E", coins: 40, currentStreak: 1 });
+    expect(state.body.progression).toMatchObject({ totalXp: 300, level: 2, rank: "E", coins: 50, currentStreak: 1 });
     expect(state.body.stats.statPoints).toBe(3);
   });
 

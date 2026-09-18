@@ -193,6 +193,28 @@ export class WorkoutsService {
           }
         }
 
+        // Sporedni quest (Side Quest) - "nova vezba": zavrsava se ako ova sesija sadrzi
+        // zavrsenu seriju vezbe koju korisnik NIKAD pre nije zavrsio. Za razliku od
+        // Weekly/Main questa, ne moze se lenjo zavrsiti na GET-u (uslov je vezan za ovu
+        // konkretnu sesiju) - zato se generise i zavrsava ovde. `sideQuest === null`
+        // znaci da je korisnik iscrpeo biblioteku vezbi (vidi QuestsService.generateSideQuest).
+        const sideQuest = await this.questsService.generateSideQuest(userId, tx);
+        let sideQuestCompleted = false;
+        if (sideQuest && sideQuest.status !== "COMPLETED" && sideQuest.status !== "EXPIRED") {
+          const hasNewExercise = await this.questsService.hasCompletedNewExercise(userId, session.id, tx);
+          if (hasNewExercise) {
+            const completedSideQuest = await this.questsService.completeQuestIfPending(sideQuest.id, tx);
+            sideQuestCompleted = completedSideQuest !== null;
+            if (sideQuestCompleted) {
+              await tx.xpEvent.create({
+                data: { userId, source: "SIDE_QUEST_COMPLETE", sourceId: sideQuest.id, amount: sideQuest.xpReward },
+              });
+              xpGained += sideQuest.xpReward;
+              coinsGained += sideQuest.coinReward;
+            }
+          }
+        }
+
         // Cehovski doprinos i raid provera - ako korisnik nije u cehu, nema efekta
         // (vidi GuildsService.contributeWorkoutXp).
         const { guildXpContributed, guildRaidCompleted } = await this.guildsService.contributeWorkoutXp(
@@ -238,6 +260,7 @@ export class WorkoutsService {
           coins: progressionAfter.coins,
           questCompleted,
           bossQuestCompleted,
+          sideQuestCompleted,
           streak: newStreak,
           guildXpContributed,
           guildRaidCompleted,

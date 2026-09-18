@@ -42,3 +42,10 @@ export {
   selectMainQuestKind,
   type MainQuestKind,
 } from "./main-quest-pool";
+export {
+  SIDE_QUEST_KIND,
+  SIDE_QUEST_KINDS,
+  SIDE_QUEST_TARGET,
+  isSideQuestComplete,
+  type SideQuestKind,
+} from "./side-quest";
