@@ -42,3 +42,11 @@ export {
   type AiItemDefinition,
   type AiItemStatsSnapshot,
 } from "./ai-item";
+export {
+  RECOVERY_ITEM_IDS,
+  RECOVERY_ITEM_DEFINITIONS,
+  evaluateNewlyDiscoveredRecoveryItems,
+  type RecoveryItemId,
+  type RecoveryItemDefinition,
+  type RecoveryItemStatsSnapshot,
+} from "./recovery-item";

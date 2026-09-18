@@ -77,8 +77,14 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > se ne moze pozivati AI na svaki GET - besplatni korisnici i dani kada AI
 > servis nije dostupan NIKAD ne otkljucavaju ove predmete (graceful
 > degradation, katalog ostaje trajno "???"), vidi
-> `packages/domain/src/inventory/ai-item.ts`. Ostali izvori (Recovery/Custom)
-> dolaze u narednim fazama.
+> `packages/domain/src/inventory/ai-item.ts`.
+> Recovery Items su sesti izvor - katalog je UNAPRED vidljiv kao Guild i
+> AUTOMATSKI se dodeljuje (GET-only), ali na osnovu LICNOG obrasca odmora
+> izmedju treninga (najveci razmak u danima izmedju dva zavrsena treninga,
+> broj "odmorenih" razmaka od 2+ dana, ukupan broj razlicitih dana treninga)
+> - ne guild aktivnosti (Guild) ni nivoa (AI-Generated), vidi
+> `packages/domain/src/inventory/recovery-item.ts`. Ostali izvor (Custom)
+> dolazi u narednoj fazi.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

@@ -353,6 +353,10 @@ export class WorkoutsService {
       // dostignut ovim treningom. Pro/AI gate zivi u InventoryService, tako
       // da za besplatne korisnike ovo tiho ne radi nista.
       this.inventoryService.evaluateAndDiscoverAi(userId).catch(() => undefined);
+      // Recovery Item evaluacija - isti princip, hvata razmak izmedju
+      // treninga koji je upravo nastao (ili prestao da postoji) ovim
+      // zavrsenim treningom.
+      this.inventoryService.evaluateAndDiscoverRecovery(userId).catch(() => undefined);
 
       return result;
     } catch (error) {
