@@ -345,6 +345,10 @@ export class WorkoutsService {
       // forget posle transakcije), namerno bez push notifikacije da otkrice
       // ostane iznenadjenje dok igrac sam ne otvori Inventory ekran.
       this.inventoryService.evaluateAndDiscover(userId).catch(() => undefined);
+      // Guild Item evaluacija - isti princip, hvata i raid/treasury/nivo
+      // promene koje su se desile posle ovog treninga (npr. raid upravo
+      // zavrsen istom transakcijom iznad).
+      this.inventoryService.evaluateAndDiscoverGuild(userId).catch(() => undefined);
 
       return result;
     } catch (error) {

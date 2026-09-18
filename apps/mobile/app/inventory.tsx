@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { ApiError } from "@risesolo/api-client";
 import type { InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
+import { useGuildItems } from "../src/inventory/use-guild-items";
 import { useInventory } from "../src/inventory/use-inventory";
 import { useWorkshop } from "../src/inventory/use-workshop";
 import { usePlayerState } from "../src/player/use-player-state";
@@ -12,17 +13,19 @@ import { ErrorState } from "../src/ui/ErrorState";
 import { Screen } from "../src/ui/Screen";
 
 /**
- * Inventory - Hidden Items (tajni uslov, GET-only, vidi hidden-item.ts) i
+ * Inventory - Hidden Items (tajni uslov, GET-only, vidi hidden-item.ts),
  * Workshop Items (unapred vidljiv katalog, izradjuje se preko POST
- * /inventory/workshop/craft uz nivo+coins, vidi workshop-item.ts) su prva
- * dva izvora (B2). Za razliku od Hidden Item-a, Workshop klijent UVEK zna
- * name/description/cenu - ekran samo prikazuje ono sto server posalje, bez
- * lokalnog kataloga prikaznog teksta (isti princip kao Hidden sekcija).
+ * /inventory/workshop/craft uz nivo+coins, vidi workshop-item.ts) i Guild
+ * Items (unapred vidljiv katalog, AUTOMATSKI dodeljen na osnovu cehovske
+ * aktivnosti, GET-only kao Hidden, vidi guild-item.ts) su prva tri izvora
+ * (B2). Ekran samo prikazuje ono sto server posalje, bez lokalnog kataloga
+ * prikaznog teksta.
  */
 export default function InventoryScreen() {
   const { apiClient } = useAuth();
   const { state, refetch } = useInventory(apiClient);
   const { state: workshopState, refetch: refetchWorkshop } = useWorkshop(apiClient);
+  const { state: guildState, refetch: refetchGuild } = useGuildItems(apiClient);
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [craftError, setCraftError] = useState<string | null>(null);
@@ -99,11 +102,34 @@ export default function InventoryScreen() {
           ))}
         </View>
       )}
+
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">GUILD</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
+        Cehovski trofeji - dodeljuju se automatski dok si clan ceha, uslovi su unapred poznati.
+      </Text>
+
+      {guildState.status === "loading" ? (
+        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+      ) : guildState.status === "error" ? (
+        <ErrorState message={guildState.message} onRetry={refetchGuild} testID="guild-items-error" />
+      ) : (
+        <View className="gap-3">
+          {guildState.data.map((item) => (
+            <InventoryItemCard key={item.id} item={item} revealAlways />
+          ))}
+        </View>
+      )}
     </Screen>
   );
 }
 
-function InventoryItemCard({ item }: { item: InventoryItemDto }) {
+/**
+ * `revealAlways` - koriste ga izvori ciji je katalog unapred vidljiv (Guild)
+ * da uvek prikazu name/description, za razliku od Hidden Item-a koji "???"
+ * dok se ne otkrije (uslov otkljucavanja je tajna, ne samo prikaz).
+ */
+function InventoryItemCard({ item, revealAlways = false }: { item: InventoryItemDto; revealAlways?: boolean }) {
+  const reveal = item.discovered || revealAlways;
   return (
     <View
       testID={`inventory-item-${item.id}`}
@@ -113,9 +139,9 @@ function InventoryItemCard({ item }: { item: InventoryItemDto }) {
     >
       <Text className="text-2xl">{item.discovered ? "✨" : "🔒"}</Text>
       <View className="flex-1 gap-0.5">
-        <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{item.discovered ? item.name : "???"}</Text>
+        <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{reveal ? item.name : "???"}</Text>
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-          {item.discovered ? item.description : "Uslov otkljucavanja je tajna."}
+          {reveal ? item.description : "Uslov otkljucavanja je tajna."}
         </Text>
         {item.discovered && item.discoveredAt ? (
           <Text className="text-xs text-premium">Otkriveno {new Date(item.discoveredAt).toLocaleDateString("sr-Latn-RS")}</Text>
