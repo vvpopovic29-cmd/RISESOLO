@@ -17,6 +17,7 @@ import { AchievementsModule } from "./achievements/achievements.module";
 import { LeaderboardModule } from "./leaderboard/leaderboard.module";
 import { ShopModule } from "./shop/shop.module";
 import { FriendsModule } from "./friends/friends.module";
+import { InventoryModule } from "./inventory/inventory.module";
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { FriendsModule } from "./friends/friends.module";
     LeaderboardModule,
     ShopModule,
     FriendsModule,
+    InventoryModule,
   ],
 })
 export class AppModule {}

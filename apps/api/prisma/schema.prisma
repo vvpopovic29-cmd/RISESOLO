@@ -43,6 +43,7 @@ model User {
   pushTokens      PushToken[]
   achievements    UserAchievement[]
   cosmetics       UserCosmetic[]
+  inventoryItems  InventoryItem[]
   sentFriendRequests     Friendship[] @relation("FriendshipRequester")
   receivedFriendRequests Friendship[] @relation("FriendshipAddressee")
 
@@ -593,6 +594,42 @@ model UserCosmetic {
   @@unique([userId, itemId])
   @@index([userId])
   @@map("user_cosmetics")
+}
+
+// ---------------------------------------------------------------------------
+// Inventory (B2) - Hidden Items
+// ---------------------------------------------------------------------------
+
+/// Izvor Inventory predmeta - `HIDDEN` je prvi implementirani (tajni uslovi,
+/// vidi @risesolo/domain hidden-item.ts). Ostali izvori (WORKSHOP/EVENT/
+/// AI_GENERATED/RECOVERY/CUSTOM) se dodaju fazu po fazu preko posebne
+/// migracije (isti princip kao QuestType).
+enum ItemSource {
+  HIDDEN
+
+  @@map("item_source")
+}
+
+/// Otkriven Inventory predmet (SECRET dok se ne otkrije) - "derive, don't
+/// cache" isti princip kao UserAchievement: server ponovo racuna snapshot i
+/// upisuje samo novo otkrivene, nikad ne pretpostavlja otkrivanje klijentski.
+/// `itemId` je String (ne enum/FK) - katalog (HIDDEN_ITEM_DEFINITIONS, kasnije
+/// katalozi ostalih izvora) zivi iskljucivo u @risesolo/domain, nova stavka se
+/// moze dodati bez migracije (isti princip kao UserAchievement.achievementId
+/// i UserCosmetic.itemId). `@@unique([userId, itemId])` sprecava duplo
+/// otkrivanje (race-safe preko istog constraint-a).
+model InventoryItem {
+  id           String     @id @default(cuid())
+  userId       String     @map("user_id")
+  itemId       String     @map("item_id")
+  source       ItemSource
+  discoveredAt DateTime   @default(now()) @map("discovered_at")
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId])
+  @@map("inventory_items")
 }
 
 // ---------------------------------------------------------------------------

@@ -611,6 +611,12 @@ export default function HomeScreen() {
           testID="shop-button"
         />
         <Button
+          label="Inventory"
+          variant="secondary"
+          onPress={() => router.push("/inventory")}
+          testID="inventory-button"
+        />
+        <Button
           label="RISESOLO Pro"
           variant="secondary"
           onPress={() => router.push("/paywall")}

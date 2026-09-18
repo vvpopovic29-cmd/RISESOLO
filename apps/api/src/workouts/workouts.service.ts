@@ -26,6 +26,7 @@ import { diffInUtcDays, startOfUtcDay } from "../common/date";
 // referencu.
 import { AchievementsService } from "../achievements/achievements.service";
 import { GuildsService } from "../guilds/guilds.service";
+import { InventoryService } from "../inventory/inventory.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuestsService } from "../quests/quests.service";
@@ -38,6 +39,7 @@ export class WorkoutsService {
     private readonly guildsService: GuildsService,
     private readonly notificationsService: NotificationsService,
     private readonly achievementsService: AchievementsService,
+    private readonly inventoryService: InventoryService,
   ) {}
 
   async startSession(userId: string, dto: StartWorkoutSessionRequest): Promise<WorkoutSessionDto> {
@@ -338,6 +340,11 @@ export class WorkoutsService {
         .evaluateAndUnlock(userId)
         .then((newlyUnlocked) => this.achievementsService.notifyNewlyUnlocked(userId, newlyUnlocked))
         .catch(() => undefined);
+
+      // Hidden Item evaluacija - isti princip kao achievements (fire-and-
+      // forget posle transakcije), namerno bez push notifikacije da otkrice
+      // ostane iznenadjenje dok igrac sam ne otvori Inventory ekran.
+      this.inventoryService.evaluateAndDiscover(userId).catch(() => undefined);
 
       return result;
     } catch (error) {
