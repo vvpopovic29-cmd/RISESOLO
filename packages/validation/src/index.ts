@@ -39,12 +39,16 @@ export {
   mainQuestSchema,
   sideQuestSchema,
   sideQuestResponseSchema,
+  penaltyQuestSchema,
+  penaltyQuestResponseSchema,
   type DailyQuestDto,
   type BossQuestDto,
   type WeeklyQuestDto,
   type MainQuestDto,
   type SideQuestDto,
   type SideQuestResponse,
+  type PenaltyQuestDto,
+  type PenaltyQuestResponse,
 } from "./contracts/quests";
 export {
   trainingPlanExerciseSchema,

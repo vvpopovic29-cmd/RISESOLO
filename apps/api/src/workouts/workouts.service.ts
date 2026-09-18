@@ -2,11 +2,13 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import {
   BOSS_QUEST_TARGET_SESSIONS,
   COIN_REWARDS,
+  PENALTY_QUEST_TARGET_SESSIONS,
   XP_REWARDS,
   detectLevelUp,
   statPointsForLevelsGained,
   computeStreakAfterCompletion,
   isBossQuestComplete,
+  isPenaltyQuestComplete,
 } from "@risesolo/domain";
 import type {
   ActiveWorkoutSessionResponse,
@@ -193,6 +195,30 @@ export class WorkoutsService {
           }
         }
 
+        // Penalty Quest ("Iskupljenje") - postoji SAMO ako je Penalty System danas vec
+        // primenio kaznu (vidi QuestsService.expirePastDueDailyQuests/generatePenaltyQuest);
+        // najcesce ne postoji (findUnique vraca null). Zavrsava se kada broj zavrsenih
+        // treninga DANAS (uklj. ovu sesiju) dostigne cilj, isti princip kao Boss Quest samo
+        // po kalendarskom danu. `coinReward` je dinamican - tacan iznos ranije izgubljenih coins-a.
+        const penaltyQuest = await tx.quest.findUnique({
+          where: { userId_date_type: { userId, date: startOfUtcDay(today), type: "PENALTY" } },
+        });
+        let penaltyQuestCompleted = false;
+        if (penaltyQuest && penaltyQuest.status !== "COMPLETED" && penaltyQuest.status !== "EXPIRED") {
+          const completedSessionsToday = await this.questsService.countCompletedSessionsToday(userId, today, tx);
+          if (isPenaltyQuestComplete(completedSessionsToday, penaltyQuest.targetSets ?? PENALTY_QUEST_TARGET_SESSIONS)) {
+            const completedPenaltyQuest = await this.questsService.completeQuestIfPending(penaltyQuest.id, tx);
+            penaltyQuestCompleted = completedPenaltyQuest !== null;
+            if (penaltyQuestCompleted) {
+              await tx.xpEvent.create({
+                data: { userId, source: "PENALTY_QUEST_COMPLETE", sourceId: penaltyQuest.id, amount: penaltyQuest.xpReward },
+              });
+              xpGained += penaltyQuest.xpReward;
+              coinsGained += penaltyQuest.coinReward;
+            }
+          }
+        }
+
         // Sporedni quest (Side Quest) - "nova vezba": zavrsava se ako ova sesija sadrzi
         // zavrsenu seriju vezbe koju korisnik NIKAD pre nije zavrsio. Za razliku od
         // Weekly/Main questa, ne moze se lenjo zavrsiti na GET-u (uslov je vezan za ovu
@@ -261,6 +287,7 @@ export class WorkoutsService {
           questCompleted,
           bossQuestCompleted,
           sideQuestCompleted,
+          penaltyQuestCompleted,
           streak: newStreak,
           guildXpContributed,
           guildRaidCompleted,
