@@ -68,8 +68,17 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > Guild, ali se, kao Workshop, prisvaja AKTIVNO (`POST /inventory/event/claim`)
 > - BESPLATNO, bez nivoa/coins uslova, ali SAMO unutar godisnjeg kalendarskog
 > prozora (mesec+dan, godina se ne racuna - isti prozor je ponovo dostupan
-> svake godine), vidi `packages/domain/src/inventory/event-item.ts`. Ostali
-> izvori (AI-generated/Recovery/Custom) dolaze u narednim fazama.
+> svake godine), vidi `packages/domain/src/inventory/event-item.ts`.
+> AI-Generated Items su peti izvor - tajan katalog kao Hidden Item (GET-only,
+> automatsko otkrivanje po nivou), ali name/description NIJE iz staticnog
+> kataloga - generise ih Claude po igracu (isti princip kao AI Quest,
+> Pro-gated preko `SubscriptionsService.hasProAccess`), generisan tekst se
+> MORA perzistirati (InventoryItem.generatedName/generatedDescription) jer
+> se ne moze pozivati AI na svaki GET - besplatni korisnici i dani kada AI
+> servis nije dostupan NIKAD ne otkljucavaju ove predmete (graceful
+> degradation, katalog ostaje trajno "???"), vidi
+> `packages/domain/src/inventory/ai-item.ts`. Ostali izvori (Recovery/Custom)
+> dolaze u narednim fazama.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

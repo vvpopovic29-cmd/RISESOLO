@@ -33,3 +33,12 @@ export {
   type EventItemDefinition,
   type MonthDay,
 } from "./event-item";
+export {
+  AI_ITEM_IDS,
+  AI_ITEM_DEFINITIONS,
+  getAiItemDefinition,
+  evaluateNewlyDiscoveredAiItems,
+  type AiItemId,
+  type AiItemDefinition,
+  type AiItemStatsSnapshot,
+} from "./ai-item";

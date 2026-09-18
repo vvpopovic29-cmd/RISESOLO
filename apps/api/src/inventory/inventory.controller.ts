@@ -55,4 +55,9 @@ export class InventoryController {
   ): Promise<ClaimEventItemResponse> {
     return this.inventoryService.claimEventItem(user.id, dto.itemId);
   }
+
+  @Get("ai")
+  listAiItems(@CurrentUser() user: AuthenticatedUser): Promise<InventoryItemDto[]> {
+    return this.inventoryService.listAiItems(user.id);
+  }
 }

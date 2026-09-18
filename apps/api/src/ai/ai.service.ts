@@ -1,7 +1,15 @@
 import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Anthropic from "@anthropic-ai/sdk";
-import { aiQuestFlavorSchema, aiTrainingPlanSchema, formatZodError, type AiQuestFlavorOutput, type AiTrainingPlanOutput } from "@risesolo/validation";
+import {
+  aiItemFlavorSchema,
+  aiQuestFlavorSchema,
+  aiTrainingPlanSchema,
+  formatZodError,
+  type AiItemFlavorOutput,
+  type AiQuestFlavorOutput,
+  type AiTrainingPlanOutput,
+} from "@risesolo/validation";
 import type { CandidateExercise, PlayerStats } from "@risesolo/domain";
 import type { ApiEnv } from "../config/env";
 
@@ -10,6 +18,8 @@ const MAX_TOKENS = 4096;
 const TOOL_NAME = "return_training_plan";
 const QUEST_FLAVOR_MAX_TOKENS = 1024;
 const QUEST_FLAVOR_TOOL_NAME = "return_quest_flavor";
+const ITEM_FLAVOR_MAX_TOKENS = 1024;
+const ITEM_FLAVOR_TOOL_NAME = "return_item_flavor";
 
 export interface GenerateTrainingPlanPrompt {
   daysPerWeek: number;
@@ -24,6 +34,15 @@ export interface GenerateQuestFlavorPrompt {
   rank: string;
   stats: PlayerStats;
   currentStreak: number;
+}
+
+export interface GenerateItemFlavorPrompt {
+  level: number;
+  rank: string;
+  stats: PlayerStats;
+  currentStreak: number;
+  /** Nivo prag koji je igrac upravo dostigao i otkljucao ovaj predmet (vidi @risesolo/domain AiItemDefinition.levelRequirement). */
+  levelRequirement: number;
 }
 
 /**
@@ -127,6 +146,51 @@ export class AiService {
     if (!parsed.success) {
       this.logger.error(`Neispravan AI quest flavor izlaz:\n${formatZodError(parsed.error)}`);
       throw new ServiceUnavailableException("AI model je vratio neispravan quest, pokusaj ponovo.");
+    }
+
+    return parsed.data;
+  }
+
+  /**
+   * AI-Generated Inventory Item (vidi @risesolo/domain ai-item.ts) - kratak
+   * personalizovan naziv/opis "trofeja" za nivo koji je igrac upravo
+   * dostigao. Isti obrazac kao generateQuestFlavor (odvojen alat, manji
+   * izlaz), ali tekst se OVDE MORA perzistirati na InventoryItem redu
+   * (generatedName/generatedDescription) - za razliku od quest flavora koji
+   * se cuva na Quest redu koji vec ima title/description kolone.
+   */
+  async generateItemFlavor(prompt: GenerateItemFlavorPrompt): Promise<AiItemFlavorOutput> {
+    if (!this.client) {
+      throw new ServiceUnavailableException("AI predmeti trenutno nisu dostupni (ANTHROPIC_API_KEY nije podesen).");
+    }
+
+    let response: Anthropic.Messages.Message;
+    try {
+      response = await this.client.messages.create({
+        model: MODEL,
+        max_tokens: ITEM_FLAVOR_MAX_TOKENS,
+        system: buildItemFlavorSystemPrompt(),
+        messages: [{ role: "user", content: buildItemFlavorUserPrompt(prompt) }],
+        tools: [itemFlavorTool],
+        tool_choice: { type: "tool", name: ITEM_FLAVOR_TOOL_NAME },
+      });
+    } catch (error) {
+      this.logger.error("Poziv Claude API-ja neuspesan (item flavor)", error instanceof Error ? error.stack : error);
+      throw new ServiceUnavailableException("Generisanje AI predmeta trenutno nije uspelo, pokusaj ponovo.");
+    }
+
+    const toolUse = response.content.find(
+      (block): block is Anthropic.Messages.ToolUseBlock => block.type === "tool_use" && block.name === ITEM_FLAVOR_TOOL_NAME,
+    );
+    if (!toolUse) {
+      this.logger.error(`Claude odgovor ne sadrzi "${ITEM_FLAVOR_TOOL_NAME}" tool_use blok`);
+      throw new ServiceUnavailableException("AI model nije vratio ocekivan format odgovora.");
+    }
+
+    const parsed = aiItemFlavorSchema.safeParse(toolUse.input);
+    if (!parsed.success) {
+      this.logger.error(`Neispravan AI item flavor izlaz:\n${formatZodError(parsed.error)}`);
+      throw new ServiceUnavailableException("AI model je vratio neispravan predmet, pokusaj ponovo.");
     }
 
     return parsed.data;
@@ -235,5 +299,43 @@ const questFlavorTool: Anthropic.Messages.Tool = {
       description: { type: "string", description: "Jedna do dve recenice - personalizovana poruka igracu." },
     },
     required: ["title", "description"],
+  },
+};
+
+function buildItemFlavorSystemPrompt(): string {
+  return [
+    "Ti si trener u RISESOLO, gamifikovanoj fitnes aplikaciji.",
+    "Igrac je upravo dostigao nov nivo i time otkljucao redak, personalizovan kolekcionarski predmet (trofej) u svom Inventory-ju.",
+    "Sastavljas kratak, jedinstven naziv i opis tog trofeja, bas za ovog igraca.",
+    `Odgovor MORAS vratiti pozivom alata "${ITEM_FLAVOR_TOOL_NAME}".`,
+    "Naziv je kratak (do par reci, kao naziv predmeta u igri), opis je jedna do dve recenice koje slave upravo dostignuti nivo i pominju igracevo trenutno stanje (rang/streak/najjaci stat).",
+    "Nikad ne pominji konkretne brojeve setova/ponavljanja/nagrade - ovo je kolekcionarski trofej, ne novi zadatak.",
+  ].join(" ");
+}
+
+function buildItemFlavorUserPrompt(prompt: GenerateItemFlavorPrompt): string {
+  const strongestStat = Object.entries(prompt.stats).reduce((strongest, [key, value]) =>
+    value > strongest[1] ? [key, value] : strongest,
+  );
+  return [
+    `Upravo dostignut nivo: ${prompt.levelRequirement}`,
+    `Trenutni nivo: ${prompt.level}`,
+    `Rang: ${prompt.rank}`,
+    `Trenutni niz dana (streak): ${prompt.currentStreak}`,
+    `Stat-ovi: snaga=${prompt.stats.strength}, agilnost=${prompt.stats.agility}, izdrzljivost=${prompt.stats.endurance}, vitalnost=${prompt.stats.vitality}, inteligencija=${prompt.stats.intelligence}`,
+    `Najjaci stat: ${strongestStat[0]}`,
+  ].join("\n");
+}
+
+const itemFlavorTool: Anthropic.Messages.Tool = {
+  name: ITEM_FLAVOR_TOOL_NAME,
+  description: "Vraca personalizovan naziv i opis kolekcionarskog trofeja namenjenog ovom igracu.",
+  input_schema: {
+    type: "object",
+    properties: {
+      name: { type: "string", description: "Kratak, jedinstven naziv trofeja (do par reci)." },
+      description: { type: "string", description: "Jedna do dve recenice - personalizovan opis trofeja." },
+    },
+    required: ["name", "description"],
   },
 };

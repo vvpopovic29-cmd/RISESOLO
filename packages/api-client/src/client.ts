@@ -476,6 +476,9 @@ export function createApiClient(config: ApiClientConfig) {
           });
         },
       },
+      ai(): Promise<InventoryItemDto[]> {
+        return request({ method: "GET", path: "/inventory/ai", schema: inventoryItemListSchema });
+      },
     },
   };
 }

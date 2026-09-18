@@ -4,14 +4,16 @@
  * ima IZVOR (kako je igrac do njega dosao) - `HIDDEN` (tajan uslov, GET-only),
  * `WORKSHOP` (vidljiv katalog, aktivna izrada preko POST uz nivo+coins),
  * `GUILD` (vidljiv katalog, automatski dodeljen na osnovu cehovske aktivnosti -
- * GET-only kao Hidden, ali BEZ tajne) i `EVENT` (vidljiv katalog, aktivno
+ * GET-only kao Hidden, ali BEZ tajne), `EVENT` (vidljiv katalog, aktivno
  * "prisvajanje" preko POST kao Workshop, ali VREMENSKI ogranicen - moze se
  * prisvojiti samo dok je tekuci datum unutar godisnjeg prozora dogadjaja, bez
- * coins/nivo uslova, vidi event-item.ts). Ostali izvori (AI_GENERATED/
- * RECOVERY/CUSTOM) se dodaju fazu po fazu, isti princip kao QuestType (svaka
- * faza doda jednu Prisma enum vrednost preko `ALTER TYPE ... ADD VALUE`, ne
- * menja postojece).
+ * coins/nivo uslova, vidi event-item.ts) i `AI_GENERATED` (tajan uslov kao
+ * Hidden - GET-only automatsko otkrivanje po nivou - ali name/description
+ * generise Claude po igracu, Pro-gated, isti princip kao AI Quest, vidi
+ * ai-item.ts). Ostali izvori (RECOVERY/CUSTOM) se dodaju fazu po fazu, isti
+ * princip kao QuestType (svaka faza doda jednu Prisma enum vrednost preko
+ * `ALTER TYPE ... ADD VALUE`, ne menja postojece).
  */
 
-export const ITEM_SOURCES = ["HIDDEN", "WORKSHOP", "GUILD", "EVENT"] as const;
+export const ITEM_SOURCES = ["HIDDEN", "WORKSHOP", "GUILD", "EVENT", "AI_GENERATED"] as const;
 export type ItemSource = (typeof ITEM_SOURCES)[number];

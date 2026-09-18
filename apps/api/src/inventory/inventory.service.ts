@@ -1,17 +1,21 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import {
+  AI_ITEM_DEFINITIONS,
   EVENT_ITEMS,
   GUILD_ITEM_DEFINITIONS,
   HIDDEN_ITEM_DEFINITIONS,
   WORKSHOP_ITEMS,
   calculateLevel,
+  calculateRank,
   canClaimEventItem,
   canCraftWorkshopItem,
+  evaluateNewlyDiscoveredAiItems,
   evaluateNewlyDiscoveredGuildItems,
   evaluateNewlyDiscoveredHiddenItems,
   getEventItem,
   getWorkshopItem,
   isEventActive,
+  type AiItemId,
   type EventItemDefinition,
   type GuildItemId,
   type GuildItemStatsSnapshot,
@@ -21,8 +25,10 @@ import {
 } from "@risesolo/domain";
 import type { ClaimEventItemResponse, CraftWorkshopItemResponse, EventItemDto, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import type { Prisma } from "@prisma/client";
+import { AiService } from "../ai/ai.service";
 import { diffInUtcDays } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
+import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { getEventItemDisplay } from "./event-item-catalog";
 import { getGuildItemDisplay } from "./guild-item-catalog";
 import { getHiddenItemDisplay } from "./inventory-catalog";
@@ -40,7 +46,13 @@ type Db = PrismaService | Prisma.TransactionClient;
  */
 @Injectable()
 export class InventoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(InventoryService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
+    private readonly subscriptionsService: SubscriptionsService,
+  ) {}
 
   private async computeHiddenSnapshot(userId: string, db: Db): Promise<HiddenItemStatsSnapshot> {
     const [progression, stats, completedSessions, repsBySession, penaltyQuestsEverApplied] = await Promise.all([
@@ -307,6 +319,100 @@ export class InventoryService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Pro/AI gate zivi OVDE, ne u @risesolo/domain (isti princip kao
+   * QuestsService.getCurrentAiQuest) - besplatni korisnici i dani kada AI
+   * servis nije dostupan NIKAD ne otkljucavaju AI predmete (graceful
+   * degradation, prazan niz, nikad greska). Za razliku od
+   * evaluateAndDiscover/evaluateAndDiscoverGuild, ovde se za SVAKI novo
+   * dostignut prag zove Claude (generateItemFlavor) i generisan tekst se
+   * ODMAH perzistira - ako AI poziv za jedan predmet ne uspe, ostali se i
+   * dalje pokusavaju (jedan neuspeh ne blokira ostale).
+   */
+  async evaluateAndDiscoverAi(userId: string, db: Db = this.prisma): Promise<AiItemId[]> {
+    if (!this.aiService.isConfigured) {
+      return [];
+    }
+    const hasProAccess = await this.subscriptionsService.hasProAccess(userId);
+    if (!hasProAccess) {
+      return [];
+    }
+
+    const [progression, stats, discoveredRows] = await Promise.all([
+      db.progression.findUniqueOrThrow({ where: { userId } }),
+      db.playerStats.findUniqueOrThrow({ where: { userId } }),
+      db.inventoryItem.findMany({ where: { userId, source: "AI_GENERATED" }, select: { itemId: true } }),
+    ]);
+
+    const level = calculateLevel(progression.totalXp);
+    const alreadyDiscovered = new Set(discoveredRows.map((row) => row.itemId as AiItemId));
+    const newlyDiscovered = evaluateNewlyDiscoveredAiItems({ level }, alreadyDiscovered);
+    if (newlyDiscovered.length === 0) {
+      return [];
+    }
+
+    const created: AiItemId[] = [];
+    for (const itemId of newlyDiscovered) {
+      const definition = AI_ITEM_DEFINITIONS.find((item) => item.id === itemId);
+      if (!definition) continue;
+
+      try {
+        const flavor = await this.aiService.generateItemFlavor({
+          level,
+          rank: calculateRank(level),
+          stats: {
+            strength: stats.strength,
+            agility: stats.agility,
+            endurance: stats.endurance,
+            vitality: stats.vitality,
+            intelligence: stats.intelligence,
+          },
+          currentStreak: progression.currentStreak,
+          levelRequirement: definition.levelRequirement,
+        });
+        await db.inventoryItem.create({
+          data: { userId, itemId, source: "AI_GENERATED", generatedName: flavor.name, generatedDescription: flavor.description },
+        });
+        created.push(itemId);
+      } catch (error) {
+        if (!isUniqueConstraintError(error)) {
+          this.logger.error(`Generisanje AI predmeta ${itemId} nije uspelo`, error instanceof Error ? error.stack : error);
+        }
+      }
+    }
+
+    return created;
+  }
+
+  /**
+   * GET /inventory/ai - isti "tajan katalog" princip kao Hidden Item (isti
+   * inventoryItemSchema, "???" dok se ne otkrije), ali name/description za
+   * otkrivene predmete dolaze iz PERZISTIRANOG generatedName/
+   * generatedDescription (AI tekst), ne iz staticne katalog funkcije.
+   */
+  async listAiItems(userId: string): Promise<InventoryItemDto[]> {
+    await this.evaluateAndDiscoverAi(userId);
+
+    const discoveredRows = await this.prisma.inventoryItem.findMany({
+      where: { userId, source: "AI_GENERATED" },
+      select: { itemId: true, discoveredAt: true, generatedName: true, generatedDescription: true },
+    });
+    const discoveredByItemId = new Map(discoveredRows.map((row) => [row.itemId, row]));
+
+    return AI_ITEM_DEFINITIONS.map((definition) => {
+      const row = discoveredByItemId.get(definition.id) ?? null;
+      const discovered = row !== null;
+      return {
+        id: definition.id,
+        source: "AI_GENERATED" as const,
+        discovered,
+        discoveredAt: row !== null ? row.discoveredAt.toISOString() : null,
+        name: row?.generatedName ?? null,
+        description: row?.generatedDescription ?? null,
+      };
+    });
   }
 }
 

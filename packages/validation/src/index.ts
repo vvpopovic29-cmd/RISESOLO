@@ -212,6 +212,7 @@ export {
   listEventResponseSchema,
   claimEventItemRequestSchema,
   claimEventItemResponseSchema,
+  aiItemFlavorSchema,
   type InventoryItemDto,
   type ListInventoryResponse,
   type WorkshopItemDto,
@@ -222,5 +223,6 @@ export {
   type ListEventResponse,
   type ClaimEventItemRequest,
   type ClaimEventItemResponse,
+  type AiItemFlavorOutput,
 } from "./contracts/inventory";
 export { z } from "zod";
