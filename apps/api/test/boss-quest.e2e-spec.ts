@@ -101,8 +101,9 @@ describe("Boss quest (e2e)", () => {
     const exercise = await prisma.exercise.findFirstOrThrow();
 
     const first = await completeWorkout(accessToken, exercise.id);
-    // Prvi trening u danu: workout (150) + dnevni quest (100) = 250. Boss quest jos nije zavrsen.
-    expect(first.body).toMatchObject({ xpGained: 250, bossQuestCompleted: false });
+    // Prvi trening u danu: workout (150) + dnevni quest (100) + Side Quest "nova vezba" bonus za
+    // PRVU ikad zavrsenu vezbu ovog korisnika (50) = 300. Boss quest jos nije zavrsen.
+    expect(first.body).toMatchObject({ xpGained: 300, bossQuestCompleted: false });
 
     const second = await completeWorkout(accessToken, exercise.id);
     // Dnevni quest je vec zavrsen - samo workout XP (150).

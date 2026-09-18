@@ -9,6 +9,7 @@ import { useTodayQuest } from "../src/player/use-today-quest";
 import { useBossQuest } from "../src/player/use-boss-quest";
 import { useWeeklyQuest } from "../src/player/use-weekly-quest";
 import { useMainQuest } from "../src/player/use-main-quest";
+import { useSideQuest } from "../src/player/use-side-quest";
 import { useActiveSession } from "../src/workout/use-active-session";
 import { StatAllocator } from "../src/player/StatAllocator";
 import { Button } from "../src/ui/Button";
@@ -57,6 +58,16 @@ const MAIN_QUEST_KIND_LABEL: Record<string, string> = {
   intelligence: "Inteligencija",
 };
 
+/**
+ * Side Quest je bonus izazov vezan za KONKRETNU sesiju treninga (MVP: samo
+ * "nova vezba") - za razliku od Main/Weekly/Boss Quest-a, karticа se sakriva
+ * kad je `data === null` (korisnik je iscrpeo biblioteku vezbi, vidi
+ * QuestsService.generateSideQuest), umesto da prikaze prazno/error stanje.
+ */
+const SIDE_QUEST_KIND_LABEL: Record<string, string> = {
+  NEW_EXERCISE: "nova vezba zavrsena",
+};
+
 export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
@@ -64,6 +75,7 @@ export default function HomeScreen() {
   const { state: bossQuestState, refetch: refetchBossQuest } = useBossQuest(apiClient);
   const { state: weeklyQuestState, refetch: refetchWeeklyQuest } = useWeeklyQuest(apiClient);
   const { state: mainQuestState, refetch: refetchMainQuest } = useMainQuest(apiClient);
+  const { state: sideQuestState, refetch: refetchSideQuest } = useSideQuest(apiClient);
   const { state: activeSessionState, refetch: refetchActiveSession } = useActiveSession(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
@@ -79,8 +91,17 @@ export default function HomeScreen() {
       refetchBossQuest();
       refetchWeeklyQuest();
       refetchMainQuest();
+      refetchSideQuest();
       refetchActiveSession();
-    }, [refetchPlayer, refetchQuest, refetchBossQuest, refetchWeeklyQuest, refetchMainQuest, refetchActiveSession]),
+    }, [
+      refetchPlayer,
+      refetchQuest,
+      refetchBossQuest,
+      refetchWeeklyQuest,
+      refetchMainQuest,
+      refetchSideQuest,
+      refetchActiveSession,
+    ]),
   );
 
   async function handleAbandonActive(sessionId: string) {
@@ -365,6 +386,53 @@ export default function HomeScreen() {
           </>
         )}
       </View>
+
+      {sideQuestState.status === "success" && sideQuestState.data === null ? null : (
+        <View className="gap-2 rounded-lg border border-accent/40 p-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-semibold text-accent">SPOREDNI QUEST</Text>
+            {sideQuestState.status === "success" && sideQuestState.data && sideQuestState.data.status === "COMPLETED" ? (
+              <Text className="text-xs font-bold text-accent">ZAVRSEN</Text>
+            ) : null}
+          </View>
+          {sideQuestState.status === "loading" ? (
+            <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          ) : sideQuestState.status === "error" ? (
+            <ErrorState message={sideQuestState.message} onRetry={refetchSideQuest} />
+          ) : sideQuestState.data ? (
+            <>
+              <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
+                {sideQuestState.data.title}
+              </Text>
+              {sideQuestState.data.description ? (
+                <Text className="text-sm text-neutral-500 dark:text-neutral-600">{sideQuestState.data.description}</Text>
+              ) : null}
+              <ProgressBar
+                progress={sideQuestState.data.progress / sideQuestState.data.targetProgress}
+                colorClassName="bg-accent"
+                testID="side-quest-progress"
+              />
+              <View className="flex-row items-center justify-between pt-1">
+                <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                  {sideQuestState.data.progress} / {sideQuestState.data.targetProgress}{" "}
+                  {SIDE_QUEST_KIND_LABEL[sideQuestState.data.kind] ?? ""}
+                </Text>
+                <Text className="text-xs text-reward">
+                  +{sideQuestState.data.xpReward} XP · +{sideQuestState.data.coinReward} coins
+                </Text>
+              </View>
+              {sideQuestState.data.status !== "COMPLETED" ? (
+                <Button
+                  label="Isprobaj novu vezbu"
+                  variant="secondary"
+                  onPress={() => router.push("/exercises")}
+                  testID="side-quest-cta-button"
+                />
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      )}
 
       <View className="gap-3">
         <Button label="Izaberi vezbu i zapocni trening" onPress={() => router.push("/exercises")} testID="start-workout-button" />

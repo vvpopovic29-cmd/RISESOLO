@@ -31,6 +31,11 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > izdrzljivost/vitalnost/inteligencija), odvojen od Achievements koji vec
 > pokrivaju "dostigni level X" (vidi
 > `packages/domain/src/gamification/main-quest-pool.ts`).
+> Side Quest je bonus izazov vezan za konkretnu sesiju treninga (MVP: "nova
+> vezba" - zavrsi seriju vezbe koju nikad pre nisi radio). Za razliku od
+> Weekly/Main Questa, `GET /quests/side` je read-only (nikad ne zavrsava
+> quest) - zavrsetak se desava iskljucivo unutar workout completion engine-a
+> (vidi `packages/domain/src/gamification/side-quest.ts`).
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

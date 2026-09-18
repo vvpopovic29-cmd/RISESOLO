@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import {
   BOSS_QUEST_TARGET_SESSIONS,
   COIN_REWARDS,
+  SIDE_QUEST_KIND,
+  SIDE_QUEST_TARGET,
   WEEKLY_NUTRITION_LOG_DAYS_TARGET,
   WEEKLY_XP_TARGET,
   XP_REWARDS,
@@ -19,15 +21,17 @@ import {
   statPointsForLevelsGained,
   type DailyQuestKind,
   type MainQuestKind,
+  type SideQuestKind,
   type WeeklyQuestKind,
   type XpSource,
 } from "@risesolo/domain";
-import type { BossQuestDto, DailyQuestDto, MainQuestDto, PenaltyResultDto, WeeklyQuestDto } from "@risesolo/validation";
+import type { BossQuestDto, DailyQuestDto, MainQuestDto, PenaltyResultDto, SideQuestDto, WeeklyQuestDto } from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
 import { getDailyQuestDisplay } from "./daily-quest-catalog";
 import { getMainQuestDisplay } from "./main-quest-catalog";
+import { getSideQuestDisplay } from "./side-quest-catalog";
 import { getWeeklyQuestDisplay } from "./weekly-quest-catalog";
 
 type Db = PrismaService | Prisma.TransactionClient;
@@ -44,6 +48,13 @@ const BOSS_QUEST_DESCRIPTION = `Zavrsi ${BOSS_QUEST_TARGET_SESSIONS} treninga ov
  * garantuje idempotentnost/race-safety bez nove kolone ili tabele.
  */
 const MAIN_QUEST_EPOCH = new Date(Date.UTC(2020, 0, 1));
+
+/**
+ * Side Quest takodje nema prirodan vremenski period - isti sekvencijalni
+ * marker princip kao Main Quest, ali odvojen epoch (razlicit tip questa,
+ * pa razlicita "brojacka" sekvenca ne sme da se poklopi sa Main Questom).
+ */
+const SIDE_QUEST_EPOCH = new Date(Date.UTC(2021, 0, 1));
 
 interface QuestFields {
   kind?: string;
@@ -341,6 +352,98 @@ export class QuestsService {
     return this.grantQuestReward(userId, completedQuest, "MAIN_QUEST_COMPLETE", db);
   }
 
+  /**
+   * Side Quest = bonus izazov vezan za KONKRETNU sesiju treninga (MVP ima
+   * samo jednu vrstu - "nova vezba"). Za razliku od Weekly/Main Questa,
+   * NEMA nezavisno izvodljiv progres (ne postoji "trenutno stanje" koje bi
+   * GET mogao da procita u proizvoljnom trenutku) - zato se generise ovde
+   * (sekvencijalni marker, isti princip kao Main Quest), ali zavrsava
+   * ISKLJUCIVO iz WorkoutsService.completeSession preko
+   * completeQuestIfPending. Vraca `null` ako je korisnik vec zavrsio seriju
+   * SVAKE vezbe iz biblioteke (nema vise sta da bude "nova vezba") - biblioteka
+   * je konacna, pa je ovo dugorocno moguce iako retko u praksi.
+   */
+  async generateSideQuest(userId: string, db: Db = this.prisma): Promise<Quest | null> {
+    const completedCount = await db.quest.count({ where: { userId, type: "SIDE", status: "COMPLETED" } });
+    const sequenceDate = new Date(SIDE_QUEST_EPOCH.getTime() + completedCount * 24 * 60 * 60 * 1000);
+
+    const existing = await db.quest.findUnique({
+      where: { userId_date_type: { userId, date: sequenceDate, type: "SIDE" } },
+    });
+    if (existing) {
+      return existing;
+    }
+
+    if (await this.hasTriedEveryExercise(userId, db)) {
+      return null;
+    }
+
+    const display = getSideQuestDisplay(SIDE_QUEST_KIND);
+    return this.generateQuest(
+      userId,
+      "SIDE",
+      sequenceDate,
+      {
+        kind: SIDE_QUEST_KIND,
+        title: display.title,
+        description: display.description,
+        targetSets: SIDE_QUEST_TARGET,
+        xpReward: XP_REWARDS.SIDE_QUEST_COMPLETE,
+        coinReward: COIN_REWARDS.SIDE_QUEST_COMPLETE,
+      },
+      db,
+    );
+  }
+
+  /** Iscrpljenost: korisnik je vec zavrsio bar jednu seriju SVAKE vezbe iz biblioteke. */
+  private async hasTriedEveryExercise(userId: string, db: Db): Promise<boolean> {
+    const [totalExercises, completedExerciseIds] = await Promise.all([
+      db.exercise.count(),
+      db.workoutSet.findMany({
+        where: { completed: true, session: { userId, status: "COMPLETED" } },
+        distinct: ["exerciseId"],
+        select: { exerciseId: true },
+      }),
+    ]);
+    return completedExerciseIds.length >= totalExercises;
+  }
+
+  /**
+   * Da li ova (upravo zavrsena) sesija sadrzi bar jednu zavrsenu seriju vezbe
+   * koju korisnik NIKAD pre nije zavrsio u nekoj drugoj COMPLETED sesiji. Poziva
+   * se posle sto je session.status vec azuriran na COMPLETED u istoj transakciji
+   * (isti princip kao countCompletedSessionsThisWeek za Boss Quest) - iskljucuje
+   * `sessionId` iz "prethodnih" da tekuca sesija ne broji samu sebe.
+   */
+  async hasCompletedNewExercise(userId: string, sessionId: string, db: Db = this.prisma): Promise<boolean> {
+    const currentExerciseIds = await db.workoutSet.findMany({
+      where: { sessionId, completed: true },
+      distinct: ["exerciseId"],
+      select: { exerciseId: true },
+    });
+    if (currentExerciseIds.length === 0) {
+      return false;
+    }
+
+    const priorExerciseIds = await db.workoutSet.findMany({
+      where: { completed: true, session: { userId, status: "COMPLETED", id: { not: sessionId } } },
+      distinct: ["exerciseId"],
+      select: { exerciseId: true },
+    });
+    const priorSet = new Set(priorExerciseIds.map((row) => row.exerciseId));
+    return currentExerciseIds.some((row) => !priorSet.has(row.exerciseId));
+  }
+
+  /**
+   * Read-only (nema lenjog zavrsetka ovde, za razliku od getCurrentWeeklyQuest/
+   * getCurrentMainQuest) - vidi objasnjenje u generateSideQuest. `quest: null`
+   * znaci da je korisnik iscrpeo biblioteku vezbi (nema vise "novih" vezbi).
+   */
+  async getCurrentSideQuest(userId: string): Promise<{ quest: SideQuestDto | null }> {
+    const quest = await this.generateSideQuest(userId);
+    return { quest: quest ? toSideDto(quest) : null };
+  }
+
   private async grantQuestReward(userId: string, completedQuest: Quest | null, source: XpSource, db: Db): Promise<QuestRewardResult> {
     if (!completedQuest) {
       return { completed: false, xpGained: 0, coinsGained: 0, levelUp: false, newLevel: 0, statPointsGained: 0 };
@@ -459,6 +562,28 @@ function toMainDto(quest: Quest, progress: number, targetProgress: number): Main
     description: quest.description,
     targetProgress,
     progress: Math.min(progress, targetProgress),
+    xpReward: quest.xpReward,
+    coinReward: quest.coinReward,
+    status: quest.status,
+  };
+}
+
+/**
+ * Za razliku od Boss/Weekly/Main Questa, progres se NE izvodi iz posebnog
+ * upita - ovaj quest ili JOS NIJE zavrsen (progress=0) ili JE (progress=target),
+ * jer se zavrsava iskljucivo unutar WorkoutsService.completeSession (nema
+ * "delimicno" stanje da bi ga trebalo racunati).
+ */
+function toSideDto(quest: Quest): SideQuestDto {
+  const kind = quest.kind as SideQuestKind;
+  const targetProgress = quest.targetSets ?? SIDE_QUEST_TARGET;
+  return {
+    id: quest.id,
+    kind,
+    title: quest.title,
+    description: quest.description,
+    targetProgress,
+    progress: quest.status === "COMPLETED" ? targetProgress : 0,
     xpReward: quest.xpReward,
     coinReward: quest.coinReward,
     status: quest.status,

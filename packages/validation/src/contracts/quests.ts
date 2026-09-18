@@ -1,4 +1,4 @@
-import { DAILY_QUEST_KINDS, MAIN_QUEST_KINDS, QUEST_STATUSES, WEEKLY_QUEST_KINDS } from "@risesolo/domain";
+import { DAILY_QUEST_KINDS, MAIN_QUEST_KINDS, QUEST_STATUSES, SIDE_QUEST_KINDS, WEEKLY_QUEST_KINDS } from "@risesolo/domain";
 import { z } from "zod";
 
 export const dailyQuestSchema = z.object({
@@ -74,3 +74,34 @@ export const mainQuestSchema = z.object({
   status: z.enum(QUEST_STATUSES),
 });
 export type MainQuestDto = z.infer<typeof mainQuestSchema>;
+
+/**
+ * Side Quest - bonus izazov vezan za konkretnu sesiju treninga (MVP: samo
+ * "nova vezba"). Za razliku od Boss/Weekly/Main Questa, `progress` NIJE
+ * izvedeno iz posebnog upita - ili je 0 (jos nezavrseno) ili targetProgress
+ * (zavrseno) jer se ovaj quest zavrsava iskljucivo unutar workout completion
+ * engine-a (vidi apps/api/src/workouts/workouts.service.ts), ne lenjo na GET-u.
+ */
+export const sideQuestSchema = z.object({
+  id: z.string(),
+  kind: z.enum(SIDE_QUEST_KINDS),
+  title: z.string(),
+  description: z.string().nullable(),
+  targetProgress: z.number().int(),
+  progress: z.number().int(),
+  xpReward: z.number().int(),
+  coinReward: z.number().int(),
+  status: z.enum(QUEST_STATUSES),
+});
+export type SideQuestDto = z.infer<typeof sideQuestSchema>;
+
+/**
+ * `quest: null` znaci da je korisnik iscrpeo biblioteku vezbi (zavrsio bar
+ * jednu seriju svake vezbe) - nema vise "novih" vezbi da bi Side Quest mogao
+ * da se generise. Odgovor je NAMERNO uvijen u objekat (nikad bare `null`) -
+ * isti anti-"prazno telo" princip kao ActiveWorkoutSessionResponse.
+ */
+export const sideQuestResponseSchema = z.object({
+  quest: sideQuestSchema.nullable(),
+});
+export type SideQuestResponse = z.infer<typeof sideQuestResponseSchema>;
