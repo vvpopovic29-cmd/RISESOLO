@@ -1,14 +1,20 @@
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import {
   HIDDEN_ITEM_DEFINITIONS,
+  WORKSHOP_ITEMS,
+  calculateLevel,
+  canCraftWorkshopItem,
   evaluateNewlyDiscoveredHiddenItems,
+  getWorkshopItem,
   type HiddenItemId,
   type HiddenItemStatsSnapshot,
+  type WorkshopItemDefinition,
 } from "@risesolo/domain";
-import type { InventoryItemDto } from "@risesolo/validation";
+import type { CraftWorkshopItemResponse, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import type { Prisma } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { getHiddenItemDisplay } from "./inventory-catalog";
+import { getWorkshopItemDisplay } from "./workshop-catalog";
 
 type Db = PrismaService | Prisma.TransactionClient;
 
@@ -106,4 +112,78 @@ export class InventoryService {
       };
     });
   }
+
+  /** GET /inventory/workshop - ceo katalog, unapred vidljiv (za razliku od Hidden Item-a). */
+  async listWorkshop(userId: string): Promise<WorkshopItemDto[]> {
+    const ownedRows = await this.prisma.inventoryItem.findMany({
+      where: { userId, source: "WORKSHOP" },
+      select: { itemId: true },
+    });
+    const ownedIds = new Set(ownedRows.map((row) => row.itemId));
+
+    return WORKSHOP_ITEMS.map((item) => toWorkshopDto(item, ownedIds.has(item.id)));
+  }
+
+  /**
+   * Izrada je atomska (jedna transakcija): provera nivoa/coins-a i upis
+   * InventoryItem reda idu zajedno da ne bi doslo do trke (dupli klik
+   * "Izradi" pre nego sto se prvi zahtev zavrsi) - isti princip kao
+   * ShopService.purchase. `@@unique([userId, itemId])` je poslednja linija
+   * odbrane ako i transakcija promasi.
+   */
+  async craftWorkshopItem(userId: string, itemId: string): Promise<CraftWorkshopItemResponse> {
+    const itemDefinition = getWorkshopItem(itemId);
+    if (!itemDefinition) {
+      throw new NotFoundException("Predmet nije pronadjen");
+    }
+
+    try {
+      const coins = await this.prisma.$transaction(async (tx) => {
+        const [progression, existing] = await Promise.all([
+          tx.progression.findUniqueOrThrow({ where: { userId } }),
+          tx.inventoryItem.findUnique({ where: { userId_itemId: { userId, itemId } } }),
+        ]);
+        const level = calculateLevel(progression.totalXp);
+
+        if (!canCraftWorkshopItem(level, progression.coins, itemDefinition, existing !== null)) {
+          if (existing !== null) {
+            throw new ForbiddenException("Vec imas ovaj predmet");
+          }
+          if (level < itemDefinition.levelRequirement) {
+            throw new ForbiddenException(`Potreban je nivo ${itemDefinition.levelRequirement} za izradu ovog predmeta`);
+          }
+          throw new HttpException("Nemas dovoljno coins-a za izradu ovog predmeta", HttpStatus.PAYMENT_REQUIRED);
+        }
+
+        await tx.inventoryItem.create({ data: { userId, itemId, source: "WORKSHOP" } });
+        const updated = await tx.progression.update({
+          where: { userId },
+          data: { coins: { decrement: itemDefinition.coinCost } },
+        });
+        return updated.coins;
+      });
+
+      return { item: toWorkshopDto(itemDefinition, true), coins };
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new ForbiddenException("Vec imas ovaj predmet");
+      }
+      throw error;
+    }
+  }
+}
+
+function toWorkshopDto(definition: WorkshopItemDefinition, owned: boolean): WorkshopItemDto {
+  const display = getWorkshopItemDisplay(definition.id);
+  return {
+    id: definition.id,
+    levelRequirement: definition.levelRequirement,
+    coinCost: definition.coinCost,
+    owned,
+    ...display,
+  };
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && (error as { code: unknown }).code === "P2002";
 }

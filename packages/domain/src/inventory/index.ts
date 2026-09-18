@@ -7,3 +7,11 @@ export {
   type HiddenItemDefinition,
   type HiddenItemStatsSnapshot,
 } from "./hidden-item";
+export {
+  WORKSHOP_ITEM_IDS,
+  WORKSHOP_ITEMS,
+  getWorkshopItem,
+  canCraftWorkshopItem,
+  type WorkshopItemId,
+  type WorkshopItemDefinition,
+} from "./workshop-item";

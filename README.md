@@ -53,8 +53,13 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > Hidden Items - tajni predmeti ciji uslov otkljucavanja NIKAD nije prikazan
 > klijentu unapred (za razliku od Achievements pragova), server salje
 > name/description tek posto je predmet otkriven (vidi
-> `packages/domain/src/inventory/hidden-item.ts`); ostali izvori (Workshop/
-> Event/AI-generated/Recovery/Custom) dolaze u narednim fazama.
+> `packages/domain/src/inventory/hidden-item.ts`).
+> Workshop Items su drugi izvor - za razliku od Hidden Item-a, katalog je
+> UNAPRED vidljiv (name/description/cena/potreban nivo su uvek poznati), ali
+> igrac mora AKTIVNO da izradi predmet (`POST /inventory/workshop/craft`) uz
+> dovoljan nivo I coins zajedno (za razliku od Coin Shop-a koji trazi samo
+> coins, bez praga nivoa) - vidi `packages/domain/src/inventory/workshop-item.ts`.
+> Ostali izvori (Event/AI-generated/Recovery/Custom) dolaze u narednim fazama.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

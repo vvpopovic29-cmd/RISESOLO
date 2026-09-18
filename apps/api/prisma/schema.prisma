@@ -597,15 +597,17 @@ model UserCosmetic {
 }
 
 // ---------------------------------------------------------------------------
-// Inventory (B2) - Hidden Items
+// Inventory (B2) - Hidden Items, Workshop Items
 // ---------------------------------------------------------------------------
 
-/// Izvor Inventory predmeta - `HIDDEN` je prvi implementirani (tajni uslovi,
-/// vidi @risesolo/domain hidden-item.ts). Ostali izvori (WORKSHOP/EVENT/
-/// AI_GENERATED/RECOVERY/CUSTOM) se dodaju fazu po fazu preko posebne
-/// migracije (isti princip kao QuestType).
+/// Izvor Inventory predmeta - `HIDDEN` (tajni uslovi, vidi @risesolo/domain
+/// hidden-item.ts) i `WORKSHOP` (unapred vidljiv katalog, izradjuje se preko
+/// POST /inventory/workshop/craft uz nivo+coins, vidi workshop-item.ts).
+/// Ostali izvori (EVENT/AI_GENERATED/RECOVERY/CUSTOM) se dodaju fazu po fazu
+/// preko posebne migracije (isti princip kao QuestType).
 enum ItemSource {
   HIDDEN
+  WORKSHOP
 
   @@map("item_source")
 }
