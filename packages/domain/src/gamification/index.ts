@@ -33,3 +33,12 @@ export {
   selectWeeklyQuestKind,
   type WeeklyQuestKind,
 } from "./weekly-quest-pool";
+export {
+  MAIN_QUEST_KINDS,
+  MAIN_QUEST_TIER_STEP,
+  isMainQuestComplete,
+  mainQuestTarget,
+  mainQuestTier,
+  selectMainQuestKind,
+  type MainQuestKind,
+} from "./main-quest-pool";

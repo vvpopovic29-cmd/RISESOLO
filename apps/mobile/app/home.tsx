@@ -8,6 +8,7 @@ import { usePlayerState } from "../src/player/use-player-state";
 import { useTodayQuest } from "../src/player/use-today-quest";
 import { useBossQuest } from "../src/player/use-boss-quest";
 import { useWeeklyQuest } from "../src/player/use-weekly-quest";
+import { useMainQuest } from "../src/player/use-main-quest";
 import { useActiveSession } from "../src/workout/use-active-session";
 import { StatAllocator } from "../src/player/StatAllocator";
 import { Button } from "../src/ui/Button";
@@ -42,12 +43,27 @@ const WEEKLY_QUEST_KIND_UNIT: Record<string, string> = {
   NUTRITION_LOG_DAYS: "dana sa ishranom ove nedelje",
 };
 
+/**
+ * Main Quest je dugorocni LANAC (za razliku od Daily/Weekly/Boss NIKAD ne
+ * istice, traje dok se ne zavrsi) - rotira kroz stat-ove, odvojeno od
+ * Achievements koji vec pokrivaju "dostigni level X" (vidi @risesolo/domain
+ * main-quest-pool).
+ */
+const MAIN_QUEST_KIND_LABEL: Record<string, string> = {
+  strength: "Snaga",
+  agility: "Agilnost",
+  endurance: "Izdrzljivost",
+  vitality: "Vitalnost",
+  intelligence: "Inteligencija",
+};
+
 export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const { state: questState, refetch: refetchQuest } = useTodayQuest(apiClient);
   const { state: bossQuestState, refetch: refetchBossQuest } = useBossQuest(apiClient);
   const { state: weeklyQuestState, refetch: refetchWeeklyQuest } = useWeeklyQuest(apiClient);
+  const { state: mainQuestState, refetch: refetchMainQuest } = useMainQuest(apiClient);
   const { state: activeSessionState, refetch: refetchActiveSession } = useActiveSession(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
@@ -62,8 +78,9 @@ export default function HomeScreen() {
       refetchQuest();
       refetchBossQuest();
       refetchWeeklyQuest();
+      refetchMainQuest();
       refetchActiveSession();
-    }, [refetchPlayer, refetchQuest, refetchBossQuest, refetchWeeklyQuest, refetchActiveSession]),
+    }, [refetchPlayer, refetchQuest, refetchBossQuest, refetchWeeklyQuest, refetchMainQuest, refetchActiveSession]),
   );
 
   async function handleAbandonActive(sessionId: string) {
@@ -304,6 +321,45 @@ export default function HomeScreen() {
               </Text>
               <Text className="text-xs text-reward">
                 +{weeklyQuestState.data.xpReward} XP · +{weeklyQuestState.data.coinReward} coins
+              </Text>
+            </View>
+          </>
+        )}
+      </View>
+
+      <View className="gap-2 rounded-lg border border-reward/40 p-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-sm font-semibold text-reward">
+            GLAVNI QUEST{mainQuestState.status === "success" ? ` · TIER ${mainQuestState.data.tier}` : ""}
+          </Text>
+          {mainQuestState.status === "success" && mainQuestState.data.status === "COMPLETED" ? (
+            <Text className="text-xs font-bold text-reward">ZAVRSEN</Text>
+          ) : null}
+        </View>
+        {mainQuestState.status === "loading" ? (
+          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        ) : mainQuestState.status === "error" ? (
+          <ErrorState message={mainQuestState.message} onRetry={refetchMainQuest} />
+        ) : (
+          <>
+            <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
+              {mainQuestState.data.title}
+            </Text>
+            {mainQuestState.data.description ? (
+              <Text className="text-sm text-neutral-500 dark:text-neutral-600">{mainQuestState.data.description}</Text>
+            ) : null}
+            <ProgressBar
+              progress={mainQuestState.data.progress / mainQuestState.data.targetProgress}
+              colorClassName="bg-reward"
+              testID="main-quest-progress"
+            />
+            <View className="flex-row items-center justify-between pt-1">
+              <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                {mainQuestState.data.progress} / {mainQuestState.data.targetProgress}{" "}
+                {MAIN_QUEST_KIND_LABEL[mainQuestState.data.kind] ?? ""}
+              </Text>
+              <Text className="text-xs text-reward">
+                +{mainQuestState.data.xpReward} XP · +{mainQuestState.data.coinReward} coins
               </Text>
             </View>
           </>

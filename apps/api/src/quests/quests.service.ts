@@ -8,19 +8,26 @@ import {
   applyCoinPenalty,
   calculatePenaltyCoins,
   detectLevelUp,
+  isMainQuestComplete,
   isWeeklyQuestComplete,
+  MAIN_QUEST_TIER_STEP,
+  mainQuestTarget,
+  mainQuestTier,
   selectDailyQuestKind,
+  selectMainQuestKind,
   selectWeeklyQuestKind,
   statPointsForLevelsGained,
   type DailyQuestKind,
+  type MainQuestKind,
   type WeeklyQuestKind,
   type XpSource,
 } from "@risesolo/domain";
-import type { BossQuestDto, DailyQuestDto, PenaltyResultDto, WeeklyQuestDto } from "@risesolo/validation";
+import type { BossQuestDto, DailyQuestDto, MainQuestDto, PenaltyResultDto, WeeklyQuestDto } from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
 import { getDailyQuestDisplay } from "./daily-quest-catalog";
+import { getMainQuestDisplay } from "./main-quest-catalog";
 import { getWeeklyQuestDisplay } from "./weekly-quest-catalog";
 
 type Db = PrismaService | Prisma.TransactionClient;
@@ -29,6 +36,14 @@ const DAILY_QUEST_TARGET_SETS = 3;
 
 const BOSS_QUEST_TITLE = "Nedeljni Boss Quest";
 const BOSS_QUEST_DESCRIPTION = `Zavrsi ${BOSS_QUEST_TARGET_SESSIONS} treninga ove nedelje da pobedis Boss-a i osvojis veliku nagradu.`;
+
+/**
+ * Main Quest nema prirodan vremenski period (za razliku od Daily/Weekly/Boss)
+ * - "date" kolona se ovde koristi samo kao SEKVENCIJALNI marker (epoch + broj
+ * vec zavrsenih Main Quest-ova) da @@unique([userId, date, type]) i dalje
+ * garantuje idempotentnost/race-safety bez nove kolone ili tabele.
+ */
+const MAIN_QUEST_EPOCH = new Date(Date.UTC(2020, 0, 1));
 
 interface QuestFields {
   kind?: string;
@@ -260,6 +275,72 @@ export class QuestsService {
     return this.grantQuestReward(userId, completedQuest, "WEEKLY_QUEST_COMPLETE", db);
   }
 
+  /**
+   * Main Quest = dugorocni LANAC (za razliku od Daily/Weekly/Boss, NIKAD ne
+   * istice niti se resetuje po datumu). Kind/tier se izvode iz broja vec
+   * ZAVRSENIH Main Quest-ova (derive, don't cache) - rotacija kroz stat-ove
+   * (snaga->agilnost->...->inteligencija->snaga na visem tier-u).
+   */
+  async generateMainQuest(userId: string, db: Db = this.prisma): Promise<Quest> {
+    const completedCount = await db.quest.count({ where: { userId, type: "MAIN", status: "COMPLETED" } });
+    const kind: MainQuestKind = selectMainQuestKind(completedCount);
+    const tier = mainQuestTier(completedCount);
+    const target = mainQuestTarget(tier);
+    const display = getMainQuestDisplay(kind, target);
+    const sequenceDate = new Date(MAIN_QUEST_EPOCH.getTime() + completedCount * 24 * 60 * 60 * 1000);
+    return this.generateQuest(
+      userId,
+      "MAIN",
+      sequenceDate,
+      {
+        kind,
+        title: display.title,
+        description: display.description,
+        targetSets: target,
+        xpReward: XP_REWARDS.MAIN_QUEST_COMPLETE,
+        coinReward: COIN_REWARDS.MAIN_QUEST_COMPLETE,
+      },
+      db,
+    );
+  }
+
+  /** Progres = TRENUTNA vrednost tog stata (PlayerStats) - izvedeno, ne cuvano posebno na questu. */
+  async getMainQuestProgress(userId: string, kind: MainQuestKind, db: Db = this.prisma): Promise<number> {
+    const stats = await db.playerStats.findUniqueOrThrow({ where: { userId } });
+    return stats[kind];
+  }
+
+  /**
+   * Isti "generate + progres + lazy zavrsetak" obrazac kao
+   * getCurrentWeeklyQuest. Kada se ovaj Main Quest zavrsi, SLEDECI poziv
+   * generateMainQuest prirodno racuna novi (visi) completedCount i pravi
+   * SLEDECI quest u lancu - nema posebne "regenerate" logike.
+   */
+  async getCurrentMainQuest(userId: string): Promise<MainQuestDto> {
+    let quest = await this.generateMainQuest(userId);
+    const kind = quest.kind as MainQuestKind;
+    const targetProgress = quest.targetSets ?? mainQuestTarget(1);
+    const progress = await this.getMainQuestProgress(userId, kind);
+
+    if (quest.status !== "COMPLETED" && quest.status !== "EXPIRED" && isMainQuestComplete(progress, targetProgress)) {
+      const result = await this.completeMainQuestRewardIfPending(userId, quest.id);
+      if (result.completed) {
+        quest = { ...quest, status: "COMPLETED" };
+      }
+    }
+
+    return toMainDto(quest, progress, targetProgress);
+  }
+
+  /**
+   * Isti "uzi nagradni put" princip kao completeWeeklyQuestRewardIfPending -
+   * XP/coins/level-up/stat poeni, NAMERNO bez streak-a i cehovskog doprinosa.
+   */
+  async completeMainQuestRewardIfPending(userId: string, questId: string, db: Db = this.prisma): Promise<QuestRewardResult> {
+    const completedQuest = await this.completeQuestIfPending(questId, db);
+    return this.grantQuestReward(userId, completedQuest, "MAIN_QUEST_COMPLETE", db);
+  }
+
   private async grantQuestReward(userId: string, completedQuest: Quest | null, source: XpSource, db: Db): Promise<QuestRewardResult> {
     if (!completedQuest) {
       return { completed: false, xpGained: 0, coinsGained: 0, levelUp: false, newLevel: 0, statPointsGained: 0 };
@@ -358,6 +439,22 @@ function toWeeklyDto(quest: Quest, progress: number, targetProgress: number): We
     id: quest.id,
     weekStart: quest.date.toISOString().slice(0, 10),
     kind: quest.kind as WeeklyQuestKind,
+    title: quest.title,
+    description: quest.description,
+    targetProgress,
+    progress: Math.min(progress, targetProgress),
+    xpReward: quest.xpReward,
+    coinReward: quest.coinReward,
+    status: quest.status,
+  };
+}
+
+function toMainDto(quest: Quest, progress: number, targetProgress: number): MainQuestDto {
+  const kind = quest.kind as MainQuestKind;
+  return {
+    id: quest.id,
+    kind,
+    tier: Math.max(1, Math.round(targetProgress / MAIN_QUEST_TIER_STEP)),
     title: quest.title,
     description: quest.description,
     targetProgress,

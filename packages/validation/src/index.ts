@@ -36,9 +36,11 @@ export {
   dailyQuestSchema,
   bossQuestSchema,
   weeklyQuestSchema,
+  mainQuestSchema,
   type DailyQuestDto,
   type BossQuestDto,
   type WeeklyQuestDto,
+  type MainQuestDto,
 } from "./contracts/quests";
 export {
   trainingPlanExerciseSchema,

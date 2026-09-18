@@ -26,6 +26,11 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > (uloguj obrok X razlicitih dana), progres izveden iz postojecih podataka i
 > zavrsava se lazy na `GET /quests/weekly` (vidi
 > `packages/domain/src/gamification/weekly-quest-pool.ts`).
+> Main Quest je dugorocan LANAC (za razliku od Daily/Weekly/Boss nikad ne
+> istice niti se resetuje po datumu) - rotira kroz stat-ove (snaga/agilnost/
+> izdrzljivost/vitalnost/inteligencija), odvojen od Achievements koji vec
+> pokrivaju "dostigni level X" (vidi
+> `packages/domain/src/gamification/main-quest-pool.ts`).
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura
