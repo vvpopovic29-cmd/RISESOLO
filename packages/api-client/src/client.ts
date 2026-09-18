@@ -17,8 +17,11 @@ import {
   guildMessageSchema,
   guildSummarySchema,
   healthResponseSchema,
+  claimEventItemRequestSchema,
+  claimEventItemResponseSchema,
   craftWorkshopItemRequestSchema,
   craftWorkshopItemResponseSchema,
+  eventItemSchema,
   inventoryItemSchema,
   workshopItemSchema,
   joinGuildRequestSchema,
@@ -74,8 +77,11 @@ import {
   type GuildMessageDto,
   type GuildSummaryDto,
   type HealthResponse,
+  type ClaimEventItemRequest,
+  type ClaimEventItemResponse,
   type CraftWorkshopItemRequest,
   type CraftWorkshopItemResponse,
+  type EventItemDto,
   type InventoryItemDto,
   type WorkshopItemDto,
   type JoinGuildRequest,
@@ -143,6 +149,7 @@ export function createApiClient(config: ApiClientConfig) {
   const shopItemListSchema = z.array(shopItemSchema);
   const inventoryItemListSchema = z.array(inventoryItemSchema);
   const workshopItemListSchema = z.array(workshopItemSchema);
+  const eventItemListSchema = z.array(eventItemSchema);
 
   return {
     getHealth(): Promise<HealthResponse> {
@@ -452,6 +459,20 @@ export function createApiClient(config: ApiClientConfig) {
             path: "/inventory/workshop/craft",
             body: dto,
             schema: craftWorkshopItemResponseSchema,
+          });
+        },
+      },
+      event: {
+        list(): Promise<EventItemDto[]> {
+          return request({ method: "GET", path: "/inventory/event", schema: eventItemListSchema });
+        },
+        claim(dto: ClaimEventItemRequest): Promise<ClaimEventItemResponse> {
+          claimEventItemRequestSchema.parse(dto);
+          return request({
+            method: "POST",
+            path: "/inventory/event/claim",
+            body: dto,
+            schema: claimEventItemResponseSchema,
           });
         },
       },

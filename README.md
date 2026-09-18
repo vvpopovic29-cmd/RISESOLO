@@ -63,8 +63,13 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > ali se, kao Hidden Item, AUTOMATSKI dodeljuje (GET-only, bez akcije igraca)
 > na osnovu cehovske aktivnosti (uloga LEADER, broj zavrsenih cehovskih
 > rejdova, saldo riznice, duzina clanstva, nivo ceha) - vidi
-> `packages/domain/src/inventory/guild-item.ts`. Ostali izvori (Event/
-> AI-generated/Recovery/Custom) dolaze u narednim fazama.
+> `packages/domain/src/inventory/guild-item.ts`.
+> Event Items su cetvrti izvor - katalog je UNAPRED vidljiv kao Workshop i
+> Guild, ali se, kao Workshop, prisvaja AKTIVNO (`POST /inventory/event/claim`)
+> - BESPLATNO, bez nivoa/coins uslova, ali SAMO unutar godisnjeg kalendarskog
+> prozora (mesec+dan, godina se ne racuna - isti prozor je ponovo dostupan
+> svake godine), vidi `packages/domain/src/inventory/event-item.ts`. Ostali
+> izvori (AI-generated/Recovery/Custom) dolaze u narednim fazama.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

@@ -1,8 +1,12 @@
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import {
+  claimEventItemRequestSchema,
   craftWorkshopItemRequestSchema,
+  type ClaimEventItemRequest,
+  type ClaimEventItemResponse,
   type CraftWorkshopItemRequest,
   type CraftWorkshopItemResponse,
+  type EventItemDto,
   type InventoryItemDto,
   type WorkshopItemDto,
 } from "@risesolo/validation";
@@ -37,5 +41,18 @@ export class InventoryController {
   @Get("guild")
   listGuildItems(@CurrentUser() user: AuthenticatedUser): Promise<InventoryItemDto[]> {
     return this.inventoryService.listGuildItems(user.id);
+  }
+
+  @Get("event")
+  listEvent(@CurrentUser() user: AuthenticatedUser): Promise<EventItemDto[]> {
+    return this.inventoryService.listEvent(user.id);
+  }
+
+  @Post("event/claim")
+  claimEventItem(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(claimEventItemRequestSchema)) dto: ClaimEventItemRequest,
+  ): Promise<ClaimEventItemResponse> {
+    return this.inventoryService.claimEventItem(user.id, dto.itemId);
   }
 }
