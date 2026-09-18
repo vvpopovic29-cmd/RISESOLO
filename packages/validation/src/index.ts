@@ -201,4 +201,10 @@ export {
   type FriendLeaderboardEntryDto,
   type FriendsLeaderboardResponseDto,
 } from "./contracts/friends";
+export {
+  inventoryItemSchema,
+  listInventoryResponseSchema,
+  type InventoryItemDto,
+  type ListInventoryResponse,
+} from "./contracts/inventory";
 export { z } from "zod";

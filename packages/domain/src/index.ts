@@ -9,3 +9,4 @@ export * from "./guild";
 export * from "./subscription";
 export * from "./achievements";
 export * from "./shop";
+export * from "./inventory";

@@ -49,6 +49,12 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > besplatni korisnici i dani kada AI servis nije dostupan NIKAD ne dobijaju
 > ovaj quest (`quest: null`, graceful degradation - vidi
 > `packages/domain/src/gamification/ai-quest.ts`).
+> Inventory (novi sistem, ODVOJEN od Achievements/Coin Shop) je pokrenut sa
+> Hidden Items - tajni predmeti ciji uslov otkljucavanja NIKAD nije prikazan
+> klijentu unapred (za razliku od Achievements pragova), server salje
+> name/description tek posto je predmet otkriven (vidi
+> `packages/domain/src/inventory/hidden-item.ts`); ostali izvori (Workshop/
+> Event/AI-generated/Recovery/Custom) dolaze u narednim fazama.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

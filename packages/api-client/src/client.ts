@@ -17,6 +17,7 @@ import {
   guildMessageSchema,
   guildSummarySchema,
   healthResponseSchema,
+  inventoryItemSchema,
   joinGuildRequestSchema,
   loginRequestSchema,
   nutritionEntrySchema,
@@ -70,6 +71,7 @@ import {
   type GuildMessageDto,
   type GuildSummaryDto,
   type HealthResponse,
+  type InventoryItemDto,
   type JoinGuildRequest,
   type ListExercisesQuery,
   type LoginRequest,
@@ -133,6 +135,7 @@ export function createApiClient(config: ApiClientConfig) {
   const workoutHistoryListSchema = z.array(workoutHistoryEntrySchema);
   const personalRecordListSchema = z.array(personalRecordSchema);
   const shopItemListSchema = z.array(shopItemSchema);
+  const inventoryItemListSchema = z.array(inventoryItemSchema);
 
   return {
     getHealth(): Promise<HealthResponse> {
@@ -421,6 +424,12 @@ export function createApiClient(config: ApiClientConfig) {
           path: `/shop/equip/${encodeURIComponent(category)}`,
           schema: shopItemListSchema,
         });
+      },
+    },
+
+    inventory: {
+      list(): Promise<InventoryItemDto[]> {
+        return request({ method: "GET", path: "/inventory", schema: inventoryItemListSchema });
       },
     },
   };
