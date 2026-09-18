@@ -41,6 +41,14 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > generise proizvoljno, za razliku od svih ostalih questova). Zavrsava se na
 > 2. zavrsenom treningu istog dana i vraca TACAN iznos izgubljenih coins-a
 > (vidi `packages/domain/src/gamification/penalty-quest.ts`).
+> AI Quest je Pro-gated bonus quest ciji title/description generise Claude
+> (personalizovano po nivou/rangu/stat-ovima/streak-u, vidi
+> `apps/api/src/ai/ai.service.ts` `generateQuestFlavor`) - za razliku od svih
+> ostalih questova, sadrzaj NIJE iz fiksnog kataloga. Zavrsava se identicno
+> Daily Quest-ovom WORKOUT_COMPLETE kind-u (bilo koji zavrsen trening danas);
+> besplatni korisnici i dani kada AI servis nije dostupan NIKAD ne dobijaju
+> ovaj quest (`quest: null`, graceful degradation - vidi
+> `packages/domain/src/gamification/ai-quest.ts`).
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

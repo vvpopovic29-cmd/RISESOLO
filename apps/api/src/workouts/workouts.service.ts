@@ -176,6 +176,27 @@ export class WorkoutsService {
           coinsGained += quest.coinReward;
         }
 
+        // AI Quest - postoji SAMO ako je vec generisan danas preko GET /quests/ai (vidi
+        // QuestsService.getCurrentAiQuest); NIKAD se ne generise ovde (poziv Claude API-ja
+        // ne sme da blokira/ugrozi ovu DB transakciju - vidi QuestsService.getCurrentAiQuest).
+        // Zavrsava se identicno Daily Quest-ovom WORKOUT_COMPLETE kind-u - bilo koji zavrsen
+        // trening danas (razlika izmedju ova dva questa je IZVOR sadrzaja, ne mehanika).
+        const aiQuest = await tx.quest.findUnique({
+          where: { userId_date_type: { userId, date: startOfUtcDay(today), type: "AI_GENERATED" } },
+        });
+        let aiQuestCompleted = false;
+        if (aiQuest && aiQuest.status !== "COMPLETED" && aiQuest.status !== "EXPIRED") {
+          const completedAiQuest = await this.questsService.completeQuestIfPending(aiQuest.id, tx);
+          aiQuestCompleted = completedAiQuest !== null;
+          if (aiQuestCompleted) {
+            await tx.xpEvent.create({
+              data: { userId, source: "AI_QUEST_COMPLETE", sourceId: aiQuest.id, amount: aiQuest.xpReward },
+            });
+            xpGained += aiQuest.xpReward;
+            coinsGained += aiQuest.coinReward;
+          }
+        }
+
         // Boss quest se zavrsava kada broj zavrsenih sesija ove ISO nedelje (uklj. ovu, jer je
         // session update vec izvrsen iznad u istoj transakciji) dostigne cilj.
         const bossQuest = await this.questsService.generateBossQuest(userId, today, tx);
@@ -288,6 +309,7 @@ export class WorkoutsService {
           bossQuestCompleted,
           sideQuestCompleted,
           penaltyQuestCompleted,
+          aiQuestCompleted,
           streak: newStreak,
           guildXpContributed,
           guildRaidCompleted,

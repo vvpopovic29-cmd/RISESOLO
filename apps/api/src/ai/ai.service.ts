@@ -1,13 +1,15 @@
 import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import Anthropic from "@anthropic-ai/sdk";
-import { aiTrainingPlanSchema, formatZodError, type AiTrainingPlanOutput } from "@risesolo/validation";
-import type { CandidateExercise } from "@risesolo/domain";
+import { aiQuestFlavorSchema, aiTrainingPlanSchema, formatZodError, type AiQuestFlavorOutput, type AiTrainingPlanOutput } from "@risesolo/validation";
+import type { CandidateExercise, PlayerStats } from "@risesolo/domain";
 import type { ApiEnv } from "../config/env";
 
 const MODEL = "claude-sonnet-5";
 const MAX_TOKENS = 4096;
 const TOOL_NAME = "return_training_plan";
+const QUEST_FLAVOR_MAX_TOKENS = 1024;
+const QUEST_FLAVOR_TOOL_NAME = "return_quest_flavor";
 
 export interface GenerateTrainingPlanPrompt {
   daysPerWeek: number;
@@ -15,6 +17,13 @@ export interface GenerateTrainingPlanPrompt {
   trainingType: string | null;
   experienceLevel: string | null;
   candidates: readonly CandidateExercise[];
+}
+
+export interface GenerateQuestFlavorPrompt {
+  level: number;
+  rank: string;
+  stats: PlayerStats;
+  currentStreak: number;
 }
 
 /**
@@ -75,6 +84,49 @@ export class AiService {
     if (!parsed.success) {
       this.logger.error(`Neispravan AI izlaz:\n${formatZodError(parsed.error)}`);
       throw new ServiceUnavailableException("AI model je vratio neispravan plan, pokusaj ponovo.");
+    }
+
+    return parsed.data;
+  }
+
+  /**
+   * AI Quest (vidi apps/api/src/quests) - kratak, personalizovan title/
+   * description za bonus quest, NE trening plan. Namerno ODVOJEN alat
+   * ("return_quest_flavor") od trening plana - manji izlaz, drugaciji
+   * prompt, ali isti obrazac gresaka (503 umesto pucanja aplikacije).
+   */
+  async generateQuestFlavor(prompt: GenerateQuestFlavorPrompt): Promise<AiQuestFlavorOutput> {
+    if (!this.client) {
+      throw new ServiceUnavailableException("AI questovi trenutno nisu dostupni (ANTHROPIC_API_KEY nije podesen).");
+    }
+
+    let response: Anthropic.Messages.Message;
+    try {
+      response = await this.client.messages.create({
+        model: MODEL,
+        max_tokens: QUEST_FLAVOR_MAX_TOKENS,
+        system: buildQuestFlavorSystemPrompt(),
+        messages: [{ role: "user", content: buildQuestFlavorUserPrompt(prompt) }],
+        tools: [questFlavorTool],
+        tool_choice: { type: "tool", name: QUEST_FLAVOR_TOOL_NAME },
+      });
+    } catch (error) {
+      this.logger.error("Poziv Claude API-ja neuspesan (quest flavor)", error instanceof Error ? error.stack : error);
+      throw new ServiceUnavailableException("Generisanje AI questa trenutno nije uspelo, pokusaj ponovo.");
+    }
+
+    const toolUse = response.content.find(
+      (block): block is Anthropic.Messages.ToolUseBlock => block.type === "tool_use" && block.name === QUEST_FLAVOR_TOOL_NAME,
+    );
+    if (!toolUse) {
+      this.logger.error(`Claude odgovor ne sadrzi "${QUEST_FLAVOR_TOOL_NAME}" tool_use blok`);
+      throw new ServiceUnavailableException("AI model nije vratio ocekivan format odgovora.");
+    }
+
+    const parsed = aiQuestFlavorSchema.safeParse(toolUse.input);
+    if (!parsed.success) {
+      this.logger.error(`Neispravan AI quest flavor izlaz:\n${formatZodError(parsed.error)}`);
+      throw new ServiceUnavailableException("AI model je vratio neispravan quest, pokusaj ponovo.");
     }
 
     return parsed.data;
@@ -147,5 +199,41 @@ const trainingPlanTool: Anthropic.Messages.Tool = {
       },
     },
     required: ["title", "days"],
+  },
+};
+
+function buildQuestFlavorSystemPrompt(): string {
+  return [
+    "Ti si trener u RISESOLO, gamifikovanoj fitnes aplikaciji.",
+    "Sastavljas kratak, motivacioni naslov i opis za bonus quest namenjen bas ovom igracu.",
+    `Odgovor MORAS vratiti pozivom alata "${QUEST_FLAVOR_TOOL_NAME}".`,
+    "Naslov je kratak (do par reci), opis je jedna do dve recenice koje pominju igracevo trenutno stanje (nivo/rang/streak/najslabiji stat) i podsticu ga da danas zavrsi trening.",
+    "Nikad ne obecavaj konkretan broj setova/ponavljanja - quest se zavrsava bilo kojim zavrsenim treningom danas.",
+  ].join(" ");
+}
+
+function buildQuestFlavorUserPrompt(prompt: GenerateQuestFlavorPrompt): string {
+  const weakestStat = Object.entries(prompt.stats).reduce((weakest, [key, value]) =>
+    value < weakest[1] ? [key, value] : weakest,
+  );
+  return [
+    `Nivo: ${prompt.level}`,
+    `Rang: ${prompt.rank}`,
+    `Trenutni niz dana (streak): ${prompt.currentStreak}`,
+    `Stat-ovi: snaga=${prompt.stats.strength}, agilnost=${prompt.stats.agility}, izdrzljivost=${prompt.stats.endurance}, vitalnost=${prompt.stats.vitality}, inteligencija=${prompt.stats.intelligence}`,
+    `Najslabiji stat: ${weakestStat[0]}`,
+  ].join("\n");
+}
+
+const questFlavorTool: Anthropic.Messages.Tool = {
+  name: QUEST_FLAVOR_TOOL_NAME,
+  description: "Vraca personalizovan naslov i opis za bonus quest namenjen ovom igracu.",
+  input_schema: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "Kratak, motivacioni naslov questa (do par reci)." },
+      description: { type: "string", description: "Jedna do dve recenice - personalizovana poruka igracu." },
+    },
+    required: ["title", "description"],
   },
 };

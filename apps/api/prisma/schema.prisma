@@ -115,6 +115,7 @@ enum XpSource {
   MAIN_QUEST_COMPLETE
   SIDE_QUEST_COMPLETE
   PENALTY_QUEST_COMPLETE
+  AI_QUEST_COMPLETE
 
   @@map("xp_source")
 }
@@ -261,6 +262,7 @@ enum QuestType {
   MAIN
   SIDE
   PENALTY
+  AI_GENERATED
 
   @@map("quest_type")
 }
