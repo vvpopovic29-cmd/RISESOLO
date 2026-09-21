@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import type { GuildLeaderboardEntryDto, PlayerLeaderboardEntryDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { useGuildLeaderboard } from "../src/leaderboard/use-guild-leaderboard";
 import { usePlayerLeaderboard } from "../src/leaderboard/use-player-leaderboard";
 import { ChoiceGroup } from "../src/ui/ChoiceGroup";
@@ -11,15 +12,16 @@ import { Screen } from "../src/ui/Screen";
 
 type Tab = "players" | "guilds";
 
-const TAB_OPTIONS: ReadonlyArray<{ value: Tab; label: string }> = [
-  { value: "players", label: "Igraci" },
-  { value: "guilds", label: "Cehovi" },
-];
-
 export default function LeaderboardScreen() {
   const { apiClient, state: authState } = useAuth();
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>("players");
   const myUserId = authState.status === "signedIn" ? authState.user.id : undefined;
+
+  const TAB_OPTIONS: ReadonlyArray<{ value: Tab; label: string }> = [
+    { value: "players", label: t("leaderboard.tabPlayers") },
+    { value: "guilds", label: t("leaderboard.tabGuilds") },
+  ];
 
   const playerLeaderboard = usePlayerLeaderboard(apiClient);
   const guildLeaderboard = useGuildLeaderboard(apiClient);
@@ -27,31 +29,33 @@ export default function LeaderboardScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="leaderboard-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Leaderboard</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("leaderboard.title")}</Text>
 
-      <ChoiceGroup label="Prikaz" options={TAB_OPTIONS} value={tab} onChange={setTab} />
+      <ChoiceGroup label={t("leaderboard.viewLabel")} options={TAB_OPTIONS} value={tab} onChange={setTab} />
 
       {tab === "players" ? (
         playerLeaderboard.state.status === "loading" ? (
-          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : playerLeaderboard.state.status === "error" ? (
           <ErrorState
             message={playerLeaderboard.state.message}
             onRetry={playerLeaderboard.refetch}
+            retryLabel={t("common.retry")}
             testID="leaderboard-players-error"
           />
         ) : (
           <PlayerLeaderboardList data={playerLeaderboard.state.data} myUserId={myUserId} />
         )
       ) : guildLeaderboard.state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : guildLeaderboard.state.status === "error" ? (
         <ErrorState
           message={guildLeaderboard.state.message}
           onRetry={guildLeaderboard.refetch}
+          retryLabel={t("common.retry")}
           testID="leaderboard-guilds-error"
         />
       ) : (
@@ -71,6 +75,7 @@ function PlayerLeaderboardList({
   data: { entries: PlayerLeaderboardEntryDto[]; me: PlayerLeaderboardEntryDto };
   myUserId: string | undefined;
 }) {
+  const { t } = useI18n();
   const meInList = data.entries.some((entry) => entry.userId === myUserId);
 
   return (
@@ -80,7 +85,7 @@ function PlayerLeaderboardList({
       ))}
       {!meInList ? (
         <>
-          <Text className="pt-2 text-xs text-neutral-500 dark:text-neutral-600">TVOJA POZICIJA</Text>
+          <Text className="pt-2 text-xs text-neutral-500 dark:text-neutral-600">{t("leaderboard.yourPosition")}</Text>
           <PlayerRow entry={data.me} highlighted testID="leaderboard-me-row" />
         </>
       ) : null}
@@ -97,6 +102,7 @@ function PlayerRow({
   highlighted: boolean;
   testID?: string;
 }) {
+  const { t } = useI18n();
   return (
     <View
       testID={testID ?? `leaderboard-player-${entry.userId}`}
@@ -109,7 +115,7 @@ function PlayerRow({
         <View>
           <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{entry.username}</Text>
           <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-            Nivo {entry.level} · Rank {entry.rank}
+            {t("leaderboard.levelRank", { level: entry.level, rank: entry.rank })}
           </Text>
         </View>
       </View>
@@ -125,6 +131,7 @@ function GuildLeaderboardList({
   entries: GuildLeaderboardEntryDto[];
   myGuild: GuildLeaderboardEntryDto | null;
 }) {
+  const { t } = useI18n();
   const myGuildInList = myGuild !== null && entries.some((entry) => entry.guildId === myGuild.guildId);
 
   return (
@@ -134,7 +141,7 @@ function GuildLeaderboardList({
       ))}
       {myGuild && !myGuildInList ? (
         <>
-          <Text className="pt-2 text-xs text-neutral-500 dark:text-neutral-600">TVOJ CEH</Text>
+          <Text className="pt-2 text-xs text-neutral-500 dark:text-neutral-600">{t("leaderboard.yourGuild")}</Text>
           <GuildRow entry={myGuild} highlighted testID="leaderboard-my-guild-row" />
         </>
       ) : null}
@@ -151,6 +158,7 @@ function GuildRow({
   highlighted: boolean;
   testID?: string;
 }) {
+  const { t } = useI18n();
   return (
     <View
       testID={testID ?? `leaderboard-guild-${entry.guildId}`}
@@ -165,7 +173,7 @@ function GuildRow({
             {entry.name} [{entry.tag}]
           </Text>
           <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-            Nivo {entry.level} · {entry.memberCount} clanova
+            {t("leaderboard.levelMembers", { level: entry.level, count: entry.memberCount })}
           </Text>
         </View>
       </View>
