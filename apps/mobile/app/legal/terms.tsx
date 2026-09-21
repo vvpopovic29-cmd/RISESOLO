@@ -3,10 +3,10 @@ import { router } from "expo-router";
 import { Screen } from "../../src/ui/Screen";
 
 /**
- * PLACEHOLDER tekst - Apple/Google zahtevaju vidljive Terms/Privacy linkove
- * na paywall-u (vidi app/paywall.tsx), ali stvaran pravni tekst mora da
- * napise/pregleda pravnik pre produkcije (isti princip kao seed-data
- * fitness-content review - vidi apps/api/prisma/seed-data/README.md).
+ * RISESOLO aplikaciju razvija i odrzava Vukasin Popovic, individualni
+ * developer sa sedistem u Republici Srbiji. Tekst je stvaran (nije
+ * placeholder), ali pravnu reviziju pre veceg skaliranja i dalje
+ * preporucujemo.
  */
 export default function TermsOfUseScreen() {
   return (
@@ -16,11 +16,13 @@ export default function TermsOfUseScreen() {
       </Pressable>
 
       <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Uslovi koriscenja</Text>
-      <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-        Poslednje azurirano: [popuniti pre objave] - ovo je placeholder tekst, potrebna pravna revizija pre produkcije.
-      </Text>
+      <Text className="text-xs text-neutral-500 dark:text-neutral-600">Poslednje azurirano: 21. septembar 2026.</Text>
 
       <View className="gap-4">
+        <Section title="0. Pruzalac usluge">
+          RISESOLO aplikaciju razvija i odrzava Vukasin Popovic, individualni developer sa sedistem u Republici
+          Srbiji. Kontakt: vvpopovic29@gmail.com.
+        </Section>
         <Section title="1. Prihvatanje uslova">
           Koriscenjem RISESOLO aplikacije prihvatas ove Uslove koriscenja. Ako se ne slazes, ne koristi aplikaciju.
         </Section>
@@ -43,9 +45,12 @@ export default function TermsOfUseScreen() {
           Zadrzavamo pravo da izmenimo ove uslove; nastavak koriscenja aplikacije nakon izmene predstavlja
           prihvatanje novih uslova.
         </Section>
-        <Section title="6. Kontakt">
-          Pitanja u vezi sa ovim uslovima: [popuniti kontakt email pre objave].
+        <Section title="6. Merodavno pravo i nadleznost">
+          Ovi uslovi se tumace u skladu sa zakonima Republike Srbije. Eventualni sporovi resavaju se pred nadleznim
+          sudom u Republici Srbiji, osim ako obavezujuce lokalno pravo tvoje jurisdikcije (npr. za potrosace u EU)
+          ne propisuje drugacije.
         </Section>
+        <Section title="7. Kontakt">Pitanja u vezi sa ovim uslovima: vvpopovic29@gmail.com.</Section>
       </View>
     </Screen>
   );
