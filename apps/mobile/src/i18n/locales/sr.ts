@@ -3,6 +3,8 @@ import type { Messages } from "./en";
 const sr = {
   common: {
     loading: "Ucitavam...",
+    back: "< Nazad",
+    retry: "Pokusaj ponovo",
   },
   auth: {
     loginTitle: "RISESOLO",
@@ -103,6 +105,39 @@ const sr = {
     questStatusInProgress: "U toku",
     questStatusCompleted: "Zavrsen",
     questStatusExpired: "Istekao",
+  },
+  nutrition: {
+    title: "Ishrana",
+    totalCalories: "Kalorije",
+    totalProtein: "Protein (g)",
+    totalCarbs: "UH (g)",
+    totalFat: "Masti (g)",
+    mealLabel: "Obrok",
+    mealBreakfast: "Dorucak",
+    mealLunch: "Rucak",
+    mealDinner: "Vecera",
+    mealSnack: "Uzina",
+    nameLabel: "Naziv",
+    namePlaceholder: "npr. Ovsena kasa sa bananom",
+    addEntry: "Dodaj unos",
+    todayEntries: "DANASNJI UNOSI",
+    entriesEmpty: "Jos uvek nema unosa za danas.",
+    delete: "Obrisi",
+    entrySummary: "{calories} kcal · {protein}p / {carbs}u / {fat}m",
+    nameRequired: "Unesi naziv obroka.",
+    invalidNumbers: "Unesi validne brojeve vece ili jednake 0.",
+    saveFailed: "Cuvanje unosa nije uspelo.",
+  },
+  shop: {
+    title: "Prodavnica",
+    categoryFrames: "Avatar okviri",
+    categoryTitles: "Titule",
+    equip: "Opremi",
+    unequip: "Skini",
+    purchase: "Kupi",
+    purchaseFailed: "Kupovina nije uspela.",
+    equipFailed: "Opremanje nije uspelo.",
+    unequipFailed: "Skidanje nije uspelo.",
   },
 } satisfies Messages;
 

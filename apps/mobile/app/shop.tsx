@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { ApiError } from "@risesolo/api-client";
 import type { ShopItemDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { usePlayerState } from "../src/player/use-player-state";
 import { useShop } from "../src/shop/use-shop";
 import { ErrorState } from "../src/ui/ErrorState";
@@ -12,17 +13,18 @@ import { Screen } from "../src/ui/Screen";
 
 type ShopCategory = ShopItemDto["category"];
 
-const CATEGORY_LABEL: Record<ShopCategory, string> = {
-  AVATAR_FRAME: "Avatar okviri",
-  TITLE: "Titule",
-};
-
 export default function ShopScreen() {
   const { apiClient } = useAuth();
+  const { t } = useI18n();
   const { state, refetch } = useShop(apiClient);
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const CATEGORY_LABEL: Record<ShopCategory, string> = {
+    AVATAR_FRAME: t("shop.categoryFrames"),
+    TITLE: t("shop.categoryTitles"),
+  };
 
   const coins = playerState.status === "success" ? playerState.data.progression.coins : null;
 
@@ -34,7 +36,7 @@ export default function ShopScreen() {
       refetch();
       refetchPlayer();
     } catch (error) {
-      setActionError(error instanceof ApiError ? error.message : "Kupovina nije uspela.");
+      setActionError(error instanceof ApiError ? error.message : t("shop.purchaseFailed"));
     } finally {
       setBusyItemId(null);
     }
@@ -47,7 +49,7 @@ export default function ShopScreen() {
       await apiClient.shop.equip({ itemId: item.id });
       refetch();
     } catch (error) {
-      setActionError(error instanceof ApiError ? error.message : "Opremanje nije uspelo.");
+      setActionError(error instanceof ApiError ? error.message : t("shop.equipFailed"));
     } finally {
       setBusyItemId(null);
     }
@@ -60,7 +62,7 @@ export default function ShopScreen() {
       await apiClient.shop.unequip(item.category);
       refetch();
     } catch (error) {
-      setActionError(error instanceof ApiError ? error.message : "Skidanje nije uspelo.");
+      setActionError(error instanceof ApiError ? error.message : t("shop.unequipFailed"));
     } finally {
       setBusyItemId(null);
     }
@@ -69,11 +71,11 @@ export default function ShopScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="shop-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Prodavnica</Text>
+        <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("shop.title")}</Text>
         {coins !== null ? (
           <Text testID="shop-coins" className="text-sm font-semibold text-reward">
             {coins} coins
@@ -84,9 +86,9 @@ export default function ShopScreen() {
       {actionError ? <Text className="text-center text-danger">{actionError}</Text> : null}
 
       {state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} testID="shop-error" />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} testID="shop-error" />
       ) : (
         (["AVATAR_FRAME", "TITLE"] as const).map((category) => {
           const items = state.data.filter((item) => item.category === category);
@@ -104,6 +106,7 @@ export default function ShopScreen() {
                   onPurchase={() => void handlePurchase(item)}
                   onEquip={() => void handleEquip(item)}
                   onUnequip={() => void handleUnequip(item)}
+                  labels={{ equip: t("shop.equip"), unequip: t("shop.unequip"), purchase: t("shop.purchase") }}
                 />
               ))}
             </View>
@@ -121,6 +124,7 @@ function ShopItemRow({
   onPurchase,
   onEquip,
   onUnequip,
+  labels,
 }: {
   item: ShopItemDto;
   coins: number | null;
@@ -128,6 +132,7 @@ function ShopItemRow({
   onPurchase: () => void;
   onEquip: () => void;
   onUnequip: () => void;
+  labels: { equip: string; unequip: string; purchase: string };
 }) {
   const canAfford = coins !== null && coins >= item.price;
 
@@ -150,12 +155,12 @@ function ShopItemRow({
       </View>
 
       {item.equipped ? (
-        <Button label="Skini" variant="secondary" onPress={onUnequip} loading={busy} testID={`unequip-${item.id}`} />
+        <Button label={labels.unequip} variant="secondary" onPress={onUnequip} loading={busy} testID={`unequip-${item.id}`} />
       ) : item.owned ? (
-        <Button label="Opremi" onPress={onEquip} loading={busy} testID={`equip-${item.id}`} />
+        <Button label={labels.equip} onPress={onEquip} loading={busy} testID={`equip-${item.id}`} />
       ) : (
         <Button
-          label="Kupi"
+          label={labels.purchase}
           onPress={onPurchase}
           loading={busy}
           disabled={!canAfford}

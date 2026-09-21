@@ -4,26 +4,13 @@ import { router } from "expo-router";
 import { ApiError } from "@risesolo/api-client";
 import type { NutritionEntryDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { useNutritionDay } from "../src/nutrition/use-nutrition-day";
 import { Button } from "../src/ui/Button";
 import { ChoiceGroup } from "../src/ui/ChoiceGroup";
 import { ErrorState } from "../src/ui/ErrorState";
 import { Screen } from "../src/ui/Screen";
 import { TextField } from "../src/ui/TextField";
-
-const MEAL_TYPE_OPTIONS: ReadonlyArray<{ value: NutritionEntryDto["mealType"]; label: string }> = [
-  { value: "BREAKFAST", label: "Dorucak" },
-  { value: "LUNCH", label: "Rucak" },
-  { value: "DINNER", label: "Vecera" },
-  { value: "SNACK", label: "Uzina" },
-];
-
-const MEAL_TYPE_LABEL: Record<NutritionEntryDto["mealType"], string> = {
-  BREAKFAST: "Dorucak",
-  LUNCH: "Rucak",
-  DINNER: "Vecera",
-  SNACK: "Uzina",
-};
 
 /** Prazan string -> undefined; inace nenegativan ceo broj (0 ako je unos nevalidan). */
 function parseMacro(text: string): number {
@@ -39,7 +26,22 @@ function todayIsoDate(): string {
 
 export default function NutritionScreen() {
   const { apiClient } = useAuth();
+  const { t } = useI18n();
   const { state, refetch } = useNutritionDay(apiClient);
+
+  const MEAL_TYPE_OPTIONS: ReadonlyArray<{ value: NutritionEntryDto["mealType"]; label: string }> = [
+    { value: "BREAKFAST", label: t("nutrition.mealBreakfast") },
+    { value: "LUNCH", label: t("nutrition.mealLunch") },
+    { value: "DINNER", label: t("nutrition.mealDinner") },
+    { value: "SNACK", label: t("nutrition.mealSnack") },
+  ];
+
+  const MEAL_TYPE_LABEL: Record<NutritionEntryDto["mealType"], string> = {
+    BREAKFAST: t("nutrition.mealBreakfast"),
+    LUNCH: t("nutrition.mealLunch"),
+    DINNER: t("nutrition.mealDinner"),
+    SNACK: t("nutrition.mealSnack"),
+  };
 
   const [mealType, setMealType] = useState<NutritionEntryDto["mealType"]>("BREAKFAST");
   const [name, setName] = useState("");
@@ -53,7 +55,7 @@ export default function NutritionScreen() {
 
   async function handleAddEntry() {
     if (name.trim() === "") {
-      setFormError("Unesi naziv obroka.");
+      setFormError(t("nutrition.nameRequired"));
       return;
     }
     const parsedCalories = parseMacro(calories);
@@ -61,7 +63,7 @@ export default function NutritionScreen() {
     const parsedCarbs = parseMacro(carbsG);
     const parsedFat = parseMacro(fatG);
     if ([parsedCalories, parsedProtein, parsedCarbs, parsedFat].some(Number.isNaN)) {
-      setFormError("Unesi validne brojeve vece ili jednake 0.");
+      setFormError(t("nutrition.invalidNumbers"));
       return;
     }
 
@@ -84,7 +86,7 @@ export default function NutritionScreen() {
       setFatG("");
       refetch();
     } catch (error) {
-      setFormError(error instanceof ApiError ? error.message : "Cuvanje unosa nije uspelo.");
+      setFormError(error instanceof ApiError ? error.message : t("nutrition.saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -105,55 +107,67 @@ export default function NutritionScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="nutrition-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Ishrana</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("nutrition.title")}</Text>
 
       {state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} />
       ) : (
         <View
           testID="nutrition-totals"
           className="flex-row flex-wrap justify-between gap-y-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400"
         >
-          <MacroCell label="Kalorije" value={state.data.totals.calories} />
-          <MacroCell label="Protein (g)" value={state.data.totals.proteinG} />
-          <MacroCell label="UH (g)" value={state.data.totals.carbsG} />
-          <MacroCell label="Masti (g)" value={state.data.totals.fatG} />
+          <MacroCell label={t("nutrition.totalCalories")} value={state.data.totals.calories} />
+          <MacroCell label={t("nutrition.totalProtein")} value={state.data.totals.proteinG} />
+          <MacroCell label={t("nutrition.totalCarbs")} value={state.data.totals.carbsG} />
+          <MacroCell label={t("nutrition.totalFat")} value={state.data.totals.fatG} />
         </View>
       )}
 
       <View className="gap-3 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
-        <ChoiceGroup label="Obrok" options={MEAL_TYPE_OPTIONS} value={mealType} onChange={setMealType} />
-        <TextField label="Naziv" placeholder="npr. Ovsena kasa sa bananom" value={name} onChangeText={setName} testID="nutrition-name-input" />
+        <ChoiceGroup label={t("nutrition.mealLabel")} options={MEAL_TYPE_OPTIONS} value={mealType} onChange={setMealType} />
+        <TextField
+          label={t("nutrition.nameLabel")}
+          placeholder={t("nutrition.namePlaceholder")}
+          value={name}
+          onChangeText={setName}
+          testID="nutrition-name-input"
+        />
         <View className="flex-row gap-3">
           <View className="flex-1">
-            <TextField label="Kalorije" value={calories} onChangeText={setCalories} keyboardType="number-pad" testID="nutrition-calories-input" />
+            <TextField
+              label={t("nutrition.totalCalories")}
+              value={calories}
+              onChangeText={setCalories}
+              keyboardType="number-pad"
+              testID="nutrition-calories-input"
+            />
           </View>
           <View className="flex-1">
-            <TextField label="Protein (g)" value={proteinG} onChangeText={setProteinG} keyboardType="number-pad" />
+            <TextField label={t("nutrition.totalProtein")} value={proteinG} onChangeText={setProteinG} keyboardType="number-pad" />
           </View>
         </View>
         <View className="flex-row gap-3">
           <View className="flex-1">
-            <TextField label="UH (g)" value={carbsG} onChangeText={setCarbsG} keyboardType="number-pad" />
+            <TextField label={t("nutrition.totalCarbs")} value={carbsG} onChangeText={setCarbsG} keyboardType="number-pad" />
           </View>
           <View className="flex-1">
-            <TextField label="Masti (g)" value={fatG} onChangeText={setFatG} keyboardType="number-pad" />
+            <TextField label={t("nutrition.totalFat")} value={fatG} onChangeText={setFatG} keyboardType="number-pad" />
           </View>
         </View>
         {formError ? <Text className="text-danger">{formError}</Text> : null}
-        <Button label="Dodaj unos" onPress={() => void handleAddEntry()} loading={submitting} testID="add-nutrition-entry-button" />
+        <Button label={t("nutrition.addEntry")} onPress={() => void handleAddEntry()} loading={submitting} testID="add-nutrition-entry-button" />
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">DANASNJI UNOSI</Text>
+        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("nutrition.todayEntries")}</Text>
         {state.status === "success" && state.data.entries.length === 0 ? (
           <Text testID="nutrition-entries-empty" className="text-neutral-500 dark:text-neutral-600">
-            Jos uvek nema unosa za danas.
+            {t("nutrition.entriesEmpty")}
           </Text>
         ) : null}
         {state.status === "success"
@@ -166,11 +180,16 @@ export default function NutritionScreen() {
                   <Text className="text-xs text-neutral-500 dark:text-neutral-600">{MEAL_TYPE_LABEL[entry.mealType]}</Text>
                   <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{entry.name}</Text>
                   <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-                    {entry.calories} kcal · {entry.proteinG}p / {entry.carbsG}u / {entry.fatG}m
+                    {t("nutrition.entrySummary", {
+                      calories: entry.calories,
+                      protein: entry.proteinG,
+                      carbs: entry.carbsG,
+                      fat: entry.fatG,
+                    })}
                   </Text>
                 </View>
                 <Button
-                  label="Obrisi"
+                  label={t("nutrition.delete")}
                   variant="secondary"
                   onPress={() => void handleDelete(entry.id)}
                   loading={deletingId === entry.id}
