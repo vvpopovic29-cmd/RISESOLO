@@ -4,6 +4,7 @@ import type { CreateNutritionEntryRequest, DailyNutritionSummaryDto, NutritionEn
 import type { NutritionEntry } from "@prisma/client";
 import { AchievementsService } from "../achievements/achievements.service";
 import { startOfUtcDay } from "../common/date";
+import { resolveLocale } from "../common/locale";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuestsService } from "../quests/quests.service";
@@ -39,7 +40,8 @@ export class NutritionService {
         },
       });
 
-      const quest = await this.questsService.generateDailyQuest(userId, new Date(), tx);
+      const locale = await resolveLocale(tx, userId);
+      const quest = await this.questsService.generateDailyQuest(userId, new Date(), tx, locale);
       const questReward =
         quest.kind === "LOG_NUTRITION" ? await this.questsService.completeDailyQuestRewardIfPending(userId, quest.id, tx) : null;
 

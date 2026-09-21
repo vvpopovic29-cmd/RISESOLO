@@ -11,6 +11,7 @@ export {
   type AuthResponse,
 } from "./contracts/auth";
 export {
+  localeSchema,
   playerStatsSchema,
   playerProgressionSchema,
   playerProfileSchema,
@@ -18,6 +19,7 @@ export {
   playerStateSchema,
   onboardProfileRequestSchema,
   allocateStatPointsRequestSchema,
+  updateLocaleRequestSchema,
   type PlayerStatsDto,
   type PlayerProgressionDto,
   type PlayerProfileDto,
@@ -25,6 +27,7 @@ export {
   type PlayerStateDto,
   type OnboardProfileRequest,
   type AllocateStatPointsRequest,
+  type UpdateLocaleRequest,
 } from "./contracts/players";
 export {
   exerciseSchema,

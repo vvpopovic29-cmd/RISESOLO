@@ -4,12 +4,14 @@ import { Link, router } from "expo-router";
 import { loginRequestSchema } from "@risesolo/validation";
 import { ApiError } from "@risesolo/api-client";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { Button } from "../src/ui/Button";
 import { Screen } from "../src/ui/Screen";
 import { TextField } from "../src/ui/TextField";
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -18,7 +20,7 @@ export default function LoginScreen() {
   async function handleSubmit() {
     const parsed = loginRequestSchema.safeParse({ email: email.trim(), password });
     if (!parsed.success) {
-      setFormError("Unesi validan email i lozinku.");
+      setFormError(t("auth.loginInvalid"));
       return;
     }
 
@@ -28,7 +30,7 @@ export default function LoginScreen() {
       await login(parsed.data);
       router.replace("/");
     } catch (error) {
-      setFormError(error instanceof ApiError ? error.message : "Prijava nije uspela.");
+      setFormError(error instanceof ApiError ? error.message : t("auth.loginFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -38,13 +40,13 @@ export default function LoginScreen() {
     <Screen>
       <View className="flex-1 justify-center gap-8">
         <View className="items-center gap-1">
-          <Text className="text-3xl font-bold text-neutral-50 dark:text-neutral-1000">RISESOLO</Text>
-          <Text className="text-neutral-500 dark:text-neutral-600">Prijavi se da nastavis svoj napredak</Text>
+          <Text className="text-3xl font-bold text-neutral-50 dark:text-neutral-1000">{t("auth.loginTitle")}</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("auth.loginSubtitle")}</Text>
         </View>
 
         <View className="gap-4">
           <TextField
-            label="Email"
+            label={t("auth.emailLabel")}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -53,7 +55,7 @@ export default function LoginScreen() {
             testID="login-email"
           />
           <TextField
-            label="Lozinka"
+            label={t("auth.passwordLabel")}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -67,10 +69,10 @@ export default function LoginScreen() {
           </Text>
         ) : null}
 
-        <Button label="Prijavi se" onPress={() => void handleSubmit()} loading={submitting} testID="login-submit" />
+        <Button label={t("auth.loginSubmit")} onPress={() => void handleSubmit()} loading={submitting} testID="login-submit" />
 
         <Link href="/register" className="text-center text-accent">
-          Nemas nalog? Registruj se
+          {t("auth.goToRegister")}
         </Link>
       </View>
     </Screen>

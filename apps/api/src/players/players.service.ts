@@ -6,12 +6,15 @@ import {
   calculateProgress,
   calculateRank,
   calculateRequiredXP,
+  DEFAULT_LOCALE,
+  isLocale,
   type PlayerStats,
 } from "@risesolo/domain";
 import type {
   AllocateStatPointsRequest,
   OnboardProfileRequest,
   PlayerStateDto,
+  UpdateLocaleRequest,
 } from "@risesolo/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { QuestsService } from "../quests/quests.service";
@@ -50,6 +53,7 @@ export class PlayersService {
     }
 
     const level = calculateLevel(progression.totalXp);
+    const locale = isLocale(profile.locale) ? profile.locale : DEFAULT_LOCALE;
 
     return {
       profile: {
@@ -61,10 +65,11 @@ export class PlayersService {
         trainingType: profile.trainingType,
         experienceLevel: profile.experienceLevel,
         onboarded: profile.onboardedAt !== null,
-        title: profile.equippedTitleId ? (getShopItemDisplayById(profile.equippedTitleId)?.name ?? null) : null,
+        title: profile.equippedTitleId ? (getShopItemDisplayById(profile.equippedTitleId, locale)?.name ?? null) : null,
         avatarFrameColorHex: profile.equippedAvatarFrameId
           ? (getShopItemDisplayById(profile.equippedAvatarFrameId)?.colorHex ?? null)
           : null,
+        locale,
       },
       progression: {
         totalXp: progression.totalXp,
@@ -111,9 +116,21 @@ export class PlayersService {
         trainingType: dto.trainingType ?? null,
         experienceLevel: dto.experienceLevel ?? null,
         onboardedAt: new Date(),
+        ...(dto.locale ? { locale: dto.locale } : {}),
       },
     });
 
+    return this.getPlayerState(userId);
+  }
+
+  /** Settings ekran - promena jezika van onboardinga (vidi i onboardProfile, koje moze isto da postavi locale pri prvom podesavanju). */
+  async updateLocale(userId: string, dto: UpdateLocaleRequest): Promise<PlayerStateDto> {
+    const existing = await this.prisma.profile.findUnique({ where: { userId } });
+    if (!existing) {
+      throw new NotFoundException("Profil igraca nije pronadjen");
+    }
+
+    await this.prisma.profile.update({ where: { userId }, data: { locale: dto.locale } });
     return this.getPlayerState(userId);
   }
 

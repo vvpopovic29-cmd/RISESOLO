@@ -142,6 +142,7 @@ function samplePlayerState() {
       experienceLevel: null,
       title: null,
       avatarFrameColorHex: null,
+      locale: "sr" as const,
     },
     progression: {
       totalXp: 0,

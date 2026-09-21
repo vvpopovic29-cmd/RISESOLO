@@ -38,10 +38,12 @@ import type {
   InventoryItemDto,
   WorkshopItemDto,
 } from "@risesolo/validation";
+import type { Locale } from "@risesolo/domain";
 import type { Prisma } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { AiService } from "../ai/ai.service";
 import { diffInUtcDays, startOfUtcDay } from "../common/date";
+import { resolveLocale } from "../common/locale";
 import { PrismaService } from "../prisma/prisma.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 import { getEventItemDisplay } from "./event-item-catalog";
@@ -132,16 +134,19 @@ export class InventoryService {
   async listForUser(userId: string): Promise<InventoryItemDto[]> {
     await this.evaluateAndDiscover(userId);
 
-    const discoveredRows = await this.prisma.inventoryItem.findMany({
-      where: { userId, source: "HIDDEN" },
-      select: { itemId: true, discoveredAt: true },
-    });
+    const [discoveredRows, locale] = await Promise.all([
+      this.prisma.inventoryItem.findMany({
+        where: { userId, source: "HIDDEN" },
+        select: { itemId: true, discoveredAt: true },
+      }),
+      resolveLocale(this.prisma, userId),
+    ]);
     const discoveredByItemId = new Map(discoveredRows.map((row) => [row.itemId, row.discoveredAt]));
 
     return HIDDEN_ITEM_DEFINITIONS.map((definition) => {
       const discoveredAt = discoveredByItemId.get(definition.id) ?? null;
       const discovered = discoveredAt !== null;
-      const display = discovered ? getHiddenItemDisplay(definition.id) : null;
+      const display = discovered ? getHiddenItemDisplay(definition.id, locale) : null;
       return {
         id: definition.id,
         source: "HIDDEN" as const,
@@ -155,13 +160,16 @@ export class InventoryService {
 
   /** GET /inventory/workshop - ceo katalog, unapred vidljiv (za razliku od Hidden Item-a). */
   async listWorkshop(userId: string): Promise<WorkshopItemDto[]> {
-    const ownedRows = await this.prisma.inventoryItem.findMany({
-      where: { userId, source: "WORKSHOP" },
-      select: { itemId: true },
-    });
+    const [ownedRows, locale] = await Promise.all([
+      this.prisma.inventoryItem.findMany({
+        where: { userId, source: "WORKSHOP" },
+        select: { itemId: true },
+      }),
+      resolveLocale(this.prisma, userId),
+    ]);
     const ownedIds = new Set(ownedRows.map((row) => row.itemId));
 
-    return WORKSHOP_ITEMS.map((item) => toWorkshopDto(item, ownedIds.has(item.id)));
+    return WORKSHOP_ITEMS.map((item) => toWorkshopDto(item, ownedIds.has(item.id), locale));
   }
 
   /**
@@ -178,32 +186,35 @@ export class InventoryService {
     }
 
     try {
-      const coins = await this.prisma.$transaction(async (tx) => {
-        const [progression, existing] = await Promise.all([
-          tx.progression.findUniqueOrThrow({ where: { userId } }),
-          tx.inventoryItem.findUnique({ where: { userId_itemId: { userId, itemId } } }),
-        ]);
-        const level = calculateLevel(progression.totalXp);
+      const [coins, locale] = await Promise.all([
+        this.prisma.$transaction(async (tx) => {
+          const [progression, existing] = await Promise.all([
+            tx.progression.findUniqueOrThrow({ where: { userId } }),
+            tx.inventoryItem.findUnique({ where: { userId_itemId: { userId, itemId } } }),
+          ]);
+          const level = calculateLevel(progression.totalXp);
 
-        if (!canCraftWorkshopItem(level, progression.coins, itemDefinition, existing !== null)) {
-          if (existing !== null) {
-            throw new ForbiddenException("Vec imas ovaj predmet");
+          if (!canCraftWorkshopItem(level, progression.coins, itemDefinition, existing !== null)) {
+            if (existing !== null) {
+              throw new ForbiddenException("Vec imas ovaj predmet");
+            }
+            if (level < itemDefinition.levelRequirement) {
+              throw new ForbiddenException(`Potreban je nivo ${itemDefinition.levelRequirement} za izradu ovog predmeta`);
+            }
+            throw new HttpException("Nemas dovoljno coins-a za izradu ovog predmeta", HttpStatus.PAYMENT_REQUIRED);
           }
-          if (level < itemDefinition.levelRequirement) {
-            throw new ForbiddenException(`Potreban je nivo ${itemDefinition.levelRequirement} za izradu ovog predmeta`);
-          }
-          throw new HttpException("Nemas dovoljno coins-a za izradu ovog predmeta", HttpStatus.PAYMENT_REQUIRED);
-        }
 
-        await tx.inventoryItem.create({ data: { userId, itemId, source: "WORKSHOP" } });
-        const updated = await tx.progression.update({
-          where: { userId },
-          data: { coins: { decrement: itemDefinition.coinCost } },
-        });
-        return updated.coins;
-      });
+          await tx.inventoryItem.create({ data: { userId, itemId, source: "WORKSHOP" } });
+          const updated = await tx.progression.update({
+            where: { userId },
+            data: { coins: { decrement: itemDefinition.coinCost } },
+          });
+          return updated.coins;
+        }),
+        resolveLocale(this.prisma, userId),
+      ]);
 
-      return { item: toWorkshopDto(itemDefinition, true), coins };
+      return { item: toWorkshopDto(itemDefinition, true, locale), coins };
     } catch (error) {
       if (isUniqueConstraintError(error)) {
         throw new ForbiddenException("Vec imas ovaj predmet");
@@ -268,15 +279,18 @@ export class InventoryService {
   async listGuildItems(userId: string): Promise<InventoryItemDto[]> {
     await this.evaluateAndDiscoverGuild(userId);
 
-    const discoveredRows = await this.prisma.inventoryItem.findMany({
-      where: { userId, source: "GUILD" },
-      select: { itemId: true, discoveredAt: true },
-    });
+    const [discoveredRows, locale] = await Promise.all([
+      this.prisma.inventoryItem.findMany({
+        where: { userId, source: "GUILD" },
+        select: { itemId: true, discoveredAt: true },
+      }),
+      resolveLocale(this.prisma, userId),
+    ]);
     const discoveredByItemId = new Map(discoveredRows.map((row) => [row.itemId, row.discoveredAt]));
 
     return GUILD_ITEM_DEFINITIONS.map((definition) => {
       const discoveredAt = discoveredByItemId.get(definition.id) ?? null;
-      const display = getGuildItemDisplay(definition.id);
+      const display = getGuildItemDisplay(definition.id, locale);
       return {
         id: definition.id,
         source: "GUILD" as const,
@@ -290,14 +304,17 @@ export class InventoryService {
 
   /** GET /inventory/event - ceo katalog, unapred vidljiv. `active` govori da li se moze prisvojiti SADA (godisnji kalendarski prozor). */
   async listEvent(userId: string): Promise<EventItemDto[]> {
-    const ownedRows = await this.prisma.inventoryItem.findMany({
-      where: { userId, source: "EVENT" },
-      select: { itemId: true },
-    });
+    const [ownedRows, locale] = await Promise.all([
+      this.prisma.inventoryItem.findMany({
+        where: { userId, source: "EVENT" },
+        select: { itemId: true },
+      }),
+      resolveLocale(this.prisma, userId),
+    ]);
     const ownedIds = new Set(ownedRows.map((row) => row.itemId));
     const now = new Date();
 
-    return EVENT_ITEMS.map((item) => toEventDto(item, ownedIds.has(item.id), now));
+    return EVENT_ITEMS.map((item) => toEventDto(item, ownedIds.has(item.id), now, locale));
   }
 
   /**
@@ -314,7 +331,7 @@ export class InventoryService {
     }
 
     try {
-      await this.prisma.$transaction(async (tx) => {
+      const locale = await this.prisma.$transaction(async (tx) => {
         const existing = await tx.inventoryItem.findUnique({ where: { userId_itemId: { userId, itemId } } });
         const now = new Date();
 
@@ -326,9 +343,10 @@ export class InventoryService {
         }
 
         await tx.inventoryItem.create({ data: { userId, itemId, source: "EVENT" } });
+        return resolveLocale(tx, userId);
       });
 
-      return { item: toEventDto(itemDefinition, true, new Date()) };
+      return { item: toEventDto(itemDefinition, true, new Date(), locale) };
     } catch (error) {
       if (isUniqueConstraintError(error)) {
         throw new ForbiddenException("Vec imas ovaj predmet");
@@ -497,15 +515,18 @@ export class InventoryService {
   async listRecoveryItems(userId: string): Promise<InventoryItemDto[]> {
     await this.evaluateAndDiscoverRecovery(userId);
 
-    const discoveredRows = await this.prisma.inventoryItem.findMany({
-      where: { userId, source: "RECOVERY" },
-      select: { itemId: true, discoveredAt: true },
-    });
+    const [discoveredRows, locale] = await Promise.all([
+      this.prisma.inventoryItem.findMany({
+        where: { userId, source: "RECOVERY" },
+        select: { itemId: true, discoveredAt: true },
+      }),
+      resolveLocale(this.prisma, userId),
+    ]);
     const discoveredByItemId = new Map(discoveredRows.map((row) => [row.itemId, row.discoveredAt]));
 
     return RECOVERY_ITEM_DEFINITIONS.map((definition) => {
       const discoveredAt = discoveredByItemId.get(definition.id) ?? null;
-      const display = getRecoveryItemDisplay(definition.id);
+      const display = getRecoveryItemDisplay(definition.id, locale);
       return {
         id: definition.id,
         source: "RECOVERY" as const,
@@ -568,8 +589,8 @@ export class InventoryService {
   }
 }
 
-function toWorkshopDto(definition: WorkshopItemDefinition, owned: boolean): WorkshopItemDto {
-  const display = getWorkshopItemDisplay(definition.id);
+function toWorkshopDto(definition: WorkshopItemDefinition, owned: boolean, locale: Locale): WorkshopItemDto {
+  const display = getWorkshopItemDisplay(definition.id, locale);
   return {
     id: definition.id,
     levelRequirement: definition.levelRequirement,
@@ -579,8 +600,8 @@ function toWorkshopDto(definition: WorkshopItemDefinition, owned: boolean): Work
   };
 }
 
-function toEventDto(definition: EventItemDefinition, owned: boolean, now: Date): EventItemDto {
-  const display = getEventItemDisplay(definition.id);
+function toEventDto(definition: EventItemDefinition, owned: boolean, now: Date, locale: Locale): EventItemDto {
+  const display = getEventItemDisplay(definition.id, locale);
   return {
     id: definition.id,
     active: isEventActive(definition, now),

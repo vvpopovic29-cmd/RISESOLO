@@ -2,9 +2,11 @@ import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import {
   allocateStatPointsRequestSchema,
   onboardProfileRequestSchema,
+  updateLocaleRequestSchema,
   type AllocateStatPointsRequest,
   type OnboardProfileRequest,
   type PlayerStateDto,
+  type UpdateLocaleRequest,
 } from "@risesolo/validation";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
 import { CurrentUser, type AuthenticatedUser } from "../auth/decorators/current-user.decorator";
@@ -35,5 +37,13 @@ export class PlayersController {
     @Body(new ZodValidationPipe(allocateStatPointsRequestSchema)) dto: AllocateStatPointsRequest,
   ): Promise<PlayerStateDto> {
     return this.playersService.allocateStatPoints(user.id, dto);
+  }
+
+  @Post("me/locale")
+  updateLocale(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(updateLocaleRequestSchema)) dto: UpdateLocaleRequest,
+  ): Promise<PlayerStateDto> {
+    return this.playersService.updateLocale(user.id, dto);
   }
 }

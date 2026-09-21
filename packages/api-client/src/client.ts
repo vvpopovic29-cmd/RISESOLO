@@ -30,6 +30,7 @@ import {
   loginRequestSchema,
   nutritionEntrySchema,
   onboardProfileRequestSchema,
+  updateLocaleRequestSchema,
   playerLeaderboardResponseSchema,
   playerStateSchema,
   postGuildMessageRequestSchema,
@@ -94,6 +95,7 @@ import {
   type LogSetRequest,
   type NutritionEntryDto,
   type OnboardProfileRequest,
+  type UpdateLocaleRequest,
   type PlayerLeaderboardResponseDto,
   type PlayerStateDto,
   type PostGuildMessageRequest,
@@ -182,6 +184,10 @@ export function createApiClient(config: ApiClientConfig) {
       allocateStats(dto: AllocateStatPointsRequest): Promise<PlayerStateDto> {
         allocateStatPointsRequestSchema.parse(dto);
         return request({ method: "POST", path: "/players/me/stats/allocate", body: dto, schema: playerStateSchema });
+      },
+      updateLocale(dto: UpdateLocaleRequest): Promise<PlayerStateDto> {
+        updateLocaleRequestSchema.parse(dto);
+        return request({ method: "POST", path: "/players/me/locale", body: dto, schema: playerStateSchema });
       },
     },
 

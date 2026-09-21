@@ -460,6 +460,36 @@ Bezbednosno/operativno ojacanje pred produkciju (odvojeno od poslovnih pravila):
   Postgres-ovog nedefinisanog redosleda za ceh-ove sa istim totalXp,
   najcesce sveze osnovani na 0) - vidi `GuildsService.listGuilds`.
 
+## Lokalizacija (EN + SR)
+
+Faza lansiranja podržava engleski (globalni podrazumevani jezik) i srpski
+(regionalno tržište, isti tekst pokriva i hrvatski/bosanski korisnike po
+odabiru jezika). "Gaming/anime" rečnik (XP, Level, Rank, Quest, TIER, Coins)
+se namerno NE prevodi - ostaje identičan na svim jezicima.
+
+- **`Profile.locale`** (`"en" | "sr"`, `@risesolo/domain` `Locale`) je
+  server-authoritative izvor istine - postavlja se pri onboardingu (mobile
+  šalje jezik uređaja preko `expo-localization`) ili kasnije u Settings
+  ekranu (`POST /players/me/locale`, `apps/mobile/app/settings.tsx`).
+- **Backend katalozi** (quest/item/shop nazivi - `apps/api/src/quests/*-catalog.ts`,
+  `apps/api/src/inventory/*-catalog.ts`, `apps/api/src/shop/shop-catalog.ts`)
+  primaju `locale` parametar (`apps/api/src/common/locale.ts` `resolveLocale`)
+  i vraćaju odgovarajući tekst - svi pozivi imaju `DEFAULT_LOCALE` fallback
+  pa su postojeći testovi bez eksplicitnog `locale` argumenta i dalje validni.
+- **VAŽNO ograničenje**: Quest `title`/`description` se PERZISTIRAJU na
+  generisanju (isti "generate once, persist" princip kao ostatak quest
+  sistema) - promena jezika ne menja retroaktivno već generisan
+  dnevni/nedeljni/boss/itd. quest za taj period, samo naredne. Shop/Inventory
+  predmeti nemaju ovo ograničenje (ime/opis se računaju uživo na svakom GET-u).
+- **AI-generisan tekst** (AI Quest/AI Item flavor iz `AiService`) je NAMERNO
+  van obima ove faze - ostaje na srpskom bez obzira na `Profile.locale`.
+- **Mobile UI chrome** (`apps/mobile/src/i18n`) - lagani custom `I18nContext`
+  (`useI18n()` hook, `t("namespace.key")`), bez spoljne i18n biblioteke.
+  Trenutno pokriveno: Login/Register/Onboarding/Home/Settings. Ostali ekrani
+  (Nutrition, Shop, Leaderboard, Guild, Friends, Achievements, Inventory,
+  Workout*, Training Plan, Paywall) i dalje prikazuju fiksni srpski tekst -
+  planirano sledeće.
+
 ## Testiranje
 
 - `packages/*` - Jest + ts-jest, jedinični testovi uz izvorni kod (`*.test.ts`).
