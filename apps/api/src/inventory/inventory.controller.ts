@@ -2,10 +2,13 @@ import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import {
   claimEventItemRequestSchema,
   craftWorkshopItemRequestSchema,
+  createCustomItemRequestSchema,
   type ClaimEventItemRequest,
   type ClaimEventItemResponse,
   type CraftWorkshopItemRequest,
   type CraftWorkshopItemResponse,
+  type CreateCustomItemRequest,
+  type CreateCustomItemResponse,
   type EventItemDto,
   type InventoryItemDto,
   type WorkshopItemDto,
@@ -64,5 +67,18 @@ export class InventoryController {
   @Get("recovery")
   listRecoveryItems(@CurrentUser() user: AuthenticatedUser): Promise<InventoryItemDto[]> {
     return this.inventoryService.listRecoveryItems(user.id);
+  }
+
+  @Get("custom")
+  listCustomItems(@CurrentUser() user: AuthenticatedUser): Promise<InventoryItemDto[]> {
+    return this.inventoryService.listCustomItems(user.id);
+  }
+
+  @Post("custom/create")
+  createCustomItem(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body(new ZodValidationPipe(createCustomItemRequestSchema)) dto: CreateCustomItemRequest,
+  ): Promise<CreateCustomItemResponse> {
+    return this.inventoryService.createCustomItem(user.id, dto.name, dto.description);
   }
 }

@@ -597,18 +597,24 @@ model UserCosmetic {
 }
 
 // ---------------------------------------------------------------------------
-// Inventory (B2) - Hidden Items, Workshop Items, Guild Items, Event Items
+// Inventory (B2) - Hidden/Workshop/Guild/Event/AI-Generated/Recovery/Custom Items
 // ---------------------------------------------------------------------------
 
 /// Izvor Inventory predmeta - `HIDDEN` (tajni uslovi, vidi @risesolo/domain
 /// hidden-item.ts), `WORKSHOP` (unapred vidljiv katalog, izradjuje se preko
 /// POST /inventory/workshop/craft uz nivo+coins, vidi workshop-item.ts),
 /// `GUILD` (unapred vidljiv katalog, automatski se dodeljuje na osnovu
-/// cehovske aktivnosti, GET-only kao Hidden ali bez tajne, vidi guild-item.ts)
-/// i `EVENT` (unapred vidljiv katalog, prisvaja se BESPLATNO preko POST
+/// cehovske aktivnosti, GET-only kao Hidden ali bez tajne, vidi guild-item.ts),
+/// `EVENT` (unapred vidljiv katalog, prisvaja se BESPLATNO preko POST
 /// /inventory/event/claim ali SAMO unutar godisnjeg kalendarskog prozora,
-/// vidi event-item.ts). Ostali izvori (AI_GENERATED/RECOVERY/CUSTOM) se
-/// dodaju fazu po fazu preko posebne migracije (isti princip kao QuestType).
+/// vidi event-item.ts), `AI_GENERATED` (tajan uslov kao Hidden, GET-only
+/// automatsko otkrivanje po nivou, ali name/description generise Claude po
+/// igracu, Pro-gated, vidi ai-item.ts), `RECOVERY` (unapred vidljiv katalog
+/// kao Guild, automatski dodeljen GET-only na osnovu LICNOG obrasca odmora
+/// izmedju treninga, vidi recovery-item.ts) i `CUSTOM` (BEZ fiksnog
+/// kataloga - igrac SAM pise name/description preko POST
+/// /inventory/custom/create, gate je cena u coins-ima i ogranicen broj
+/// slotova, ne katalog uslov, vidi custom-item.ts).
 enum ItemSource {
   HIDDEN
   WORKSHOP
@@ -616,6 +622,7 @@ enum ItemSource {
   EVENT
   AI_GENERATED
   RECOVERY
+  CUSTOM
 
   @@map("item_source")
 }
@@ -626,15 +633,17 @@ enum ItemSource {
 /// `itemId` je String (ne enum/FK) - katalog (HIDDEN_ITEM_DEFINITIONS, kasnije
 /// katalozi ostalih izvora) zivi iskljucivo u @risesolo/domain, nova stavka se
 /// moze dodati bez migracije (isti princip kao UserAchievement.achievementId
-/// i UserCosmetic.itemId). `@@unique([userId, itemId])` sprecava duplo
+/// i UserCosmetic.itemId). Za source=CUSTOM ne postoji fiksan katalog uopste
+/// - `itemId` je server-generisan (crypto.randomUUID()) po redu, jedan po
+/// svakoj igracevoj kreaciji. `@@unique([userId, itemId])` sprecava duplo
 /// otkrivanje (race-safe preko istog constraint-a).
 /// `generatedName`/`generatedDescription` su NAMERAN izuzetak od "derive,
-/// don't cache" - koriste se SAMO za source=AI_GENERATED, gde Claude
-/// generise personalizovan tekst po igracu (vidi @risesolo/domain
-/// ai-item.ts) i taj tekst se MORA perzistirati (ne postoji staticna
-/// katalog funkcija iz koje bi se ponovo izveo na svaki GET). Svi ostali
-/// izvori ih ostavljaju `null` i izvode prikaz preko sopstvene *-catalog.ts
-/// funkcije.
+/// don't cache" - koriste se za source=AI_GENERATED, gde Claude generise
+/// personalizovan tekst po igracu (vidi @risesolo/domain ai-item.ts), I za
+/// source=CUSTOM, gde igrac SAM pise tekst (vidi custom-item.ts) - u oba
+/// slucaja tekst se MORA perzistirati (ne postoji staticna katalog funkcija
+/// iz koje bi se ponovo izveo na svaki GET). Svi ostali izvori ih ostavljaju
+/// `null` i izvode prikaz preko sopstvene *-catalog.ts funkcije.
 model InventoryItem {
   id                    String     @id @default(cuid())
   userId                String     @map("user_id")

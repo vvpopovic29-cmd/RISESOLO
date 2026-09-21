@@ -97,3 +97,30 @@ export const aiItemFlavorSchema = z.object({
   description: z.string().min(1).max(400),
 });
 export type AiItemFlavorOutput = z.infer<typeof aiItemFlavorSchema>;
+
+/**
+ * POST /inventory/custom/create - za razliku od svih ostalih izvora, igrac
+ * SAM pise name/description (vidi @risesolo/domain custom-item.ts za
+ * CUSTOM_ITEM_NAME_MAX_LENGTH/CUSTOM_ITEM_DESCRIPTION_MAX_LENGTH granice).
+ * Nema itemId u telu zahteva - server ga generise (crypto.randomUUID()),
+ * za razliku od craftWorkshopItemRequestSchema/claimEventItemRequestSchema
+ * koji biraju POSTOJECI katalog ID.
+ */
+export const createCustomItemRequestSchema = z.object({
+  name: z.string().min(1).max(60),
+  description: z.string().min(1).max(300),
+});
+export type CreateCustomItemRequest = z.infer<typeof createCustomItemRequestSchema>;
+
+/**
+ * `coins` je preostali saldo POSLE kreiranja - isti princip kao
+ * craftWorkshopItemResponseSchema.coins. `item` koristi isti
+ * inventoryItemSchema kao GET /inventory/custom (uvek discovered:true - ne
+ * postoji "zakljucano" stanje za predmet koji igrac tek sto je sam
+ * napravio).
+ */
+export const createCustomItemResponseSchema = z.object({
+  item: inventoryItemSchema,
+  coins: z.number().int().min(0),
+});
+export type CreateCustomItemResponse = z.infer<typeof createCustomItemResponseSchema>;

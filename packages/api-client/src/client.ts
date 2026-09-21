@@ -21,6 +21,8 @@ import {
   claimEventItemResponseSchema,
   craftWorkshopItemRequestSchema,
   craftWorkshopItemResponseSchema,
+  createCustomItemRequestSchema,
+  createCustomItemResponseSchema,
   eventItemSchema,
   inventoryItemSchema,
   workshopItemSchema,
@@ -81,6 +83,8 @@ import {
   type ClaimEventItemResponse,
   type CraftWorkshopItemRequest,
   type CraftWorkshopItemResponse,
+  type CreateCustomItemRequest,
+  type CreateCustomItemResponse,
   type EventItemDto,
   type InventoryItemDto,
   type WorkshopItemDto,
@@ -481,6 +485,20 @@ export function createApiClient(config: ApiClientConfig) {
       },
       recovery(): Promise<InventoryItemDto[]> {
         return request({ method: "GET", path: "/inventory/recovery", schema: inventoryItemListSchema });
+      },
+      custom: {
+        list(): Promise<InventoryItemDto[]> {
+          return request({ method: "GET", path: "/inventory/custom", schema: inventoryItemListSchema });
+        },
+        create(dto: CreateCustomItemRequest): Promise<CreateCustomItemResponse> {
+          createCustomItemRequestSchema.parse(dto);
+          return request({
+            method: "POST",
+            path: "/inventory/custom/create",
+            body: dto,
+            schema: createCustomItemResponseSchema,
+          });
+        },
       },
     },
   };

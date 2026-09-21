@@ -1,6 +1,8 @@
 import { ForbiddenException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import {
   AI_ITEM_DEFINITIONS,
+  CUSTOM_ITEM_COIN_COST,
+  CUSTOM_ITEM_MAX_COUNT,
   EVENT_ITEMS,
   GUILD_ITEM_DEFINITIONS,
   HIDDEN_ITEM_DEFINITIONS,
@@ -10,6 +12,7 @@ import {
   calculateRank,
   canClaimEventItem,
   canCraftWorkshopItem,
+  canCreateCustomItem,
   evaluateNewlyDiscoveredAiItems,
   evaluateNewlyDiscoveredGuildItems,
   evaluateNewlyDiscoveredHiddenItems,
@@ -27,8 +30,16 @@ import {
   type RecoveryItemStatsSnapshot,
   type WorkshopItemDefinition,
 } from "@risesolo/domain";
-import type { ClaimEventItemResponse, CraftWorkshopItemResponse, EventItemDto, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
+import type {
+  ClaimEventItemResponse,
+  CraftWorkshopItemResponse,
+  CreateCustomItemResponse,
+  EventItemDto,
+  InventoryItemDto,
+  WorkshopItemDto,
+} from "@risesolo/validation";
 import type { Prisma } from "@prisma/client";
+import { randomUUID } from "node:crypto";
 import { AiService } from "../ai/ai.service";
 import { diffInUtcDays, startOfUtcDay } from "../common/date";
 import { PrismaService } from "../prisma/prisma.service";
@@ -505,6 +516,56 @@ export class InventoryService {
       };
     });
   }
+
+  /**
+   * GET /inventory/custom - za razliku od svih ostalih izvora NEMA katalog
+   * da se mapira preko (nema fiksnih ID-jeva) - prosto vraca sve CUSTOM
+   * redove koje je igrac SAM napravio, uvek discovered:true (ne postoji
+   * "zakljucano" stanje - predmet ili postoji jer ga je igrac napravio, ili
+   * ne postoji uopste).
+   */
+  async listCustomItems(userId: string): Promise<InventoryItemDto[]> {
+    const rows = await this.prisma.inventoryItem.findMany({
+      where: { userId, source: "CUSTOM" },
+      orderBy: { discoveredAt: "asc" },
+    });
+
+    return rows.map(toCustomItemDto);
+  }
+
+  /**
+   * Kreiranje je atomsko (jedna transakcija): provera coins-a/broja slotova
+   * i upis InventoryItem reda idu zajedno da ne bi doslo do trke (dupli
+   * klik "Napravi" pre nego sto se prvi zahtev zavrsi) - isti princip kao
+   * craftWorkshopItem, samo BEZ nivo uslova i BEZ postojeceg katalog ID-ja
+   * (itemId se generise ovde, crypto.randomUUID(), jedinstven po redu).
+   */
+  async createCustomItem(userId: string, name: string, description: string): Promise<CreateCustomItemResponse> {
+    const { item, coins } = await this.prisma.$transaction(async (tx) => {
+      const [progression, currentCount] = await Promise.all([
+        tx.progression.findUniqueOrThrow({ where: { userId } }),
+        tx.inventoryItem.count({ where: { userId, source: "CUSTOM" } }),
+      ]);
+
+      if (!canCreateCustomItem(progression.coins, currentCount)) {
+        if (currentCount >= CUSTOM_ITEM_MAX_COUNT) {
+          throw new ForbiddenException(`Dostignut je maksimalan broj custom predmeta (${CUSTOM_ITEM_MAX_COUNT})`);
+        }
+        throw new HttpException("Nemas dovoljno coins-a za kreiranje custom predmeta", HttpStatus.PAYMENT_REQUIRED);
+      }
+
+      const created = await tx.inventoryItem.create({
+        data: { userId, itemId: randomUUID(), source: "CUSTOM", generatedName: name, generatedDescription: description },
+      });
+      const updated = await tx.progression.update({
+        where: { userId },
+        data: { coins: { decrement: CUSTOM_ITEM_COIN_COST } },
+      });
+      return { item: created, coins: updated.coins };
+    });
+
+    return { item: toCustomItemDto(item), coins };
+  }
 }
 
 function toWorkshopDto(definition: WorkshopItemDefinition, owned: boolean): WorkshopItemDto {
@@ -525,6 +586,22 @@ function toEventDto(definition: EventItemDefinition, owned: boolean, now: Date):
     active: isEventActive(definition, now),
     owned,
     ...display,
+  };
+}
+
+function toCustomItemDto(row: {
+  itemId: string;
+  discoveredAt: Date;
+  generatedName: string | null;
+  generatedDescription: string | null;
+}): InventoryItemDto {
+  return {
+    id: row.itemId,
+    source: "CUSTOM" as const,
+    discovered: true,
+    discoveredAt: row.discoveredAt.toISOString(),
+    name: row.generatedName,
+    description: row.generatedDescription,
   };
 }
 
