@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
-import { GUILD_RAID_COIN_REWARD, GUILD_RAID_TARGET_CONTRIBUTIONS } from "@risesolo/domain";
+import { GUILD_RAID_COIN_REWARD, GUILD_RAID_TARGET_CONTRIBUTIONS, calculateLevel } from "@risesolo/domain";
 import { PrismaClient } from "@prisma/client";
 import request from "supertest";
 import { AppModule } from "../src/app.module";
@@ -317,8 +317,18 @@ describe("Guilds (e2e)", () => {
     const owner = await registerUser("list-owner");
     const guild = await createGuild(owner.accessToken, "list");
 
+    // Postavlja totalXp na namerno ogromnu, distinktivnu vrednost - GET /guilds
+    // vraca samo prvih 50 (orderBy totalXp desc), a ova test suita se u punom
+    // paketu izvrsava PARALELNO sa achievements/leaderboard/notifications
+    // e2e testovima koji takodje prave cehove u ISTOJ deljenoj bazi. Bez
+    // ovoga bi test bio flaky (svez ceh na totalXp=0 moze slucajno ispasti iz
+    // prvih 50 kad ih ima vise). Level se racuna preko calculateLevel (isti
+    // "derive, don't cache" princip kao svuda) umesto hardkodovanog 1.
+    const distinctiveXp = 999_000_000;
+    await prisma.guild.update({ where: { id: guild.body.id }, data: { totalXp: distinctiveXp } });
+
     const list = await auth(owner.accessToken, request(app.getHttpServer()).get("/guilds")).expect(200);
     const entry = list.body.find((g: { id: string }) => g.id === guild.body.id);
-    expect(entry).toMatchObject({ tag: guild.body.tag, level: 1, memberCount: 1 });
+    expect(entry).toMatchObject({ tag: guild.body.tag, level: calculateLevel(distinctiveXp), memberCount: 1 });
   });
 });

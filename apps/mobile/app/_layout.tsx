@@ -4,7 +4,10 @@ import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import { AuthProvider } from "../src/auth/AuthContext";
+import { initSentry } from "../src/monitoring/sentry";
 import { addNotificationTapListener } from "../src/notifications/push-notifications";
+
+initSentry();
 
 export default function RootLayout() {
   const { setColorScheme } = useColorScheme();
