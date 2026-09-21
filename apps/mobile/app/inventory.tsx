@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import { ApiError } from "@risesolo/api-client";
+import { CUSTOM_ITEM_COIN_COST, CUSTOM_ITEM_DESCRIPTION_MAX_LENGTH, CUSTOM_ITEM_MAX_COUNT, CUSTOM_ITEM_NAME_MAX_LENGTH } from "@risesolo/domain";
 import type { EventItemDto, InventoryItemDto, WorkshopItemDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
 import { useAiItems } from "../src/inventory/use-ai-items";
+import { useCustomItems } from "../src/inventory/use-custom-items";
 import { useEventItems } from "../src/inventory/use-event-items";
 import { useGuildItems } from "../src/inventory/use-guild-items";
 import { useInventory } from "../src/inventory/use-inventory";
@@ -14,6 +16,7 @@ import { usePlayerState } from "../src/player/use-player-state";
 import { Button } from "../src/ui/Button";
 import { ErrorState } from "../src/ui/ErrorState";
 import { Screen } from "../src/ui/Screen";
+import { TextField } from "../src/ui/TextField";
 
 /**
  * Inventory - Hidden Items (tajni uslov, GET-only, vidi hidden-item.ts),
@@ -26,8 +29,11 @@ import { Screen } from "../src/ui/Screen";
  * vidi event-item.ts), AI-Generated Items (tajan katalog kao Hidden, ali
  * name/description generise Claude po igracu, Pro-gated, vidi ai-item.ts) i
  * Recovery Items (unapred vidljiv katalog kao Guild, AUTOMATSKI dodeljen na
- * osnovu LICNOG obrasca odmora izmedju treninga, vidi recovery-item.ts) su
- * prvih sest izvora (B2). Ekran samo prikazuje ono sto server posalje, bez
+ * osnovu LICNOG obrasca odmora izmedju treninga, vidi recovery-item.ts) i
+ * Custom Items (BEZ fiksnog kataloga - igrac SAM pise name/description
+ * preko POST /inventory/custom/create, gate je cena u coins-ima i
+ * ogranicen broj slotova, ne katalog uslov, vidi custom-item.ts) su svih
+ * sedam izvora (B2). Ekran samo prikazuje ono sto server posalje, bez
  * lokalnog kataloga prikaznog teksta.
  */
 export default function InventoryScreen() {
@@ -38,10 +44,15 @@ export default function InventoryScreen() {
   const { state: eventState, refetch: refetchEvent } = useEventItems(apiClient);
   const { state: aiState, refetch: refetchAi } = useAiItems(apiClient);
   const { state: recoveryState, refetch: refetchRecovery } = useRecoveryItems(apiClient);
+  const { state: customState, refetch: refetchCustom } = useCustomItems(apiClient);
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [craftError, setCraftError] = useState<string | null>(null);
   const [claimError, setClaimError] = useState<string | null>(null);
+  const [customName, setCustomName] = useState("");
+  const [customDescription, setCustomDescription] = useState("");
+  const [creatingCustom, setCreatingCustom] = useState(false);
+  const [customError, setCustomError] = useState<string | null>(null);
 
   const level = playerState.status === "success" ? playerState.data.progression.level : null;
   const coins = playerState.status === "success" ? playerState.data.progression.coins : null;
@@ -70,6 +81,22 @@ export default function InventoryScreen() {
       setClaimError(error instanceof ApiError ? error.message : "Prisvajanje nije uspelo.");
     } finally {
       setBusyItemId(null);
+    }
+  }
+
+  async function handleCreateCustomItem() {
+    setCreatingCustom(true);
+    setCustomError(null);
+    try {
+      await apiClient.inventory.custom.create({ name: customName, description: customDescription });
+      setCustomName("");
+      setCustomDescription("");
+      refetchCustom();
+      refetchPlayer();
+    } catch (error) {
+      setCustomError(error instanceof ApiError ? error.message : "Kreiranje nije uspelo.");
+    } finally {
+      setCreatingCustom(false);
     }
   }
 
@@ -199,6 +226,57 @@ export default function InventoryScreen() {
       ) : (
         <View className="gap-3">
           {recoveryState.data.map((item) => (
+            <InventoryItemCard key={item.id} item={item} revealAlways />
+          ))}
+        </View>
+      )}
+
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">CUSTOM ITEMS</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
+        Sam napravi predmet - upisi naziv i opis ({CUSTOM_ITEM_COIN_COST} coins, do {CUSTOM_ITEM_MAX_COUNT} predmeta).
+      </Text>
+
+      {customError ? <Text className="text-center text-danger">{customError}</Text> : null}
+
+      {customState.status === "success" && customState.data.length < CUSTOM_ITEM_MAX_COUNT ? (
+        <View className="gap-2">
+          <TextField
+            label="Naziv"
+            placeholder="npr. Moj Amulet"
+            value={customName}
+            onChangeText={setCustomName}
+            maxLength={CUSTOM_ITEM_NAME_MAX_LENGTH}
+            testID="custom-item-name-input"
+          />
+          <TextField
+            label="Opis"
+            placeholder="npr. Amulet koji sam sam napravio"
+            value={customDescription}
+            onChangeText={setCustomDescription}
+            maxLength={CUSTOM_ITEM_DESCRIPTION_MAX_LENGTH}
+            testID="custom-item-description-input"
+          />
+          <Button
+            label="Napravi"
+            onPress={() => void handleCreateCustomItem()}
+            loading={creatingCustom}
+            disabled={customName.trim().length === 0 || customDescription.trim().length === 0}
+            testID="create-custom-item-button"
+          />
+        </View>
+      ) : null}
+
+      {customState.status === "loading" ? (
+        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+      ) : customState.status === "error" ? (
+        <ErrorState message={customState.message} onRetry={refetchCustom} testID="custom-items-error" />
+      ) : customState.data.length === 0 ? (
+        <Text testID="custom-items-empty" className="text-neutral-500 dark:text-neutral-600">
+          Jos nisi napravio nijedan custom predmet.
+        </Text>
+      ) : (
+        <View className="gap-3">
+          {customState.data.map((item) => (
             <InventoryItemCard key={item.id} item={item} revealAlways />
           ))}
         </View>

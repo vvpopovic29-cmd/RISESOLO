@@ -83,8 +83,15 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > izmedju treninga (najveci razmak u danima izmedju dva zavrsena treninga,
 > broj "odmorenih" razmaka od 2+ dana, ukupan broj razlicitih dana treninga)
 > - ne guild aktivnosti (Guild) ni nivoa (AI-Generated), vidi
-> `packages/domain/src/inventory/recovery-item.ts`. Ostali izvor (Custom)
-> dolazi u narednoj fazi.
+> `packages/domain/src/inventory/recovery-item.ts`.
+> Custom Items su sedmi i poslednji izvor - za razliku od svih ostalih SEST
+> izvora (svaki ima tacno 5 fiksnih ID-jeva u katalogu), Custom Item NEMA
+> fiksan katalog - igrac SAM pise name/description preko
+> `POST /inventory/custom/create`, server generise itemId
+> (`crypto.randomUUID()`). Gate je cena u coins-ima (400, bez nivo uslova -
+> kreativnost ne trazi majstorstvo) I ogranicen broj slotova (najvise 5) po
+> igracu, ne katalog uslov - vidi `packages/domain/src/inventory/custom-item.ts`.
+> Ovim je svih sedam Inventory (B2) izvora zavrseno.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura

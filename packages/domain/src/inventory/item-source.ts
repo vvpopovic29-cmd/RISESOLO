@@ -10,13 +10,15 @@
  * coins/nivo uslova, vidi event-item.ts), `AI_GENERATED` (tajan uslov kao
  * Hidden - GET-only automatsko otkrivanje po nivou - ali name/description
  * generise Claude po igracu, Pro-gated, isti princip kao AI Quest, vidi
- * ai-item.ts) i `RECOVERY` (vidljiv katalog kao Guild, automatski dodeljen
+ * ai-item.ts), `RECOVERY` (vidljiv katalog kao Guild, automatski dodeljen
  * GET-only, ali na osnovu LICNOG obrasca odmora izmedju treninga - najveci
  * razmak izmedju dva treninga, broj "odmorenih" razmaka, ukupan broj dana
- * treninga - vidi recovery-item.ts). Ostali izvor (CUSTOM) se dodaje u
- * narednoj fazi, isti princip kao QuestType (svaka faza doda jednu Prisma
- * enum vrednost preko `ALTER TYPE ... ADD VALUE`, ne menja postojece).
+ * treninga - vidi recovery-item.ts) i `CUSTOM` (BEZ fiksnog kataloga - igrac
+ * SAM pise name/description preko POST /inventory/custom/create, isti
+ * princip "korisnik je autor" kao AI_GENERATED ali bez AI-ja; gate je cena u
+ * coins-ima i ogranicen broj slotova po igracu, ne katalog uslov - vidi
+ * custom-item.ts).
  */
 
-export const ITEM_SOURCES = ["HIDDEN", "WORKSHOP", "GUILD", "EVENT", "AI_GENERATED", "RECOVERY"] as const;
+export const ITEM_SOURCES = ["HIDDEN", "WORKSHOP", "GUILD", "EVENT", "AI_GENERATED", "RECOVERY", "CUSTOM"] as const;
 export type ItemSource = (typeof ITEM_SOURCES)[number];

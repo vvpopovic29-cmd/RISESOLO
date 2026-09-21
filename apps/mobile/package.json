@@ -25,6 +25,7 @@
     "@expo/metro-runtime": "~57.0.15",
     "@risesolo/api-client": "workspace:*",
     "@risesolo/design-tokens": "workspace:*",
+    "@risesolo/domain": "workspace:*",
     "@risesolo/validation": "workspace:*",
     "babel-preset-expo": "~57.0.10",
     "expo": "~57.0.20",

@@ -50,3 +50,10 @@ export {
   type RecoveryItemDefinition,
   type RecoveryItemStatsSnapshot,
 } from "./recovery-item";
+export {
+  CUSTOM_ITEM_MAX_COUNT,
+  CUSTOM_ITEM_COIN_COST,
+  CUSTOM_ITEM_NAME_MAX_LENGTH,
+  CUSTOM_ITEM_DESCRIPTION_MAX_LENGTH,
+  canCreateCustomItem,
+} from "./custom-item";
