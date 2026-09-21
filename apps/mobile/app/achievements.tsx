@@ -4,29 +4,31 @@ import type { AchievementDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
 import { getAchievementDisplay } from "../src/achievements/achievement-display";
 import { useAchievements } from "../src/achievements/use-achievements";
+import { useI18n } from "../src/i18n";
 import { ErrorState } from "../src/ui/ErrorState";
 import { Screen } from "../src/ui/Screen";
 
 export default function AchievementsScreen() {
   const { apiClient } = useAuth();
+  const { t } = useI18n();
   const { state, refetch } = useAchievements(apiClient);
 
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="achievements-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Achievements</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("achievements.title")}</Text>
 
       {state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} testID="achievements-error" />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} testID="achievements-error" />
       ) : (
         <>
           <Text testID="achievements-progress" className="text-sm text-neutral-500 dark:text-neutral-600">
-            {state.data.filter((a) => a.unlocked).length} / {state.data.length} otkljucano
+            {t("achievements.progressLabel", { unlocked: state.data.filter((a) => a.unlocked).length, total: state.data.length })}
           </Text>
           <View className="gap-3">
             {state.data.map((achievement) => (
@@ -40,7 +42,8 @@ export default function AchievementsScreen() {
 }
 
 function AchievementCard({ achievement }: { achievement: AchievementDto }) {
-  const display = getAchievementDisplay(achievement.id);
+  const { t, locale } = useI18n();
+  const display = getAchievementDisplay(achievement.id, t);
 
   return (
     <View
@@ -56,7 +59,11 @@ function AchievementCard({ achievement }: { achievement: AchievementDto }) {
         <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{display.title}</Text>
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">{display.description}</Text>
         {achievement.unlocked && achievement.unlockedAt ? (
-          <Text className="text-xs text-accent">Otkljucano {new Date(achievement.unlockedAt).toLocaleDateString("sr-Latn-RS")}</Text>
+          <Text className="text-xs text-accent">
+            {t("achievements.unlockedOn", {
+              date: new Date(achievement.unlockedAt).toLocaleDateString(locale === "en" ? "en-US" : "sr-Latn-RS"),
+            })}
+          </Text>
         ) : null}
       </View>
     </View>

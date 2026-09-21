@@ -1,10 +1,13 @@
 import type { AchievementDto } from "@risesolo/validation";
+import type { useI18n } from "../i18n";
 
 export interface AchievementDisplay {
   title: string;
   description: string;
   icon: string;
 }
+
+type Translate = ReturnType<typeof useI18n>["t"];
 
 /**
  * Prikazni tekst po achievement-u - namerno odvojeno od domain sloja (isti
@@ -13,43 +16,43 @@ export interface AchievementDisplay {
  * promeni, opis ovde treba rucno azurirati (nema jedinstvenog izvora za
  * prikazni tekst, samo za same pragove).
  */
-export function getAchievementDisplay(id: AchievementDto["id"]): AchievementDisplay {
+export function getAchievementDisplay(id: AchievementDto["id"], t: Translate): AchievementDisplay {
   switch (id) {
     case "FIRST_WORKOUT":
-      return { title: "Prvi korak", description: "Zavrsi svoj prvi trening.", icon: "🏁" };
+      return { title: t("achievements.titleFirstWorkout"), description: t("achievements.descFirstWorkout"), icon: "🏁" };
     case "WORKOUTS_10":
-      return { title: "Posvecenik", description: "Zavrsi 10 treninga.", icon: "💪" };
+      return { title: t("achievements.titleWorkouts10"), description: t("achievements.descWorkouts10"), icon: "💪" };
     case "WORKOUTS_50":
-      return { title: "Ratnik", description: "Zavrsi 50 treninga.", icon: "⚔️" };
+      return { title: t("achievements.titleWorkouts50"), description: t("achievements.descWorkouts50"), icon: "⚔️" };
     case "WORKOUTS_100":
-      return { title: "Legenda", description: "Zavrsi 100 treninga.", icon: "🏆" };
+      return { title: t("achievements.titleWorkouts100"), description: t("achievements.descWorkouts100"), icon: "🏆" };
     case "STREAK_3":
-      return { title: "Na pravom putu", description: "Odrzi 3-dnevni niz treninga.", icon: "🔥" };
+      return { title: t("achievements.titleStreak3"), description: t("achievements.descStreak3"), icon: "🔥" };
     case "STREAK_7":
-      return { title: "Nedelja discipline", description: "Odrzi 7-dnevni niz treninga.", icon: "🔥" };
+      return { title: t("achievements.titleStreak7"), description: t("achievements.descStreak7"), icon: "🔥" };
     case "STREAK_30":
-      return { title: "Neumoljiv", description: "Odrzi 30-dnevni niz treninga.", icon: "🔥" };
+      return { title: t("achievements.titleStreak30"), description: t("achievements.descStreak30"), icon: "🔥" };
     case "LEVEL_5":
-      return { title: "Uspon", description: "Dostigni nivo 5.", icon: "⭐" };
+      return { title: t("achievements.titleLevel5"), description: t("achievements.descLevel5"), icon: "⭐" };
     case "LEVEL_10":
-      return { title: "Veteran", description: "Dostigni nivo 10.", icon: "🌟" };
+      return { title: t("achievements.titleLevel10"), description: t("achievements.descLevel10"), icon: "🌟" };
     case "LEVEL_20":
-      return { title: "Sampion", description: "Dostigni nivo 20.", icon: "👑" };
+      return { title: t("achievements.titleLevel20"), description: t("achievements.descLevel20"), icon: "👑" };
     case "DAILY_QUESTS_10":
-      return { title: "Redovnost", description: "Zavrsi 10 dnevnih questova.", icon: "📋" };
+      return { title: t("achievements.titleDailyQuests10"), description: t("achievements.descDailyQuests10"), icon: "📋" };
     case "DAILY_QUESTS_50":
-      return { title: "Rutina", description: "Zavrsi 50 dnevnih questova.", icon: "📋" };
+      return { title: t("achievements.titleDailyQuests50"), description: t("achievements.descDailyQuests50"), icon: "📋" };
     case "BOSS_QUEST_FIRST":
-      return { title: "Lovac na bosseve", description: "Pobedi svoj prvi Boss Quest.", icon: "🐉" };
+      return { title: t("achievements.titleBossQuestFirst"), description: t("achievements.descBossQuestFirst"), icon: "🐉" };
     case "BOSS_QUEST_10":
-      return { title: "Ubica bosseva", description: "Pobedi 10 Boss Quest-ova.", icon: "🐉" };
+      return { title: t("achievements.titleBossQuest10"), description: t("achievements.descBossQuest10"), icon: "🐉" };
     case "NUTRITION_FIRST":
-      return { title: "Svestan ishrane", description: "Zabelezi svoj prvi obrok.", icon: "🍎" };
+      return { title: t("achievements.titleNutritionFirst"), description: t("achievements.descNutritionFirst"), icon: "🍎" };
     case "NUTRITION_25":
-      return { title: "Disciplinovana ishrana", description: "Zabelezi 25 obroka.", icon: "🍎" };
+      return { title: t("achievements.titleNutrition25"), description: t("achievements.descNutrition25"), icon: "🍎" };
     case "AI_PLAN_FIRST":
-      return { title: "Strateg", description: "Generisi svoj prvi AI trening plan.", icon: "🧠" };
+      return { title: t("achievements.titleAiPlanFirst"), description: t("achievements.descAiPlanFirst"), icon: "🧠" };
     case "GUILD_JOIN":
-      return { title: "Timski igrac", description: "Pridruzi se cehu.", icon: "🛡️" };
+      return { title: t("achievements.titleGuildJoin"), description: t("achievements.descGuildJoin"), icon: "🛡️" };
   }
 }
