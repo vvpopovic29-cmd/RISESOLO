@@ -1,5 +1,7 @@
-import { RANKS, STAT_KEYS } from "@risesolo/domain";
+import { LOCALES, RANKS, STAT_KEYS } from "@risesolo/domain";
 import { z } from "zod";
+
+export const localeSchema = z.enum(LOCALES);
 
 export const playerStatsSchema = z.object({
   strength: z.number().int().min(0),
@@ -38,6 +40,8 @@ export const playerProfileSchema = z.object({
   title: z.string().nullable(),
   /** Izvedeno iz Profile.equippedAvatarFrameId - hex boja, `null` ako nista nije opremljeno. */
   avatarFrameColorHex: z.string().nullable(),
+  /** Jezik UI-ja i backend kataloga (quest/item/shop nazivi) - podesava se pri onboardingu ili u Settings ekranu. */
+  locale: localeSchema,
 });
 export type PlayerProfileDto = z.infer<typeof playerProfileSchema>;
 
@@ -73,8 +77,13 @@ export const onboardProfileRequestSchema = z.object({
   weightKg: z.number().min(30).max(300).optional(),
   trainingType: z.enum(["CALISTHENICS", "GYM", "BOTH"]).optional(),
   experienceLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional(),
+  /** Ako je poslato, postavlja Profile.locale (mobile salje jezik uredjaja detektovan preko expo-localization). */
+  locale: localeSchema.optional(),
 });
 export type OnboardProfileRequest = z.infer<typeof onboardProfileRequestSchema>;
+
+export const updateLocaleRequestSchema = z.object({ locale: localeSchema });
+export type UpdateLocaleRequest = z.infer<typeof updateLocaleRequestSchema>;
 
 const statAllocationShape = Object.fromEntries(
   STAT_KEYS.map((key: (typeof STAT_KEYS)[number]) => [key, z.number().int().min(0).optional()]),

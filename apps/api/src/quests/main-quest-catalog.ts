@@ -1,16 +1,25 @@
-import { assertNever, type MainQuestKind } from "@risesolo/domain";
+import { assertNever, DEFAULT_LOCALE, type Locale, type MainQuestKind } from "@risesolo/domain";
 
 export interface MainQuestDisplay {
   title: string;
   description: string;
 }
 
-const STAT_LABEL: Record<MainQuestKind, string> = {
-  strength: "Snagu",
-  agility: "Agilnost",
-  endurance: "Izdrzljivost",
-  vitality: "Vitalnost",
-  intelligence: "Inteligenciju",
+const STAT_LABEL: Record<Locale, Record<MainQuestKind, string>> = {
+  sr: {
+    strength: "Snagu",
+    agility: "Agilnost",
+    endurance: "Izdrzljivost",
+    vitality: "Vitalnost",
+    intelligence: "Inteligenciju",
+  },
+  en: {
+    strength: "Strength",
+    agility: "Agility",
+    endurance: "Endurance",
+    vitality: "Vitality",
+    intelligence: "Intelligence",
+  },
 };
 
 /**
@@ -19,18 +28,23 @@ const STAT_LABEL: Record<MainQuestKind, string> = {
  * questa, cilj (`target`) NIJE fiksna domain konstanta vec raste po tier-u
  * (vidi mainQuestTarget) - zato je parametar, ne uvek isti tekst.
  */
-export function getMainQuestDisplay(kind: MainQuestKind, target: number): MainQuestDisplay {
-  const label = STAT_LABEL[kind];
+export function getMainQuestDisplay(kind: MainQuestKind, target: number, locale: Locale = DEFAULT_LOCALE): MainQuestDisplay {
+  const label = STAT_LABEL[locale][kind];
   switch (kind) {
     case "strength":
     case "agility":
     case "endurance":
     case "vitality":
     case "intelligence":
-      return {
-        title: `Povecaj ${label}`,
-        description: `Dostigni ${target} poena u statu ${label.toLowerCase()} (raspodelom stat poena posle level-up-a) da osvojis nagradu.`,
-      };
+      return locale === "en"
+        ? {
+            title: `Increase ${label}`,
+            description: `Reach ${target} points in ${label} (by allocating stat points after leveling up) to earn the reward.`,
+          }
+        : {
+            title: `Povecaj ${label}`,
+            description: `Dostigni ${target} poena u statu ${label.toLowerCase()} (raspodelom stat poena posle level-up-a) da osvojis nagradu.`,
+          };
     default:
       return assertNever(kind, "Nepoznat Main Quest kind");
   }

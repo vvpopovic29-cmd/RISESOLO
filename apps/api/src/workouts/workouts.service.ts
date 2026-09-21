@@ -20,6 +20,7 @@ import type {
 } from "@risesolo/validation";
 import type { Prisma, WorkoutSession } from "@prisma/client";
 import { diffInUtcDays, startOfUtcDay } from "../common/date";
+import { resolveLocale } from "../common/locale";
 // PrismaService/QuestsService/GuildsService MORAJU biti value import (ne
 // "import type") - NestJS DI se oslanja na emitDecoratorMetadata koji
 // zahteva stvarnu klasu u constructor parametar tipu, ne obrisanu type-only
@@ -166,7 +167,8 @@ export class WorkoutsService {
         // vidi @risesolo/domain daily-quest-pool). LOG_NUTRITION kind se zavrsava iskljucivo
         // iz NutritionService.createEntry.
         const today = new Date();
-        const quest = await this.questsService.generateDailyQuest(userId, today, tx);
+        const locale = await resolveLocale(tx, userId);
+        const quest = await this.questsService.generateDailyQuest(userId, today, tx, locale);
         const completedQuest =
           quest.kind === "WORKOUT_COMPLETE" ? await this.questsService.completeQuestIfPending(quest.id, tx) : null;
         const questCompleted = completedQuest !== null;
@@ -201,7 +203,7 @@ export class WorkoutsService {
 
         // Boss quest se zavrsava kada broj zavrsenih sesija ove ISO nedelje (uklj. ovu, jer je
         // session update vec izvrsen iznad u istoj transakciji) dostigne cilj.
-        const bossQuest = await this.questsService.generateBossQuest(userId, today, tx);
+        const bossQuest = await this.questsService.generateBossQuest(userId, today, tx, locale);
         let bossQuestCompleted = false;
         if (bossQuest.status !== "COMPLETED" && bossQuest.status !== "EXPIRED") {
           const completedSessionsThisWeek = await this.questsService.countCompletedSessionsThisWeek(userId, today, tx);
@@ -247,7 +249,7 @@ export class WorkoutsService {
         // Weekly/Main questa, ne moze se lenjo zavrsiti na GET-u (uslov je vezan za ovu
         // konkretnu sesiju) - zato se generise i zavrsava ovde. `sideQuest === null`
         // znaci da je korisnik iscrpeo biblioteku vezbi (vidi QuestsService.generateSideQuest).
-        const sideQuest = await this.questsService.generateSideQuest(userId, tx);
+        const sideQuest = await this.questsService.generateSideQuest(userId, tx, locale);
         let sideQuestCompleted = false;
         if (sideQuest && sideQuest.status !== "COMPLETED" && sideQuest.status !== "EXPIRED") {
           const hasNewExercise = await this.questsService.hasCompletedNewExercise(userId, session.id, tx);

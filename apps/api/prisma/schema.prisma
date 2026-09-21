@@ -65,6 +65,9 @@ model Profile {
   /// `null` = nista opremljeno za tu kategoriju.
   equippedAvatarFrameId String? @map("equipped_avatar_frame_id")
   equippedTitleId       String? @map("equipped_title_id")
+  /// "en" | "sr" (@risesolo/domain Locale) - String (ne DB enum) jer se validira na app sloju
+  /// preko Zod (isti princip kao trainingType/experienceLevel), ne u bazi.
+  locale         String    @default("sr")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 

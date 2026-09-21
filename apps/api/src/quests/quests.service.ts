@@ -6,6 +6,7 @@ import {
   calculateLevel,
   calculateRank,
   COIN_REWARDS,
+  DEFAULT_LOCALE,
   PENALTY_QUEST_KIND,
   PENALTY_QUEST_TARGET_SESSIONS,
   SIDE_QUEST_KIND,
@@ -27,6 +28,7 @@ import {
   statPointsForLevelsGained,
   type AiQuestKind,
   type DailyQuestKind,
+  type Locale,
   type MainQuestKind,
   type PenaltyQuestKind,
   type SideQuestKind,
@@ -45,6 +47,7 @@ import type {
 } from "@risesolo/validation";
 import type { Prisma, Quest, QuestType } from "@prisma/client";
 import { startOfIsoWeek, startOfUtcDay } from "../common/date";
+import { resolveLocale } from "../common/locale";
 // AiService/SubscriptionsService MORAJU biti value import (ne "import type") -
 // NestJS DI se oslanja na emitDecoratorMetadata koji zahteva stvarnu klasu u
 // constructor parametar tipu, ne obrisanu type-only referencu.
@@ -60,11 +63,23 @@ type Db = PrismaService | Prisma.TransactionClient;
 
 const DAILY_QUEST_TARGET_SETS = 3;
 
-const BOSS_QUEST_TITLE = "Nedeljni Boss Quest";
-const BOSS_QUEST_DESCRIPTION = `Zavrsi ${BOSS_QUEST_TARGET_SESSIONS} treninga ove nedelje da pobedis Boss-a i osvojis veliku nagradu.`;
+function bossQuestTitle(locale: Locale): string {
+  return locale === "en" ? "Weekly Boss Quest" : "Nedeljni Boss Quest";
+}
+function bossQuestDescription(locale: Locale): string {
+  return locale === "en"
+    ? `Finish ${BOSS_QUEST_TARGET_SESSIONS} workouts this week to defeat the Boss and earn a big reward.`
+    : `Zavrsi ${BOSS_QUEST_TARGET_SESSIONS} treninga ove nedelje da pobedis Boss-a i osvojis veliku nagradu.`;
+}
 
-const PENALTY_QUEST_TITLE = "Iskupljenje";
-const PENALTY_QUEST_DESCRIPTION = `Zavrsi ${PENALTY_QUEST_TARGET_SESSIONS} treninga danas da povratis coins izgubljene propustenim dnevnim questom.`;
+function penaltyQuestTitle(locale: Locale): string {
+  return locale === "en" ? "Redemption" : "Iskupljenje";
+}
+function penaltyQuestDescription(locale: Locale): string {
+  return locale === "en"
+    ? `Finish ${PENALTY_QUEST_TARGET_SESSIONS} workouts today to recover the coins lost to a missed daily quest.`
+    : `Zavrsi ${PENALTY_QUEST_TARGET_SESSIONS} treninga danas da povratis coins izgubljene propustenim dnevnim questom.`;
+}
 
 /**
  * Main Quest nema prirodan vremenski period (za razliku od Daily/Weekly/Boss)
@@ -112,10 +127,10 @@ export class QuestsService {
    * umesto da pravi duplikat - garantovano preko @@unique([userId, date, type])
    * u schema.prisma, ne samo "provere pa upisa" (race-safe).
    */
-  async generateDailyQuest(userId: string, date: Date, db: Db = this.prisma): Promise<Quest> {
+  async generateDailyQuest(userId: string, date: Date, db: Db = this.prisma, locale: Locale = DEFAULT_LOCALE): Promise<Quest> {
     const questDate = startOfUtcDay(date);
     const kind: DailyQuestKind = selectDailyQuestKind(userId, questDate);
-    const display = getDailyQuestDisplay(kind);
+    const display = getDailyQuestDisplay(kind, locale);
     return this.generateQuest(
       userId,
       "DAILY",
@@ -133,14 +148,14 @@ export class QuestsService {
   }
 
   /** Isti idempotency princip kao dnevni quest, ali po ISO nedelji (date = ponedeljak te nedelje). */
-  async generateBossQuest(userId: string, date: Date, db: Db = this.prisma): Promise<Quest> {
+  async generateBossQuest(userId: string, date: Date, db: Db = this.prisma, locale: Locale = DEFAULT_LOCALE): Promise<Quest> {
     return this.generateQuest(
       userId,
       "BOSS",
       startOfIsoWeek(date),
       {
-        title: BOSS_QUEST_TITLE,
-        description: BOSS_QUEST_DESCRIPTION,
+        title: bossQuestTitle(locale),
+        description: bossQuestDescription(locale),
         targetSets: BOSS_QUEST_TARGET_SESSIONS,
         xpReward: XP_REWARDS.BOSS_QUEST_COMPLETE,
         coinReward: COIN_REWARDS.BOSS_QUEST_COMPLETE,
@@ -163,14 +178,16 @@ export class QuestsService {
   }
 
   async getTodayQuest(userId: string): Promise<DailyQuestDto> {
-    const quest = await this.generateDailyQuest(userId, new Date());
+    const locale = await resolveLocale(this.prisma, userId);
+    const quest = await this.generateDailyQuest(userId, new Date(), this.prisma, locale);
     return toDailyDto(quest);
   }
 
   async getCurrentBossQuest(userId: string): Promise<BossQuestDto> {
     const now = new Date();
+    const locale = await resolveLocale(this.prisma, userId);
     const [quest, progress] = await Promise.all([
-      this.generateBossQuest(userId, now),
+      this.generateBossQuest(userId, now, this.prisma, locale),
       this.countCompletedSessionsThisWeek(userId, now),
     ]);
     return toBossDto(quest, progress);
@@ -211,7 +228,8 @@ export class QuestsService {
     await db.progression.update({ where: { userId }, data: { coins: newCoins } });
 
     const coinsLost = progression.coins - newCoins;
-    await this.generatePenaltyQuest(userId, now, coinsLost, db);
+    const locale = await resolveLocale(db, userId);
+    await this.generatePenaltyQuest(userId, now, coinsLost, db, locale);
 
     return { applied: true, missedQuestCount: pastDue.length, coinsLost };
   }
@@ -223,15 +241,21 @@ export class QuestsService {
    * expirePastDueDailyQuests, jednom po danu kada je kazna primenjena).
    * `coinRefund` je fiksiran na tacan iznos izgubljenih coins-a za TU kaznu.
    */
-  async generatePenaltyQuest(userId: string, date: Date, coinRefund: number, db: Db = this.prisma): Promise<Quest> {
+  async generatePenaltyQuest(
+    userId: string,
+    date: Date,
+    coinRefund: number,
+    db: Db = this.prisma,
+    locale: Locale = DEFAULT_LOCALE,
+  ): Promise<Quest> {
     return this.generateQuest(
       userId,
       "PENALTY",
       startOfUtcDay(date),
       {
         kind: PENALTY_QUEST_KIND,
-        title: PENALTY_QUEST_TITLE,
-        description: PENALTY_QUEST_DESCRIPTION,
+        title: penaltyQuestTitle(locale),
+        description: penaltyQuestDescription(locale),
         targetSets: PENALTY_QUEST_TARGET_SESSIONS,
         xpReward: XP_REWARDS.PENALTY_QUEST_COMPLETE,
         coinReward: coinRefund,
@@ -387,10 +411,10 @@ export class QuestsService {
   }
 
   /** Isti idempotency princip kao dnevni/boss quest, ali po ISO nedelji (date = ponedeljak te nedelje). */
-  async generateWeeklyQuest(userId: string, date: Date, db: Db = this.prisma): Promise<Quest> {
+  async generateWeeklyQuest(userId: string, date: Date, db: Db = this.prisma, locale: Locale = DEFAULT_LOCALE): Promise<Quest> {
     const weekStart = startOfIsoWeek(date);
     const kind: WeeklyQuestKind = selectWeeklyQuestKind(userId, weekStart);
-    const display = getWeeklyQuestDisplay(kind);
+    const display = getWeeklyQuestDisplay(kind, locale);
     return this.generateQuest(
       userId,
       "WEEKLY",
@@ -441,7 +465,8 @@ export class QuestsService {
    */
   async getCurrentWeeklyQuest(userId: string): Promise<WeeklyQuestDto> {
     const now = new Date();
-    let quest = await this.generateWeeklyQuest(userId, now);
+    const locale = await resolveLocale(this.prisma, userId);
+    let quest = await this.generateWeeklyQuest(userId, now, this.prisma, locale);
     const kind = quest.kind as WeeklyQuestKind;
     const targetProgress = quest.targetSets ?? WEEKLY_XP_TARGET;
     const progress = await this.getWeeklyQuestProgress(userId, kind, now);
@@ -472,12 +497,12 @@ export class QuestsService {
    * ZAVRSENIH Main Quest-ova (derive, don't cache) - rotacija kroz stat-ove
    * (snaga->agilnost->...->inteligencija->snaga na visem tier-u).
    */
-  async generateMainQuest(userId: string, db: Db = this.prisma): Promise<Quest> {
+  async generateMainQuest(userId: string, db: Db = this.prisma, locale: Locale = DEFAULT_LOCALE): Promise<Quest> {
     const completedCount = await db.quest.count({ where: { userId, type: "MAIN", status: "COMPLETED" } });
     const kind: MainQuestKind = selectMainQuestKind(completedCount);
     const tier = mainQuestTier(completedCount);
     const target = mainQuestTarget(tier);
-    const display = getMainQuestDisplay(kind, target);
+    const display = getMainQuestDisplay(kind, target, locale);
     const sequenceDate = new Date(MAIN_QUEST_EPOCH.getTime() + completedCount * 24 * 60 * 60 * 1000);
     return this.generateQuest(
       userId,
@@ -508,7 +533,8 @@ export class QuestsService {
    * SLEDECI quest u lancu - nema posebne "regenerate" logike.
    */
   async getCurrentMainQuest(userId: string): Promise<MainQuestDto> {
-    let quest = await this.generateMainQuest(userId);
+    const locale = await resolveLocale(this.prisma, userId);
+    let quest = await this.generateMainQuest(userId, this.prisma, locale);
     const kind = quest.kind as MainQuestKind;
     const targetProgress = quest.targetSets ?? mainQuestTarget(1);
     const progress = await this.getMainQuestProgress(userId, kind);
@@ -543,7 +569,7 @@ export class QuestsService {
    * SVAKE vezbe iz biblioteke (nema vise sta da bude "nova vezba") - biblioteka
    * je konacna, pa je ovo dugorocno moguce iako retko u praksi.
    */
-  async generateSideQuest(userId: string, db: Db = this.prisma): Promise<Quest | null> {
+  async generateSideQuest(userId: string, db: Db = this.prisma, locale: Locale = DEFAULT_LOCALE): Promise<Quest | null> {
     const completedCount = await db.quest.count({ where: { userId, type: "SIDE", status: "COMPLETED" } });
     const sequenceDate = new Date(SIDE_QUEST_EPOCH.getTime() + completedCount * 24 * 60 * 60 * 1000);
 
@@ -558,7 +584,7 @@ export class QuestsService {
       return null;
     }
 
-    const display = getSideQuestDisplay(SIDE_QUEST_KIND);
+    const display = getSideQuestDisplay(SIDE_QUEST_KIND, locale);
     return this.generateQuest(
       userId,
       "SIDE",
@@ -620,7 +646,8 @@ export class QuestsService {
    * znaci da je korisnik iscrpeo biblioteku vezbi (nema vise "novih" vezbi).
    */
   async getCurrentSideQuest(userId: string): Promise<{ quest: SideQuestDto | null }> {
-    const quest = await this.generateSideQuest(userId);
+    const locale = await resolveLocale(this.prisma, userId);
+    const quest = await this.generateSideQuest(userId, this.prisma, locale);
     return { quest: quest ? toSideDto(quest) : null };
   }
 

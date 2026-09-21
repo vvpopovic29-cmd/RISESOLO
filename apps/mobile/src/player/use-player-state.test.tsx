@@ -17,6 +17,7 @@ function samplePlayerState() {
       onboarded: true,
       title: null,
       avatarFrameColorHex: null,
+      locale: "sr" as const,
     },
     progression: {
       totalXp: 250,

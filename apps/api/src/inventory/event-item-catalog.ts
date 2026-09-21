@@ -1,4 +1,4 @@
-import { assertNever, type EventItemId } from "@risesolo/domain";
+import { assertNever, DEFAULT_LOCALE, type EventItemId, type Locale } from "@risesolo/domain";
 
 export interface EventItemDisplay {
   name: string;
@@ -11,18 +11,29 @@ export interface EventItemDisplay {
  * vidljiv (kao Workshop) - "aktivnost" (da li se moze prisvojiti SADA) se
  * racuna preko `active` polja, ne kroz sakrivanje ovog teksta.
  */
-export function getEventItemDisplay(id: EventItemId): EventItemDisplay {
+export function getEventItemDisplay(id: EventItemId, locale: Locale = DEFAULT_LOCALE): EventItemDisplay {
+  const en = locale === "en";
   switch (id) {
     case "NEW_YEAR_RESOLUTION":
-      return { name: "Novogodisnja Odluka", description: "Prisvoji tokom prve dve nedelje januara - pocni godinu jako." };
+      return en
+        ? { name: "New Year's Resolution", description: "Claim during the first two weeks of January - start the year strong." }
+        : { name: "Novogodisnja Odluka", description: "Prisvoji tokom prve dve nedelje januara - pocni godinu jako." };
     case "SPRING_AWAKENING":
-      return { name: "Prolecno Budjenje", description: "Prisvoji krajem marta / pocetkom aprila, uz dolazak proleca." };
+      return en
+        ? { name: "Spring Awakening", description: "Claim in late March / early April, as spring arrives." }
+        : { name: "Prolecno Budjenje", description: "Prisvoji krajem marta / pocetkom aprila, uz dolazak proleca." };
     case "SUMMER_SHRED":
-      return { name: "Letnje Isklesavanje", description: "Prisvoji tokom juna, dok se spremas za leto." };
+      return en
+        ? { name: "Summer Shred", description: "Claim during June, while you get ready for summer." }
+        : { name: "Letnje Isklesavanje", description: "Prisvoji tokom juna, dok se spremas za leto." };
     case "AUTUMN_HARVEST":
-      return { name: "Jesenja Zetva", description: "Prisvoji tokom septembra - vreme da pozanjes plodove svog rada." };
+      return en
+        ? { name: "Autumn Harvest", description: "Claim during September - time to reap the fruits of your work." }
+        : { name: "Jesenja Zetva", description: "Prisvoji tokom septembra - vreme da pozanjes plodove svog rada." };
     case "WINTER_WARRIOR":
-      return { name: "Zimski Ratnik", description: "Prisvoji tokom decembra - ne odustaj ni kad je najhladnije." };
+      return en
+        ? { name: "Winter Warrior", description: "Claim during December - don't give up even when it's coldest." }
+        : { name: "Zimski Ratnik", description: "Prisvoji tokom decembra - ne odustaj ni kad je najhladnije." };
     default:
       return assertNever(id, "Nepoznat event itemId");
   }

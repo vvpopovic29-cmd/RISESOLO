@@ -1,4 +1,4 @@
-import { assertNever, getWorkshopItem, type WorkshopItemId } from "@risesolo/domain";
+import { assertNever, DEFAULT_LOCALE, getWorkshopItem, type Locale, type WorkshopItemId } from "@risesolo/domain";
 
 export interface WorkshopItemDisplay {
   name: string;
@@ -11,18 +11,29 @@ export interface WorkshopItemDisplay {
  * Hidden Item-a, ovaj tekst se vraca UVEK (izradjeno ili ne) - Workshop
  * katalog je unapred poznat, "tajna" je samo kod Hidden Item-a.
  */
-export function getWorkshopItemDisplay(id: WorkshopItemId): WorkshopItemDisplay {
+export function getWorkshopItemDisplay(id: WorkshopItemId, locale: Locale = DEFAULT_LOCALE): WorkshopItemDisplay {
+  const en = locale === "en";
   switch (id) {
     case "IRON_TALISMAN":
-      return { name: "Gvozdeni Talisman", description: "Prvi predmet iz radionice - skroman, ali pouzdan pratilac." };
+      return en
+        ? { name: "Iron Talisman", description: "The first workshop item - modest, but a reliable companion." }
+        : { name: "Gvozdeni Talisman", description: "Prvi predmet iz radionice - skroman, ali pouzdan pratilac." };
     case "STEEL_EMBLEM":
-      return { name: "Celicni Amblem", description: "Amblem iskovan za one koji su dokazali svoju posvecenost." };
+      return en
+        ? { name: "Steel Emblem", description: "An emblem forged for those who have proven their dedication." }
+        : { name: "Celicni Amblem", description: "Amblem iskovan za one koji su dokazali svoju posvecenost." };
     case "MYTHRIL_RELIC":
-      return { name: "Mitrilska Relikvija", description: "Redak materijal, dostupan samo iskusnim majstorima." };
+      return en
+        ? { name: "Mythril Relic", description: "A rare material, available only to seasoned craftsmen." }
+        : { name: "Mitrilska Relikvija", description: "Redak materijal, dostupan samo iskusnim majstorima." };
     case "DRAGONBONE_CHARM":
-      return { name: "Amajlija od Zmajeve Kosti", description: "Legendarni materijal za legendarne ratnike." };
+      return en
+        ? { name: "Dragonbone Charm", description: "A legendary material for legendary warriors." }
+        : { name: "Amajlija od Zmajeve Kosti", description: "Legendarni materijal za legendarne ratnike." };
     case "CELESTIAL_SIGIL":
-      return { name: "Nebeski Pecat", description: "Vrhunac majstorstva radionice - retko ko ga ikad izradi." };
+      return en
+        ? { name: "Celestial Sigil", description: "The pinnacle of workshop craftsmanship - few ever forge it." }
+        : { name: "Nebeski Pecat", description: "Vrhunac majstorstva radionice - retko ko ga ikad izradi." };
     default:
       return assertNever(id, "Nepoznat workshop itemId");
   }
@@ -33,7 +44,7 @@ export function getWorkshopItemDisplay(id: WorkshopItemId): WorkshopItemDisplay 
  * getShopItemDisplayById (katalog moze da se promeni, String kolona ne
  * garantuje da id i dalje postoji u WORKSHOP_ITEMS).
  */
-export function getWorkshopItemDisplayById(id: string): WorkshopItemDisplay | null {
+export function getWorkshopItemDisplayById(id: string, locale: Locale = DEFAULT_LOCALE): WorkshopItemDisplay | null {
   const definition = getWorkshopItem(id);
-  return definition ? getWorkshopItemDisplay(definition.id) : null;
+  return definition ? getWorkshopItemDisplay(definition.id, locale) : null;
 }

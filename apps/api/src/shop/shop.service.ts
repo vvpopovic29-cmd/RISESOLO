@@ -1,6 +1,16 @@
 import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
-import { SHOP_ITEMS, canPurchaseShopItem, getShopItem, type ShopCategory, type ShopItemId } from "@risesolo/domain";
+import {
+  DEFAULT_LOCALE,
+  SHOP_ITEMS,
+  canPurchaseShopItem,
+  getShopItem,
+  isLocale,
+  type Locale,
+  type ShopCategory,
+  type ShopItemId,
+} from "@risesolo/domain";
 import type { PurchaseShopItemResponse, ShopItemDto } from "@risesolo/validation";
+import { resolveLocale } from "../common/locale";
 import { PrismaService } from "../prisma/prisma.service";
 import { getShopItemDisplay } from "./shop-catalog";
 
@@ -26,8 +36,11 @@ export class ShopService {
     const equippedIds = new Set(
       [profile.equippedAvatarFrameId, profile.equippedTitleId].filter((id): id is string => id !== null),
     );
+    const locale: Locale = isLocale(profile.locale) ? profile.locale : DEFAULT_LOCALE;
 
-    return SHOP_ITEMS.map((item) => toDto(item.id, item.category, item.price, ownedIds.has(item.id), equippedIds.has(item.id)));
+    return SHOP_ITEMS.map((item) =>
+      toDto(item.id, item.category, item.price, ownedIds.has(item.id), equippedIds.has(item.id), locale),
+    );
   }
 
   /**
@@ -43,29 +56,32 @@ export class ShopService {
     }
 
     try {
-      const coins = await this.prisma.$transaction(async (tx) => {
-        const [progression, existingCosmetic] = await Promise.all([
-          tx.progression.findUniqueOrThrow({ where: { userId } }),
-          tx.userCosmetic.findUnique({ where: { userId_itemId: { userId, itemId } } }),
-        ]);
+      const [coins, locale] = await Promise.all([
+        this.prisma.$transaction(async (tx) => {
+          const [progression, existingCosmetic] = await Promise.all([
+            tx.progression.findUniqueOrThrow({ where: { userId } }),
+            tx.userCosmetic.findUnique({ where: { userId_itemId: { userId, itemId } } }),
+          ]);
 
-        if (!canPurchaseShopItem(progression.coins, itemDefinition.price, existingCosmetic !== null)) {
-          if (existingCosmetic !== null) {
-            throw new ForbiddenException("Vec imas ovaj predmet");
+          if (!canPurchaseShopItem(progression.coins, itemDefinition.price, existingCosmetic !== null)) {
+            if (existingCosmetic !== null) {
+              throw new ForbiddenException("Vec imas ovaj predmet");
+            }
+            throw new HttpException("Nemas dovoljno coins-a za ovaj predmet", HttpStatus.PAYMENT_REQUIRED);
           }
-          throw new HttpException("Nemas dovoljno coins-a za ovaj predmet", HttpStatus.PAYMENT_REQUIRED);
-        }
 
-        await tx.userCosmetic.create({ data: { userId, itemId } });
-        const updated = await tx.progression.update({
-          where: { userId },
-          data: { coins: { decrement: itemDefinition.price } },
-        });
-        return updated.coins;
-      });
+          await tx.userCosmetic.create({ data: { userId, itemId } });
+          const updated = await tx.progression.update({
+            where: { userId },
+            data: { coins: { decrement: itemDefinition.price } },
+          });
+          return updated.coins;
+        }),
+        resolveLocale(this.prisma, userId),
+      ]);
 
       return {
-        item: toDto(itemDefinition.id, itemDefinition.category, itemDefinition.price, true, false),
+        item: toDto(itemDefinition.id, itemDefinition.category, itemDefinition.price, true, false, locale),
         coins,
       };
     } catch (error) {
@@ -114,8 +130,9 @@ function toDto(
   price: number,
   owned: boolean,
   equipped: boolean,
+  locale: Locale,
 ): ShopItemDto {
-  const display = getShopItemDisplay(id);
+  const display = getShopItemDisplay(id, locale);
   return { id, category, price, owned, equipped, ...display };
 }
 

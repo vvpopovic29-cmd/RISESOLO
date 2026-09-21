@@ -1,9 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import { Redirect, router, useFocusEffect } from "expo-router";
 import { ApiError } from "@risesolo/api-client";
 import type { AllocateStatPointsRequest } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { usePlayerState } from "../src/player/use-player-state";
 import { useTodayQuest } from "../src/player/use-today-quest";
 import { useBossQuest } from "../src/player/use-boss-quest";
@@ -19,88 +20,99 @@ import { ErrorState } from "../src/ui/ErrorState";
 import { ProgressBar } from "../src/ui/ProgressBar";
 import { Screen } from "../src/ui/Screen";
 
-const QUEST_STATUS_LABEL: Record<string, string> = {
-  AVAILABLE: "Dostupan",
-  IN_PROGRESS: "U toku",
-  COMPLETED: "Zavrsen",
-  EXPIRED: "Istekao",
-};
-
-/**
- * Dnevni quest sada ima varijetet kind-ova (vidi @risesolo/domain
- * daily-quest-pool) - CTA na kartici vodi ka odgovarajucoj akciji umesto da
- * uvek podrazumeva trening.
- */
-const QUEST_KIND_CTA: Record<string, { label: string; route: "/exercises" | "/nutrition" }> = {
-  WORKOUT_COMPLETE: { label: "Idi na trening", route: "/exercises" },
-  LOG_NUTRITION: { label: "Idi na ishranu", route: "/nutrition" },
-};
-
-/**
- * Nedeljni quest je ODVOJEN od Boss Quest-a (koji je uvek "N treninga ove
- * nedelje") - progres se tumaci po kind-u (osvojen XP ili razliciti dani sa
- * unosom ishrane, vidi @risesolo/domain weekly-quest-pool).
- */
-const WEEKLY_QUEST_KIND_UNIT: Record<string, string> = {
-  XP_TARGET: "XP ove nedelje",
-  NUTRITION_LOG_DAYS: "dana sa ishranom ove nedelje",
-};
-
-/**
- * Main Quest je dugorocni LANAC (za razliku od Daily/Weekly/Boss NIKAD ne
- * istice, traje dok se ne zavrsi) - rotira kroz stat-ove, odvojeno od
- * Achievements koji vec pokrivaju "dostigni level X" (vidi @risesolo/domain
- * main-quest-pool).
- */
-const MAIN_QUEST_KIND_LABEL: Record<string, string> = {
-  strength: "Snaga",
-  agility: "Agilnost",
-  endurance: "Izdrzljivost",
-  vitality: "Vitalnost",
-  intelligence: "Inteligencija",
-};
-
-/**
- * Side Quest je bonus izazov vezan za KONKRETNU sesiju treninga (MVP: samo
- * "nova vezba") - za razliku od Main/Weekly/Boss Quest-a, karticа se sakriva
- * kad je `data === null` (korisnik je iscrpeo biblioteku vezbi, vidi
- * QuestsService.generateSideQuest), umesto da prikaze prazno/error stanje.
- */
-const SIDE_QUEST_KIND_LABEL: Record<string, string> = {
-  NEW_EXERCISE: "nova vezba zavrsena",
-};
-
-/**
- * Penalty Quest = "iskupljenje" za Penalty System (vidi @risesolo/domain
- * penalty.ts) - postoji SAMO kada je dnevni quest danas propusten i kaznjen
- * (za razliku od svih drugih questova, NIKAD se ne generise proizvoljno).
- * Karticа se sakriva kad je `data === null` (normalno/najcesce stanje).
- */
-const PENALTY_QUEST_KIND_LABEL: Record<string, string> = {
-  REDEMPTION_WORKOUT: "treninga danas",
-};
-
-/**
- * AI Quest - Pro-gated bonus quest ciji title/description generise Claude,
- * personalizovano po nivou/rangu/stat-ovima/streak-u (vidi apps/api/src/ai
- * generateQuestFlavor). Zavrsava se identicno Daily Quest-ovom
- * WORKOUT_COMPLETE kind-u (bilo koji zavrsen trening danas). Karticа se
- * sakriva kad je `data === null` (besplatan korisnik ili AI nedostupan).
- */
-const AI_QUEST_KIND_LABEL: Record<string, string> = {
-  AI_PERSONALIZED: "trening danas",
-};
-
 export default function HomeScreen() {
   const { apiClient, logout } = useAuth();
+  const { t, setLocale } = useI18n();
   const { state: playerState, refetch: refetchPlayer } = usePlayerState(apiClient);
-  const { state: questState, refetch: refetchQuest } = useTodayQuest(apiClient);
-  const { state: bossQuestState, refetch: refetchBossQuest } = useBossQuest(apiClient);
-  const { state: weeklyQuestState, refetch: refetchWeeklyQuest } = useWeeklyQuest(apiClient);
-  const { state: mainQuestState, refetch: refetchMainQuest } = useMainQuest(apiClient);
-  const { state: sideQuestState, refetch: refetchSideQuest } = useSideQuest(apiClient);
-  const { state: penaltyQuestState, refetch: refetchPenaltyQuest } = usePenaltyQuest(apiClient);
-  const { state: aiQuestState, refetch: refetchAiQuest } = useAiQuest(apiClient);
+
+  // Profile.locale (server-authoritative, postavljen pri onboardingu ili u
+  // Settings ekranu) preuzima nad jezikom pogodjenim iz uredjaja cim se
+  // ucita - pokriva slucaj prijave na nalog ciji je jezik vec drugaciji
+  // podesen na drugom uredjaju. NAMERNO se preskace dok profil jos nije
+  // onboard-ovan (Home se kratko renderuje pre <Redirect href="/onboarding">
+  // ispod) - `locale` je tada jos DB podrazumevana vrednost, ne stvarni
+  // izbor korisnika, i ne sme da prepise jezik uredjaja pre nego sto
+  // onboarding stigne da ga posalje nazad na server.
+  useEffect(() => {
+    if (playerState.status === "success" && playerState.data.profile.onboarded) {
+      setLocale(playerState.data.profile.locale);
+    }
+  }, [playerState, setLocale]);
+
+  const QUEST_STATUS_LABEL: Record<string, string> = {
+    AVAILABLE: t("home.questStatusAvailable"),
+    IN_PROGRESS: t("home.questStatusInProgress"),
+    COMPLETED: t("home.questStatusCompleted"),
+    EXPIRED: t("home.questStatusExpired"),
+  };
+
+  // Dnevni quest sada ima varijetet kind-ova (vidi @risesolo/domain
+  // daily-quest-pool) - CTA na kartici vodi ka odgovarajucoj akciji umesto da
+  // uvek podrazumeva trening.
+  const QUEST_KIND_CTA: Record<string, { label: string; route: "/exercises" | "/nutrition" }> = {
+    WORKOUT_COMPLETE: { label: t("home.goToWorkout"), route: "/exercises" },
+    LOG_NUTRITION: { label: t("home.goToNutrition"), route: "/nutrition" },
+  };
+
+  // Nedeljni quest je ODVOJEN od Boss Quest-a (koji je uvek "N treninga ove
+  // nedelje") - progres se tumaci po kind-u (osvojen XP ili razliciti dani sa
+  // unosom ishrane, vidi @risesolo/domain weekly-quest-pool).
+  const WEEKLY_QUEST_KIND_UNIT: Record<string, string> = {
+    XP_TARGET: t("home.weeklyUnitXp"),
+    NUTRITION_LOG_DAYS: t("home.weeklyUnitNutritionDays"),
+  };
+
+  // Main Quest je dugorocni LANAC (za razliku od Daily/Weekly/Boss NIKAD ne
+  // istice, traje dok se ne zavrsi) - rotira kroz stat-ove, odvojeno od
+  // Achievements koji vec pokrivaju "dostigni level X" (vidi @risesolo/domain
+  // main-quest-pool).
+  const MAIN_QUEST_KIND_LABEL: Record<string, string> = {
+    strength: t("home.statStrength"),
+    agility: t("home.statAgility"),
+    endurance: t("home.statEndurance"),
+    vitality: t("home.statVitality"),
+    intelligence: t("home.statIntelligence"),
+  };
+
+  // Side Quest je bonus izazov vezan za KONKRETNU sesiju treninga (MVP: samo
+  // "nova vezba") - za razliku od Main/Weekly/Boss Quest-a, karticа se sakriva
+  // kad je `data === null` (korisnik je iscrpeo biblioteku vezbi, vidi
+  // QuestsService.generateSideQuest), umesto da prikaze prazno/error stanje.
+  const SIDE_QUEST_KIND_LABEL: Record<string, string> = {
+    NEW_EXERCISE: t("home.sideUnitNewExercise"),
+  };
+
+  // Penalty Quest = "iskupljenje" za Penalty System (vidi @risesolo/domain
+  // penalty.ts) - postoji SAMO kada je dnevni quest danas propusten i kaznjen
+  // (za razliku od svih drugih questova, NIKAD se ne generise proizvoljno).
+  // Karticа se sakriva kad je `data === null` (normalno/najcesce stanje).
+  const PENALTY_QUEST_KIND_LABEL: Record<string, string> = {
+    REDEMPTION_WORKOUT: t("home.penaltyUnitWorkout"),
+  };
+
+  // AI Quest - Pro-gated bonus quest ciji title/description generise Claude,
+  // personalizovano po nivou/rangu/stat-ovima/streak-u (vidi apps/api/src/ai
+  // generateQuestFlavor). Zavrsava se identicno Daily Quest-ovom
+  // WORKOUT_COMPLETE kind-u (bilo koji zavrsen trening danas). Karticа se
+  // sakriva kad je `data === null` (besplatan korisnik ili AI nedostupan).
+  const AI_QUEST_KIND_LABEL: Record<string, string> = {
+    AI_PERSONALIZED: t("home.aiUnitPersonalized"),
+  };
+  // Questovi se NAMERNO ne ucitavaju dok profil nije onboard-ovan - Home
+  // se kratko montira (i ostaje montiran u navigation stack-u) PRE
+  // <Redirect href="/onboarding"> ispod, pa bi ovi pozivi inace GENERISALI
+  // (i trajno perzistirali - vidi QuestsService "generate once, persist")
+  // dnevni/boss/nedeljni/itd. quest sa jezikom uredjaja iz baze PRE nego sto
+  // onboarding stigne da posalje pravi izbor korisnika (isti razlog kao
+  // locale-sync efekat gore).
+  const onboarded = playerState.status === "success" && playerState.data.profile.onboarded;
+  const { state: questState, refetch: refetchQuest } = useTodayQuest(apiClient, onboarded);
+  const { state: bossQuestState, refetch: refetchBossQuest } = useBossQuest(apiClient, onboarded);
+  const { state: weeklyQuestState, refetch: refetchWeeklyQuest } = useWeeklyQuest(apiClient, onboarded);
+  const { state: mainQuestState, refetch: refetchMainQuest } = useMainQuest(apiClient, onboarded);
+  const { state: sideQuestState, refetch: refetchSideQuest } = useSideQuest(apiClient, onboarded);
+  const { state: penaltyQuestState, refetch: refetchPenaltyQuest } = usePenaltyQuest(apiClient, onboarded);
+  const { state: aiQuestState, refetch: refetchAiQuest } = useAiQuest(apiClient, onboarded);
   const { state: activeSessionState, refetch: refetchActiveSession } = useActiveSession(apiClient);
   const [allocating, setAllocating] = useState(false);
   const [allocateError, setAllocateError] = useState<string | null>(null);
@@ -158,19 +170,19 @@ export default function HomeScreen() {
         await apiClient.players.allocateStats(allocation);
         refetchPlayer();
       } catch (error) {
-        setAllocateError(error instanceof ApiError ? error.message : "Raspodela poena nije uspela.");
+        setAllocateError(error instanceof ApiError ? error.message : t("home.allocateFailed"));
       } finally {
         setAllocating(false);
       }
     },
-    [apiClient, refetchPlayer],
+    [apiClient, refetchPlayer, t],
   );
 
   if (playerState.status === "loading") {
     return (
       <Screen>
         <Text testID="home-loading" className="text-center text-neutral-500 dark:text-neutral-600">
-          Ucitavam System...
+          {t("home.loadingSystem")}
         </Text>
       </Screen>
     );
@@ -213,10 +225,20 @@ export default function HomeScreen() {
             <View className="rounded-full bg-premium/20 px-2.5 py-0.5">
               <Text className="text-xs font-bold text-premium">RANK {progression.rank}</Text>
             </View>
-            <Text className="text-sm text-neutral-500 dark:text-neutral-600">Level {progression.level}</Text>
+            <Text className="text-sm text-neutral-500 dark:text-neutral-600">
+              {t("home.level")} {progression.level}
+            </Text>
           </View>
         </View>
-        <Button label="Odjava" variant="secondary" onPress={() => void handleLogout()} testID="logout-button" />
+        <View className="items-end gap-2">
+          <Button label={t("home.logout")} variant="secondary" onPress={() => void handleLogout()} testID="logout-button" />
+          <Button
+            label={t("home.settings")}
+            variant="secondary"
+            onPress={() => router.push("/settings")}
+            testID="settings-button"
+          />
+        </View>
       </View>
 
       {activeSessionState.status === "success" && activeSessionState.data.session ? (
@@ -230,12 +252,11 @@ export default function HomeScreen() {
 
       {penalty.applied ? (
         <View className="gap-1 rounded-lg border border-danger/40 bg-danger/10 p-3" testID="penalty-banner">
-          <Text className="text-sm font-semibold text-danger">PROPUSTEN DNEVNI QUEST</Text>
+          <Text className="text-sm font-semibold text-danger">{t("home.penaltyBannerTitle")}</Text>
           <Text className="text-xs text-neutral-400 dark:text-neutral-700">
-            Izgubio si {penalty.coinsLost} coins jer{" "}
             {penalty.missedQuestCount === 1
-              ? "juce nisi zavrsio dnevni quest."
-              : `${penalty.missedQuestCount} dana nisi zavrsio dnevni quest.`}
+              ? t("home.penaltyLostCoinsSingular", { coins: penalty.coinsLost })
+              : t("home.penaltyLostCoinsPlural", { coins: penalty.coinsLost, days: penalty.missedQuestCount })}
           </Text>
         </View>
       ) : null}
@@ -243,18 +264,18 @@ export default function HomeScreen() {
       <View className="gap-1.5">
         <ProgressBar progress={progression.progress} />
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-          {progression.currentLevelXp} / {progression.requiredXp} XP do sledeceg levela
+          {t("home.xpToNextLevel", { current: progression.currentLevelXp, required: progression.requiredXp })}
         </Text>
       </View>
 
       <View className="flex-row gap-3">
         <View className="flex-1 items-center gap-1 rounded-lg bg-reward/10 py-3">
           <Text className="text-lg font-bold text-reward">{progression.coins}</Text>
-          <Text className="text-xs text-neutral-500 dark:text-neutral-600">Coins</Text>
+          <Text className="text-xs text-neutral-500 dark:text-neutral-600">{t("home.coins")}</Text>
         </View>
         <View className="flex-1 items-center gap-1 rounded-lg bg-reward/10 py-3">
           <Text className="text-lg font-bold text-reward">{progression.currentStreak}</Text>
-          <Text className="text-xs text-neutral-500 dark:text-neutral-600">Streak (dana)</Text>
+          <Text className="text-xs text-neutral-500 dark:text-neutral-600">{t("home.streak")}</Text>
         </View>
       </View>
 
@@ -265,18 +286,18 @@ export default function HomeScreen() {
         </View>
       ) : (
         <View className="flex-row flex-wrap gap-x-6 gap-y-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
-          <StatCell label="Snaga" value={stats.strength} />
-          <StatCell label="Agilnost" value={stats.agility} />
-          <StatCell label="Izdrzljivost" value={stats.endurance} />
-          <StatCell label="Vitalnost" value={stats.vitality} />
-          <StatCell label="Inteligencija" value={stats.intelligence} />
+          <StatCell label={t("home.statStrength")} value={stats.strength} />
+          <StatCell label={t("home.statAgility")} value={stats.agility} />
+          <StatCell label={t("home.statEndurance")} value={stats.endurance} />
+          <StatCell label={t("home.statVitality")} value={stats.vitality} />
+          <StatCell label={t("home.statIntelligence")} value={stats.intelligence} />
         </View>
       )}
 
       <View className="gap-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
-        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">DANASNJI QUEST</Text>
+        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("home.dailyQuestTitle")}</Text>
         {questState.status === "loading" ? (
-          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : questState.status === "error" ? (
           <ErrorState message={questState.message} onRetry={refetchQuest} />
         ) : (
@@ -309,13 +330,13 @@ export default function HomeScreen() {
 
       <View className="gap-2 rounded-lg border border-premium/40 p-4">
         <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-semibold text-premium">NEDELJNI BOSS QUEST</Text>
+          <Text className="text-sm font-semibold text-premium">{t("home.bossQuestTitle")}</Text>
           {bossQuestState.status === "success" && bossQuestState.data.status === "COMPLETED" ? (
-            <Text className="text-xs font-bold text-premium">POBEDJEN</Text>
+            <Text className="text-xs font-bold text-premium">{t("home.bossDefeated")}</Text>
           ) : null}
         </View>
         {bossQuestState.status === "loading" ? (
-          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : bossQuestState.status === "error" ? (
           <ErrorState message={bossQuestState.message} onRetry={refetchBossQuest} />
         ) : (
@@ -330,7 +351,7 @@ export default function HomeScreen() {
             />
             <View className="flex-row items-center justify-between pt-1">
               <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-                {bossQuestState.data.progress} / {bossQuestState.data.targetSessions} treninga ove nedelje
+                {bossQuestState.data.progress} / {bossQuestState.data.targetSessions} {t("home.bossProgressUnit")}
               </Text>
               <Text className="text-xs text-reward">
                 +{bossQuestState.data.xpReward} XP · +{bossQuestState.data.coinReward} coins
@@ -342,13 +363,13 @@ export default function HomeScreen() {
 
       <View className="gap-2 rounded-lg border border-accent/40 p-4">
         <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-semibold text-accent">NEDELJNI QUEST</Text>
+          <Text className="text-sm font-semibold text-accent">{t("home.weeklyQuestTitle")}</Text>
           {weeklyQuestState.status === "success" && weeklyQuestState.data.status === "COMPLETED" ? (
-            <Text className="text-xs font-bold text-accent">ZAVRSEN</Text>
+            <Text className="text-xs font-bold text-accent">{t("home.finished")}</Text>
           ) : null}
         </View>
         {weeklyQuestState.status === "loading" ? (
-          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : weeklyQuestState.status === "error" ? (
           <ErrorState message={weeklyQuestState.message} onRetry={refetchWeeklyQuest} />
         ) : (
@@ -380,14 +401,15 @@ export default function HomeScreen() {
       <View className="gap-2 rounded-lg border border-reward/40 p-4">
         <View className="flex-row items-center justify-between">
           <Text className="text-sm font-semibold text-reward">
-            GLAVNI QUEST{mainQuestState.status === "success" ? ` · TIER ${mainQuestState.data.tier}` : ""}
+            {t("home.mainQuestTitle")}
+            {mainQuestState.status === "success" ? ` · TIER ${mainQuestState.data.tier}` : ""}
           </Text>
           {mainQuestState.status === "success" && mainQuestState.data.status === "COMPLETED" ? (
-            <Text className="text-xs font-bold text-reward">ZAVRSEN</Text>
+            <Text className="text-xs font-bold text-reward">{t("home.finished")}</Text>
           ) : null}
         </View>
         {mainQuestState.status === "loading" ? (
-          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : mainQuestState.status === "error" ? (
           <ErrorState message={mainQuestState.message} onRetry={refetchMainQuest} />
         ) : (
@@ -419,13 +441,13 @@ export default function HomeScreen() {
       {sideQuestState.status === "success" && sideQuestState.data === null ? null : (
         <View className="gap-2 rounded-lg border border-accent/40 p-4">
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-semibold text-accent">SPOREDNI QUEST</Text>
+            <Text className="text-sm font-semibold text-accent">{t("home.sideQuestTitle")}</Text>
             {sideQuestState.status === "success" && sideQuestState.data && sideQuestState.data.status === "COMPLETED" ? (
-              <Text className="text-xs font-bold text-accent">ZAVRSEN</Text>
+              <Text className="text-xs font-bold text-accent">{t("home.finished")}</Text>
             ) : null}
           </View>
           {sideQuestState.status === "loading" ? (
-            <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+            <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
           ) : sideQuestState.status === "error" ? (
             <ErrorState message={sideQuestState.message} onRetry={refetchSideQuest} />
           ) : sideQuestState.data ? (
@@ -452,7 +474,7 @@ export default function HomeScreen() {
               </View>
               {sideQuestState.data.status !== "COMPLETED" ? (
                 <Button
-                  label="Isprobaj novu vezbu"
+                  label={t("home.sideQuestCta")}
                   variant="secondary"
                   onPress={() => router.push("/exercises")}
                   testID="side-quest-cta-button"
@@ -466,13 +488,13 @@ export default function HomeScreen() {
       {penaltyQuestState.status === "success" && penaltyQuestState.data === null ? null : (
         <View className="gap-2 rounded-lg border border-danger/40 p-4">
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-semibold text-danger">QUEST ISKUPLJENJA</Text>
+            <Text className="text-sm font-semibold text-danger">{t("home.penaltyQuestTitle")}</Text>
             {penaltyQuestState.status === "success" && penaltyQuestState.data && penaltyQuestState.data.status === "COMPLETED" ? (
-              <Text className="text-xs font-bold text-danger">ZAVRSEN</Text>
+              <Text className="text-xs font-bold text-danger">{t("home.finished")}</Text>
             ) : null}
           </View>
           {penaltyQuestState.status === "loading" ? (
-            <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+            <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
           ) : penaltyQuestState.status === "error" ? (
             <ErrorState message={penaltyQuestState.message} onRetry={refetchPenaltyQuest} />
           ) : penaltyQuestState.data ? (
@@ -499,7 +521,7 @@ export default function HomeScreen() {
               </View>
               {penaltyQuestState.data.status !== "COMPLETED" ? (
                 <Button
-                  label="Idi na trening"
+                  label={t("home.goToWorkout")}
                   variant="secondary"
                   onPress={() => router.push("/exercises")}
                   testID="penalty-quest-cta-button"
@@ -513,13 +535,13 @@ export default function HomeScreen() {
       {aiQuestState.status === "success" && aiQuestState.data === null ? null : (
         <View className="gap-2 rounded-lg border border-premium/40 p-4">
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-semibold text-premium">AI QUEST</Text>
+            <Text className="text-sm font-semibold text-premium">{t("home.aiQuestTitle")}</Text>
             {aiQuestState.status === "success" && aiQuestState.data && aiQuestState.data.status === "COMPLETED" ? (
-              <Text className="text-xs font-bold text-premium">ZAVRSEN</Text>
+              <Text className="text-xs font-bold text-premium">{t("home.finished")}</Text>
             ) : null}
           </View>
           {aiQuestState.status === "loading" ? (
-            <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+            <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
           ) : aiQuestState.status === "error" ? (
             <ErrorState message={aiQuestState.message} onRetry={refetchAiQuest} />
           ) : aiQuestState.data ? (
@@ -543,7 +565,7 @@ export default function HomeScreen() {
               </View>
               {aiQuestState.data.status !== "COMPLETED" ? (
                 <Button
-                  label="Idi na trening"
+                  label={t("home.goToWorkout")}
                   variant="secondary"
                   onPress={() => router.push("/exercises")}
                   testID="ai-quest-cta-button"
@@ -555,69 +577,69 @@ export default function HomeScreen() {
       )}
 
       <View className="gap-3">
-        <Button label="Izaberi vezbu i zapocni trening" onPress={() => router.push("/exercises")} testID="start-workout-button" />
+        <Button label={t("home.startWorkout")} onPress={() => router.push("/exercises")} testID="start-workout-button" />
         <Button
-          label="Moji treninzi"
+          label={t("home.myWorkouts")}
           variant="secondary"
           onPress={() => router.push("/workout-templates")}
           testID="workout-templates-button"
         />
         <Button
-          label="Istorija treninga"
+          label={t("home.workoutHistory")}
           variant="secondary"
           onPress={() => router.push("/workout-history")}
           testID="workout-history-button"
         />
         <Button
-          label="AI trening plan"
+          label={t("home.aiTrainingPlan")}
           variant="secondary"
           onPress={() => router.push("/training-plan")}
           testID="training-plan-button"
         />
         <Button
-          label="Ishrana"
+          label={t("home.nutrition")}
           variant="secondary"
           onPress={() => router.push("/nutrition")}
           testID="nutrition-button"
         />
         <Button
-          label="Ceh"
+          label={t("home.guild")}
           variant="secondary"
           onPress={() => router.push("/guild")}
           testID="guild-button"
         />
         <Button
-          label="Prijatelji"
+          label={t("home.friends")}
           variant="secondary"
           onPress={() => router.push("/friends")}
           testID="friends-button"
         />
         <Button
-          label="Achievements"
+          label={t("home.achievements")}
           variant="secondary"
           onPress={() => router.push("/achievements")}
           testID="achievements-button"
         />
         <Button
-          label="Leaderboard"
+          label={t("home.leaderboard")}
           variant="secondary"
           onPress={() => router.push("/leaderboard")}
           testID="leaderboard-button"
         />
         <Button
-          label="Prodavnica"
+          label={t("home.shop")}
           variant="secondary"
           onPress={() => router.push("/shop")}
           testID="shop-button"
         />
         <Button
-          label="Inventory"
+          label={t("home.inventory")}
           variant="secondary"
           onPress={() => router.push("/inventory")}
           testID="inventory-button"
         />
         <Button
-          label="RISESOLO Pro"
+          label={t("home.pro")}
           variant="secondary"
           onPress={() => router.push("/paywall")}
           testID="paywall-button"
@@ -647,16 +669,19 @@ function ActiveSessionBanner({
   onAbandon: (sessionId: string) => void;
   abandoning: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <View className="gap-2 rounded-lg border border-accent/40 bg-accent/10 p-3" testID="active-session-banner">
-      <Text className="text-sm font-semibold text-accent">TRENING U TOKU</Text>
+      <Text className="text-sm font-semibold text-accent">{t("home.activeSessionTitle")}</Text>
       <Text className="text-xs text-neutral-400 dark:text-neutral-700">
-        {firstSet ? `Pauzirano na vezbi: ${firstSet.exerciseName}` : "Pauziran trening bez ulogovanih serija."}
+        {firstSet
+          ? t("home.activeSessionPausedAt", { exercise: firstSet.exerciseName })
+          : t("home.activeSessionPausedNoSets")}
       </Text>
       <View className="flex-row gap-3">
         {firstSet ? (
           <Button
-            label="Nastavi"
+            label={t("home.resume")}
             onPress={() =>
               router.push({ pathname: "/workout", params: { exerciseSlug: firstSet.exerciseSlug, resume: "1" } })
             }
@@ -664,7 +689,7 @@ function ActiveSessionBanner({
           />
         ) : null}
         <Button
-          label="Odustani"
+          label={t("home.abandon")}
           variant="secondary"
           onPress={() => onAbandon(sessionId)}
           loading={abandoning}

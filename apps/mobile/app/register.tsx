@@ -4,12 +4,14 @@ import { Link, router } from "expo-router";
 import { registerRequestSchema } from "@risesolo/validation";
 import { ApiError } from "@risesolo/api-client";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { Button } from "../src/ui/Button";
 import { Screen } from "../src/ui/Screen";
 import { TextField } from "../src/ui/TextField";
 
 export default function RegisterScreen() {
   const { register } = useAuth();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +21,7 @@ export default function RegisterScreen() {
   async function handleSubmit() {
     const parsed = registerRequestSchema.safeParse({ email: email.trim(), username: username.trim(), password });
     if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? "Proveri unete podatke.");
+      setFormError(parsed.error.issues[0]?.message ?? t("auth.registerCheckFields"));
       return;
     }
 
@@ -29,7 +31,7 @@ export default function RegisterScreen() {
       await register(parsed.data);
       router.replace("/");
     } catch (error) {
-      setFormError(error instanceof ApiError ? error.message : "Registracija nije uspela.");
+      setFormError(error instanceof ApiError ? error.message : t("auth.registerFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -39,20 +41,20 @@ export default function RegisterScreen() {
     <Screen>
       <View className="flex-1 justify-center gap-8">
         <View className="items-center gap-1">
-          <Text className="text-3xl font-bold text-neutral-50 dark:text-neutral-1000">Napravi lika</Text>
-          <Text className="text-neutral-500 dark:text-neutral-600">Pocni svoj RISESOLO gameplay loop</Text>
+          <Text className="text-3xl font-bold text-neutral-50 dark:text-neutral-1000">{t("auth.registerTitle")}</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("auth.registerSubtitle")}</Text>
         </View>
 
         <View className="gap-4">
           <TextField
-            label="Korisnicko ime"
+            label={t("auth.usernameLabel")}
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
             testID="register-username"
           />
           <TextField
-            label="Email"
+            label={t("auth.emailLabel")}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -61,7 +63,7 @@ export default function RegisterScreen() {
             testID="register-email"
           />
           <TextField
-            label="Lozinka"
+            label={t("auth.passwordLabel")}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -75,10 +77,15 @@ export default function RegisterScreen() {
           </Text>
         ) : null}
 
-        <Button label="Registruj se" onPress={() => void handleSubmit()} loading={submitting} testID="register-submit" />
+        <Button
+          label={t("auth.registerSubmit")}
+          onPress={() => void handleSubmit()}
+          loading={submitting}
+          testID="register-submit"
+        />
 
         <Link href="/login" className="text-center text-accent">
-          Vec imas nalog? Prijavi se
+          {t("auth.goToLogin")}
         </Link>
       </View>
     </Screen>
