@@ -7,6 +7,8 @@
 const en = {
   common: {
     loading: "Loading...",
+    back: "< Back",
+    retry: "Try again",
   },
   auth: {
     loginTitle: "RISESOLO",
@@ -107,6 +109,39 @@ const en = {
     questStatusInProgress: "In progress",
     questStatusCompleted: "Completed",
     questStatusExpired: "Expired",
+  },
+  nutrition: {
+    title: "Nutrition",
+    totalCalories: "Calories",
+    totalProtein: "Protein (g)",
+    totalCarbs: "Carbs (g)",
+    totalFat: "Fat (g)",
+    mealLabel: "Meal",
+    mealBreakfast: "Breakfast",
+    mealLunch: "Lunch",
+    mealDinner: "Dinner",
+    mealSnack: "Snack",
+    nameLabel: "Name",
+    namePlaceholder: "e.g. Oatmeal with banana",
+    addEntry: "Add entry",
+    todayEntries: "TODAY'S ENTRIES",
+    entriesEmpty: "No entries logged for today yet.",
+    delete: "Delete",
+    entrySummary: "{calories} kcal · {protein}p / {carbs}c / {fat}f",
+    nameRequired: "Enter a meal name.",
+    invalidNumbers: "Enter valid numbers greater than or equal to 0.",
+    saveFailed: "Saving the entry failed.",
+  },
+  shop: {
+    title: "Shop",
+    categoryFrames: "Avatar frames",
+    categoryTitles: "Titles",
+    equip: "Equip",
+    unequip: "Unequip",
+    purchase: "Buy",
+    purchaseFailed: "Purchase failed.",
+    equipFailed: "Equipping failed.",
+    unequipFailed: "Unequipping failed.",
   },
 } satisfies Record<string, Record<string, string>>;
 
