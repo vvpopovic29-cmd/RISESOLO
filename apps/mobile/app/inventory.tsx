@@ -12,6 +12,7 @@ import { useGuildItems } from "../src/inventory/use-guild-items";
 import { useInventory } from "../src/inventory/use-inventory";
 import { useRecoveryItems } from "../src/inventory/use-recovery-items";
 import { useWorkshop } from "../src/inventory/use-workshop";
+import { useI18n } from "../src/i18n";
 import { usePlayerState } from "../src/player/use-player-state";
 import { Button } from "../src/ui/Button";
 import { ErrorState } from "../src/ui/ErrorState";
@@ -38,6 +39,7 @@ import { TextField } from "../src/ui/TextField";
  */
 export default function InventoryScreen() {
   const { apiClient } = useAuth();
+  const { t } = useI18n();
   const { state, refetch } = useInventory(apiClient);
   const { state: workshopState, refetch: refetchWorkshop } = useWorkshop(apiClient);
   const { state: guildState, refetch: refetchGuild } = useGuildItems(apiClient);
@@ -65,7 +67,7 @@ export default function InventoryScreen() {
       refetchWorkshop();
       refetchPlayer();
     } catch (error) {
-      setCraftError(error instanceof ApiError ? error.message : "Izrada nije uspela.");
+      setCraftError(error instanceof ApiError ? error.message : t("inventory.craftFailed"));
     } finally {
       setBusyItemId(null);
     }
@@ -78,7 +80,7 @@ export default function InventoryScreen() {
       await apiClient.inventory.event.claim({ itemId: item.id });
       refetchEvent();
     } catch (error) {
-      setClaimError(error instanceof ApiError ? error.message : "Prisvajanje nije uspelo.");
+      setClaimError(error instanceof ApiError ? error.message : t("inventory.claimFailed"));
     } finally {
       setBusyItemId(null);
     }
@@ -94,7 +96,7 @@ export default function InventoryScreen() {
       refetchCustom();
       refetchPlayer();
     } catch (error) {
-      setCustomError(error instanceof ApiError ? error.message : "Kreiranje nije uspelo.");
+      setCustomError(error instanceof ApiError ? error.message : t("inventory.createCustomFailed"));
     } finally {
       setCreatingCustom(false);
     }
@@ -103,24 +105,22 @@ export default function InventoryScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="inventory-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Inventory</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("inventory.title")}</Text>
 
-      <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">HIDDEN ITEMS</Text>
-      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-        Tajni predmeti koje otkrivas kroz igru - uslov otkljucavanja ostaje skriven dok ga ne ispunis.
-      </Text>
+      <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("inventory.hiddenHeader")}</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">{t("inventory.hiddenDescription")}</Text>
 
       {state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} testID="inventory-error" />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} testID="inventory-error" />
       ) : (
         <>
           <Text testID="inventory-progress" className="text-sm text-neutral-500 dark:text-neutral-600">
-            {state.data.filter((item) => item.discovered).length} / {state.data.length} otkriveno
+            {t("inventory.progressLabel", { unlocked: state.data.filter((item) => item.discovered).length, total: state.data.length })}
           </Text>
           <View className="gap-3">
             {state.data.map((item) => (
@@ -130,17 +130,15 @@ export default function InventoryScreen() {
         </>
       )}
 
-      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">WORKSHOP</Text>
-      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-        Predmeti koje mozes da izradis kada dostignes potreban nivo i imas dovoljno coins-a.
-      </Text>
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("inventory.workshopHeader")}</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">{t("inventory.workshopDescription")}</Text>
 
       {craftError ? <Text className="text-center text-danger">{craftError}</Text> : null}
 
       {workshopState.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : workshopState.status === "error" ? (
-        <ErrorState message={workshopState.message} onRetry={refetchWorkshop} testID="workshop-error" />
+        <ErrorState message={workshopState.message} onRetry={refetchWorkshop} retryLabel={t("common.retry")} testID="workshop-error" />
       ) : (
         <View className="gap-3">
           {workshopState.data.map((item) => (
@@ -156,15 +154,13 @@ export default function InventoryScreen() {
         </View>
       )}
 
-      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">GUILD</Text>
-      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-        Cehovski trofeji - dodeljuju se automatski dok si clan ceha, uslovi su unapred poznati.
-      </Text>
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("inventory.guildHeader")}</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">{t("inventory.guildDescription")}</Text>
 
       {guildState.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : guildState.status === "error" ? (
-        <ErrorState message={guildState.message} onRetry={refetchGuild} testID="guild-items-error" />
+        <ErrorState message={guildState.message} onRetry={refetchGuild} retryLabel={t("common.retry")} testID="guild-items-error" />
       ) : (
         <View className="gap-3">
           {guildState.data.map((item) => (
@@ -173,17 +169,15 @@ export default function InventoryScreen() {
         </View>
       )}
 
-      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">EVENT</Text>
-      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-        Sezonski predmeti - prisvajaju se besplatno, ali samo u toku godisnjeg vremenskog prozora.
-      </Text>
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("inventory.eventHeader")}</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">{t("inventory.eventDescription")}</Text>
 
       {claimError ? <Text className="text-center text-danger">{claimError}</Text> : null}
 
       {eventState.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : eventState.status === "error" ? (
-        <ErrorState message={eventState.message} onRetry={refetchEvent} testID="event-items-error" />
+        <ErrorState message={eventState.message} onRetry={refetchEvent} retryLabel={t("common.retry")} testID="event-items-error" />
       ) : (
         <View className="gap-3">
           {eventState.data.map((item) => (
@@ -197,15 +191,13 @@ export default function InventoryScreen() {
         </View>
       )}
 
-      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">AI-GENERISANI PREDMETI</Text>
-      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-        Redak, personalizovan trofej koji Claude generise bas za tebe kad dostignes nov nivo (Pro).
-      </Text>
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("inventory.aiHeader")}</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">{t("inventory.aiDescription")}</Text>
 
       {aiState.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : aiState.status === "error" ? (
-        <ErrorState message={aiState.message} onRetry={refetchAi} testID="ai-items-error" />
+        <ErrorState message={aiState.message} onRetry={refetchAi} retryLabel={t("common.retry")} testID="ai-items-error" />
       ) : (
         <View className="gap-3">
           {aiState.data.map((item) => (
@@ -214,15 +206,13 @@ export default function InventoryScreen() {
         </View>
       )}
 
-      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">RECOVERY</Text>
-      <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-        Trofeji za zdrav ritam treninga - dodeljuju se automatski na osnovu odmora izmedju treninga.
-      </Text>
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("inventory.recoveryHeader")}</Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-600">{t("inventory.recoveryDescription")}</Text>
 
       {recoveryState.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : recoveryState.status === "error" ? (
-        <ErrorState message={recoveryState.message} onRetry={refetchRecovery} testID="recovery-items-error" />
+        <ErrorState message={recoveryState.message} onRetry={refetchRecovery} retryLabel={t("common.retry")} testID="recovery-items-error" />
       ) : (
         <View className="gap-3">
           {recoveryState.data.map((item) => (
@@ -231,9 +221,9 @@ export default function InventoryScreen() {
         </View>
       )}
 
-      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">CUSTOM ITEMS</Text>
+      <Text className="mt-2 text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("inventory.customHeader")}</Text>
       <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-        Sam napravi predmet - upisi naziv i opis ({CUSTOM_ITEM_COIN_COST} coins, do {CUSTOM_ITEM_MAX_COUNT} predmeta).
+        {t("inventory.customDescription", { cost: CUSTOM_ITEM_COIN_COST, max: CUSTOM_ITEM_MAX_COUNT })}
       </Text>
 
       {customError ? <Text className="text-center text-danger">{customError}</Text> : null}
@@ -241,23 +231,23 @@ export default function InventoryScreen() {
       {customState.status === "success" && customState.data.length < CUSTOM_ITEM_MAX_COUNT ? (
         <View className="gap-2">
           <TextField
-            label="Naziv"
-            placeholder="npr. Moj Amulet"
+            label={t("inventory.customNameLabel")}
+            placeholder={t("inventory.customNamePlaceholder")}
             value={customName}
             onChangeText={setCustomName}
             maxLength={CUSTOM_ITEM_NAME_MAX_LENGTH}
             testID="custom-item-name-input"
           />
           <TextField
-            label="Opis"
-            placeholder="npr. Amulet koji sam sam napravio"
+            label={t("inventory.customDescriptionLabel")}
+            placeholder={t("inventory.customDescriptionPlaceholder")}
             value={customDescription}
             onChangeText={setCustomDescription}
             maxLength={CUSTOM_ITEM_DESCRIPTION_MAX_LENGTH}
             testID="custom-item-description-input"
           />
           <Button
-            label="Napravi"
+            label={t("inventory.createCustom")}
             onPress={() => void handleCreateCustomItem()}
             loading={creatingCustom}
             disabled={customName.trim().length === 0 || customDescription.trim().length === 0}
@@ -267,12 +257,12 @@ export default function InventoryScreen() {
       ) : null}
 
       {customState.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : customState.status === "error" ? (
-        <ErrorState message={customState.message} onRetry={refetchCustom} testID="custom-items-error" />
+        <ErrorState message={customState.message} onRetry={refetchCustom} retryLabel={t("common.retry")} testID="custom-items-error" />
       ) : customState.data.length === 0 ? (
         <Text testID="custom-items-empty" className="text-neutral-500 dark:text-neutral-600">
-          Jos nisi napravio nijedan custom predmet.
+          {t("inventory.customEmpty")}
         </Text>
       ) : (
         <View className="gap-3">
@@ -291,6 +281,7 @@ export default function InventoryScreen() {
  * dok se ne otkrije (uslov otkljucavanja je tajna, ne samo prikaz).
  */
 function InventoryItemCard({ item, revealAlways = false }: { item: InventoryItemDto; revealAlways?: boolean }) {
+  const { t, locale } = useI18n();
   const reveal = item.discovered || revealAlways;
   return (
     <View
@@ -301,12 +292,14 @@ function InventoryItemCard({ item, revealAlways = false }: { item: InventoryItem
     >
       <Text className="text-2xl">{item.discovered ? "✨" : "🔒"}</Text>
       <View className="flex-1 gap-0.5">
-        <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{reveal ? item.name : "???"}</Text>
+        <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{reveal ? item.name : t("inventory.unknownName")}</Text>
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-          {reveal ? item.description : "Uslov otkljucavanja je tajna."}
+          {reveal ? item.description : t("inventory.unknownCondition")}
         </Text>
         {item.discovered && item.discoveredAt ? (
-          <Text className="text-xs text-premium">Otkriveno {new Date(item.discoveredAt).toLocaleDateString("sr-Latn-RS")}</Text>
+          <Text className="text-xs text-premium">
+            {t("inventory.discoveredOn", { date: new Date(item.discoveredAt).toLocaleDateString(locale === "en" ? "en-US" : "sr-Latn-RS") })}
+          </Text>
         ) : null}
       </View>
     </View>
@@ -326,6 +319,7 @@ function WorkshopItemCard({
   busy: boolean;
   onCraft: () => void;
 }) {
+  const { t } = useI18n();
   const meetsLevel = level !== null && level >= item.levelRequirement;
   const canAfford = coins !== null && coins >= item.coinCost;
 
@@ -340,17 +334,15 @@ function WorkshopItemCard({
         <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{item.name}</Text>
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">{item.description}</Text>
         {!item.owned ? (
-          <Text className="text-xs text-reward">
-            Nivo {item.levelRequirement} - {item.coinCost} coins
-          </Text>
+          <Text className="text-xs text-reward">{t("inventory.levelCost", { level: item.levelRequirement, cost: item.coinCost })}</Text>
         ) : null}
       </View>
 
       {item.owned ? (
-        <Text className="text-xs text-premium">Izradjeno</Text>
+        <Text className="text-xs text-premium">{t("inventory.crafted")}</Text>
       ) : (
         <Button
-          label="Izradi"
+          label={t("inventory.craft")}
           onPress={onCraft}
           loading={busy}
           disabled={!meetsLevel || !canAfford}
@@ -370,6 +362,7 @@ function EventItemCard({
   busy: boolean;
   onClaim: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <View
       testID={`event-item-${item.id}`}
@@ -382,16 +375,16 @@ function EventItemCard({
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">{item.description}</Text>
         {!item.owned ? (
           <Text className={`text-xs ${item.active ? "text-reward" : "text-neutral-500 dark:text-neutral-600"}`}>
-            {item.active ? "Dostupno sada" : "Trenutno nije u sezoni"}
+            {item.active ? t("inventory.availableNow") : t("inventory.outOfSeason")}
           </Text>
         ) : null}
       </View>
 
       {item.owned ? (
-        <Text className="text-xs text-premium">Prisvojeno</Text>
+        <Text className="text-xs text-premium">{t("inventory.claimed")}</Text>
       ) : (
         <Button
-          label="Prisvoji"
+          label={t("inventory.claim")}
           onPress={onClaim}
           loading={busy}
           disabled={!item.active}
