@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import type { ExerciseDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
 import { useExercises } from "../src/exercises/use-exercises";
+import { useI18n } from "../src/i18n";
 import { ChoiceGroup } from "../src/ui/ChoiceGroup";
 import { ErrorState } from "../src/ui/ErrorState";
 import { Screen } from "../src/ui/Screen";
@@ -11,32 +12,33 @@ import { Screen } from "../src/ui/Screen";
 type ExerciseType = NonNullable<ExerciseDto["type"]>;
 type Difficulty = NonNullable<ExerciseDto["difficulty"]>;
 
-const TYPE_OPTIONS: ReadonlyArray<{ value: ExerciseType; label: string }> = [
-  { value: "CALISTHENICS", label: "Calisthenics" },
-  { value: "GYM", label: "Teretana" },
-  { value: "SKILL", label: "Skill" },
-];
-
-const DIFFICULTY_OPTIONS: ReadonlyArray<{ value: Difficulty; label: string }> = [
-  { value: "BEGINNER", label: "Pocetnik" },
-  { value: "INTERMEDIATE", label: "Srednji" },
-  { value: "ADVANCED", label: "Napredni" },
-];
-
 export default function ExercisesScreen() {
   const { apiClient } = useAuth();
+  const { t } = useI18n();
   const [type, setType] = useState<ExerciseType>();
   const [difficulty, setDifficulty] = useState<Difficulty>();
   const { state, refetch } = useExercises(apiClient, { type, difficulty });
 
+  const TYPE_OPTIONS: ReadonlyArray<{ value: ExerciseType; label: string }> = [
+    { value: "CALISTHENICS", label: t("exercises.typeCalisthenics") },
+    { value: "GYM", label: t("exercises.typeGym") },
+    { value: "SKILL", label: t("exercises.typeSkill") },
+  ];
+
+  const DIFFICULTY_OPTIONS: ReadonlyArray<{ value: Difficulty; label: string }> = [
+    { value: "BEGINNER", label: t("exercises.difficultyBeginner") },
+    { value: "INTERMEDIATE", label: t("exercises.difficultyIntermediate") },
+    { value: "ADVANCED", label: t("exercises.difficultyAdvanced") },
+  ];
+
   return (
     <Screen scroll={false}>
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Baza vezbi</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("exercises.title")}</Text>
 
       <View className="gap-3">
-        <ChoiceGroup label="Tip" options={TYPE_OPTIONS} value={type} onChange={(v) => setType(v === type ? undefined : v)} />
+        <ChoiceGroup label={t("exercises.typeLabel")} options={TYPE_OPTIONS} value={type} onChange={(v) => setType(v === type ? undefined : v)} />
         <ChoiceGroup
-          label="Nivo"
+          label={t("exercises.difficultyLabel")}
           options={DIFFICULTY_OPTIONS}
           value={difficulty}
           onChange={(v) => setDifficulty(v === difficulty ? undefined : v)}
@@ -44,12 +46,12 @@ export default function ExercisesScreen() {
       </View>
 
       {state.status === "loading" ? (
-        <Text className="text-center text-neutral-500 dark:text-neutral-600">Ucitavam vezbe...</Text>
+        <Text className="text-center text-neutral-500 dark:text-neutral-600">{t("exercises.loading")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} />
       ) : state.data.length === 0 ? (
         <Text testID="exercises-empty" className="text-center text-neutral-500 dark:text-neutral-600">
-          Nema vezbi za izabrane filtere.
+          {t("exercises.empty")}
         </Text>
       ) : (
         <FlatList

@@ -5,6 +5,7 @@ import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { ExerciseDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
 import { useExercises } from "../src/exercises/use-exercises";
+import { useI18n } from "../src/i18n";
 import { useWorkoutTemplates } from "../src/workouts/use-workout-templates";
 import { Button } from "../src/ui/Button";
 import { ErrorState } from "../src/ui/ErrorState";
@@ -13,6 +14,7 @@ import { TextField } from "../src/ui/TextField";
 
 export default function WorkoutTemplatesScreen() {
   const { apiClient } = useAuth();
+  const { t } = useI18n();
   const { state, refetch } = useWorkoutTemplates(apiClient);
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function WorkoutTemplatesScreen() {
       await apiClient.workouts.templates.delete(id);
       refetch();
     } catch (error) {
-      setActionError(error instanceof ApiError ? error.message : "Brisanje nije uspelo.");
+      setActionError(error instanceof ApiError ? error.message : t("workoutTemplates.deleteFailed"));
     } finally {
       setDeletingId(null);
     }
@@ -46,7 +48,7 @@ export default function WorkoutTemplatesScreen() {
       const template = await apiClient.workouts.templates.getById(id);
       const firstExercise = template.exercises[0]?.exercise;
       if (!firstExercise) {
-        setActionError("Template nema nijednu vezbu.");
+        setActionError(t("workoutTemplates.templateEmptyError"));
         return;
       }
       router.push({
@@ -54,7 +56,7 @@ export default function WorkoutTemplatesScreen() {
         params: { exerciseSlug: firstExercise.slug, exerciseName: firstExercise.name, workoutId: id },
       });
     } catch (error) {
-      setActionError(error instanceof ApiError ? error.message : "Pokretanje treninga nije uspelo.");
+      setActionError(error instanceof ApiError ? error.message : t("workoutTemplates.startFailed"));
     } finally {
       setStartingId(null);
     }
@@ -76,22 +78,22 @@ export default function WorkoutTemplatesScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="workout-templates-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Moji treninzi</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("workoutTemplates.title")}</Text>
 
-      <Button label="Novi template" onPress={() => setCreating(true)} testID="new-template-button" />
+      <Button label={t("workoutTemplates.newTemplate")} onPress={() => setCreating(true)} testID="new-template-button" />
 
       {actionError ? <Text className="text-center text-danger">{actionError}</Text> : null}
 
       {state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} testID="workout-templates-error" />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} testID="workout-templates-error" />
       ) : state.data.length === 0 ? (
         <Text testID="workout-templates-empty" className="text-neutral-500 dark:text-neutral-600">
-          Jos uvek nemas sacuvane treninge. Napravi svoj prvi template.
+          {t("workoutTemplates.empty")}
         </Text>
       ) : (
         <View className="gap-2">
@@ -103,12 +105,14 @@ export default function WorkoutTemplatesScreen() {
             >
               <View>
                 <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{template.name}</Text>
-                <Text className="text-xs text-neutral-500 dark:text-neutral-600">{template.exerciseCount} vezbi</Text>
+                <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                  {t("workoutTemplates.exerciseCount", { count: template.exerciseCount })}
+                </Text>
               </View>
               <View className="flex-row gap-2">
                 <View className="flex-1">
                   <Button
-                    label="Pokreni"
+                    label={t("workoutTemplates.start")}
                     onPress={() => void handleStart(template.id)}
                     loading={startingId === template.id}
                     testID={`start-template-${template.id}`}
@@ -116,7 +120,7 @@ export default function WorkoutTemplatesScreen() {
                 </View>
                 <View className="flex-1">
                   <Button
-                    label="Obrisi"
+                    label={t("workoutTemplates.delete")}
                     variant="secondary"
                     onPress={() => void handleDelete(template.id)}
                     loading={deletingId === template.id}
@@ -141,6 +145,7 @@ function CreateTemplateForm({
   onCreated: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useI18n();
   const { state, refetch } = useExercises(apiClient, {});
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<ExerciseDto[]>([]);
@@ -157,11 +162,11 @@ function CreateTemplateForm({
 
   async function handleSave() {
     if (name.trim() === "") {
-      setError("Unesi naziv treninga.");
+      setError(t("workoutTemplates.nameRequired"));
       return;
     }
     if (selected.length === 0) {
-      setError("Izaberi bar jednu vezbu.");
+      setError(t("workoutTemplates.selectAtLeastOne"));
       return;
     }
     setSubmitting(true);
@@ -173,7 +178,7 @@ function CreateTemplateForm({
       });
       onCreated();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Cuvanje treninga nije uspelo.");
+      setError(err instanceof ApiError ? err.message : t("workoutTemplates.saveFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -182,17 +187,17 @@ function CreateTemplateForm({
   return (
     <Screen>
       <Pressable onPress={onCancel} testID="create-template-cancel">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Novi template</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("workoutTemplates.newTemplate")}</Text>
 
-      <TextField label="Naziv" placeholder="npr. Push dan" value={name} onChangeText={setName} testID="template-name-input" />
+      <TextField label={t("workoutTemplates.nameLabel")} placeholder={t("workoutTemplates.namePlaceholder")} value={name} onChangeText={setName} testID="template-name-input" />
 
       {selected.length > 0 ? (
         <View className="gap-1.5">
           <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">
-            IZABRANE VEZBE ({selected.length})
+            {t("workoutTemplates.selectedExercisesHeader", { count: selected.length })}
           </Text>
           {selected.map((exercise, index) => (
             <View
@@ -203,7 +208,7 @@ function CreateTemplateForm({
                 {index + 1}. {exercise.name}
               </Text>
               <Pressable onPress={() => toggleExercise(exercise)} testID={`remove-exercise-${exercise.id}`}>
-                <Text className="text-danger">Ukloni</Text>
+                <Text className="text-danger">{t("workoutTemplates.remove")}</Text>
               </Pressable>
             </View>
           ))}
@@ -211,13 +216,13 @@ function CreateTemplateForm({
       ) : null}
 
       {error ? <Text className="text-center text-danger">{error}</Text> : null}
-      <Button label="Sacuvaj template" onPress={() => void handleSave()} loading={submitting} testID="save-template-button" />
+      <Button label={t("workoutTemplates.saveTemplate")} onPress={() => void handleSave()} loading={submitting} testID="save-template-button" />
 
-      <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">BAZA VEZBI</Text>
+      <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("workoutTemplates.exerciseLibraryHeader")}</Text>
       {state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam vezbe...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("workoutTemplates.loadingExercises")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} />
       ) : (
         <View className="gap-2" testID="template-exercise-catalog">
           {state.data.map((exercise) => {
