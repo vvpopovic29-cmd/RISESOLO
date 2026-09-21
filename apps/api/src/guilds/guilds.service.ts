@@ -171,10 +171,18 @@ export class GuildsService {
     await this.prisma.guildMembership.update({ where: { userId: targetUserId }, data: { role: dto.role } });
   }
 
+  /**
+   * `createdAt: "desc"` je tiebreaker POSLE `totalXp` - bez njega Postgres ne
+   * garantuje redosled izmedju cehova sa istim totalXp (najcesce 0, sveze
+   * osnovani cehovi), pa novi ceh moze slucajno "ispasti" iz prvih 50 cim
+   * ih ima vise od 50 u sistemu. Sa tiebreaker-om, najskorije osnovan ceh je
+   * uvek prvi u svom totalXp nivou - deterministicno i vidljivije za nove
+   * cehove dok ne pocnu da grade XP.
+   */
   async listGuilds(): Promise<GuildSummaryDto[]> {
     const guilds = await this.prisma.guild.findMany({
       include: { _count: { select: { members: true } } },
-      orderBy: { totalXp: "desc" },
+      orderBy: [{ totalXp: "desc" }, { createdAt: "desc" }],
       take: 50,
     });
     return guilds.map((guild) => ({

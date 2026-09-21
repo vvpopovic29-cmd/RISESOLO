@@ -15,6 +15,12 @@ export const apiEnvSchema = z.object({
   // Settings -> Integrations -> Webhooks). Bez ovoga je webhook FAIL-CLOSED
   // (uvek 401), ne fail-open - vidi src/subscriptions/subscriptions.service.ts.
   REVENUECAT_WEBHOOK_AUTH_HEADER: z.string().min(1).optional(),
+  // Opciono - Sentry DSN (sentry.io -> Project Settings -> Client Keys).
+  // Bez ovoga Sentry.init() se NIKAD ne poziva (vidi src/common/sentry.ts) -
+  // neuhvacene greske se i dalje loguju preko NestJS Logger-a, samo ne
+  // stizu do Sentry dashboard-a. Isti "placeholder-friendly" princip kao
+  // ANTHROPIC_API_KEY/REVENUECAT_WEBHOOK_AUTH_HEADER.
+  SENTRY_DSN: z.string().min(1).optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

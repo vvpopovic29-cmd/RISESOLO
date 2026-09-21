@@ -27,6 +27,7 @@
     "@risesolo/design-tokens": "workspace:*",
     "@risesolo/domain": "workspace:*",
     "@risesolo/validation": "workspace:*",
+    "@sentry/react-native": "^8.27.0",
     "babel-preset-expo": "~57.0.10",
     "expo": "~57.0.20",
     "expo-constants": "~57.0.17",

@@ -92,6 +92,9 @@ zaštićenih vizuelnih elemenata). Ovaj repo je pnpm/Turborepo monorepo.
 > kreativnost ne trazi majstorstvo) I ogranicen broj slotova (najvise 5) po
 > igracu, ne katalog uslov - vidi `packages/domain/src/inventory/custom-item.ts`.
 > Ovim je svih sedam Inventory (B2) izvora zavrseno.
+> Nakon svih sedam izvora, dodato je bezbednosno/operativno ojacanje pred
+> produkciju - rate limiting (`@nestjs/throttler`) i opciono Sentry
+> monitoring (backend + mobile) - vidi "Rate Limiting & Monitoring" ispod.
 > Napredna nutrition analitika je namerno van obima.
 
 ## Struktura
@@ -145,11 +148,12 @@ pnpm --filter @risesolo/mobile start
 
 Environment se validira Zod semama pri startu:
 - `apps/api/src/config/env.ts` - `NODE_ENV`, `PORT`, `DATABASE_URL`, `REDIS_URL`,
-  `JWT_SECRET`, `JWT_EXPIRES_IN`, opciono `ANTHROPIC_API_KEY` i
-  `REVENUECAT_WEBHOOK_AUTH_HEADER`.
+  `JWT_SECRET`, `JWT_EXPIRES_IN`, opciono `ANTHROPIC_API_KEY`,
+  `REVENUECAT_WEBHOOK_AUTH_HEADER` i `SENTRY_DSN`.
 - `apps/mobile/src/config/env.ts` - `EXPO_PUBLIC_API_URL` (sa default vrednošću
   za lokalni razvoj ako promenljiva nije postavljena), opciono
-  `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`/`EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`.
+  `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`/`EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`
+  i `EXPO_PUBLIC_SENTRY_DSN`.
 
 Nevalidan environment baca čitljivu grešku (`EnvValidationError` iz
 `@risesolo/validation`) i aplikacija se namerno ne podiže (fail-fast).
@@ -429,6 +433,32 @@ Kozmetika kupljena za coins - prva licna potrosnja coins-a (dosad je jedini
   opremljenih predmeta (isti "derive, don't cache" princip kao level/rank) -
   `apps/mobile/app/home.tsx` prikazuje titulu i obojenu tacku pored username-a
   bez dodatnog round-trip-a.
+
+## Rate Limiting & Monitoring
+
+Bezbednosno/operativno ojacanje pred produkciju (odvojeno od poslovnih pravila):
+
+- **Rate limiting** (`@nestjs/throttler`) - globalni default 60 zahteva/minut
+  po IP (`app.module.ts`, `ThrottlerGuard` kao `APP_GUARD`), sa strozim
+  limitom od 5/minut na `POST /auth/register`/`POST /auth/login`
+  (`apps/api/src/auth/auth.controller.ts` `AUTH_THROTTLE`) - meta
+  brute-force/spam napada. U testovima (`NODE_ENV=test`, Jest ga automatski
+  postavlja) je limit prakticno neogranicen da ne bi lazno rusio e2e paket -
+  vidi `apps/api/src/common/throttle.ts`.
+- **Sentry monitoring** (opciono, `@sentry/node`/`@sentry/react-native`) -
+  isti "placeholder-friendly" princip kao AI/RevenueCat: bez `SENTRY_DSN`
+  (`apps/api`)/`EXPO_PUBLIC_SENTRY_DSN` (`apps/mobile`) SDK se nikad ne
+  inicijalizuje. Na backend-u, `SentryExceptionFilter`
+  (`apps/api/src/common/filters`) prijavljuje SAMO neocekivane greske (5xx
+  ili ne-HttpException) - ocekivane 4xx greske (validacija, 404, 403...) se
+  ne prijavljuju (normalan tok kontrole, ne incident). Na mobile-u,
+  `src/monitoring/sentry.ts` inicijalizuje SDK SAMO na iOS/Android (nikad na
+  webu, isti princip kao `PurchasesService`) - stvarna native registracija
+  ionako zahteva EAS build (vidi "EAS Build" iznad).
+- **Guild lista** (`GET /guilds`) - `orderBy` sada ima `createdAt: "desc"`
+  kao tiebreaker posle `totalXp: "desc"` (deterministicno umesto
+  Postgres-ovog nedefinisanog redosleda za ceh-ove sa istim totalXp,
+  najcesce sveze osnovani na 0) - vidi `GuildsService.listGuilds`.
 
 ## Testiranje
 
