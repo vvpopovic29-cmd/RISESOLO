@@ -5,35 +5,31 @@ import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { GuildDetailDto, GuildMemberDto, GuildMessageDto, GuildRaidDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
 import { useGuild } from "../src/guilds/use-guild";
+import { useI18n } from "../src/i18n";
 import { Button } from "../src/ui/Button";
 import { ErrorState } from "../src/ui/ErrorState";
 import { ProgressBar } from "../src/ui/ProgressBar";
 import { Screen } from "../src/ui/Screen";
 import { TextField } from "../src/ui/TextField";
 
-const RAID_STATUS_LABEL: Record<GuildRaidDto["status"], string> = {
-  AVAILABLE: "U toku",
-  COMPLETED: "Zavrsen",
-  EXPIRED: "Istekao",
-};
-
 export default function GuildScreen() {
   const { apiClient, state: authState } = useAuth();
+  const { t } = useI18n();
   const { state, refetch } = useGuild(apiClient);
   const myUserId = authState.status === "signedIn" ? authState.user.id : undefined;
 
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="guild-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Ceh</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("guild.title")}</Text>
 
       {state.status === "loading" ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : state.status === "error" ? (
-        <ErrorState message={state.message} onRetry={refetch} testID="guild-error" />
+        <ErrorState message={state.message} onRetry={refetch} retryLabel={t("common.retry")} testID="guild-error" />
       ) : state.status === "none" ? (
         <NoGuildPanel apiClient={apiClient} onChanged={refetch} />
       ) : (
@@ -44,6 +40,7 @@ export default function GuildScreen() {
 }
 
 function NoGuildPanel({ apiClient, onChanged }: { apiClient: ApiClient; onChanged: () => void }) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [tag, setTag] = useState("");
   const [joinTag, setJoinTag] = useState("");
@@ -57,7 +54,7 @@ function NoGuildPanel({ apiClient, onChanged }: { apiClient: ApiClient; onChange
       await apiClient.guilds.create({ name: name.trim(), tag: tag.trim().toUpperCase() });
       onChanged();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Kreiranje ceha nije uspelo.");
+      setError(err instanceof ApiError ? err.message : t("guild.createFailed"));
     } finally {
       setSubmitting(null);
     }
@@ -70,7 +67,7 @@ function NoGuildPanel({ apiClient, onChanged }: { apiClient: ApiClient; onChange
       await apiClient.guilds.join({ tag: joinTag.trim().toUpperCase() });
       onChanged();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Pridruzivanje cehu nije uspelo.");
+      setError(err instanceof ApiError ? err.message : t("guild.joinFailed"));
     } finally {
       setSubmitting(null);
     }
@@ -79,20 +76,34 @@ function NoGuildPanel({ apiClient, onChanged }: { apiClient: ApiClient; onChange
   return (
     <View className="gap-4">
       <Text testID="guild-none" className="text-neutral-500 dark:text-neutral-600">
-        Nisi jos clan nijednog ceha. Osnuj svoj ili se pridruzi postojecem preko taga.
+        {t("guild.noGuildMessage")}
       </Text>
 
       <View className="gap-3 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
-        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">OSNUJ CEH</Text>
-        <TextField label="Naziv" placeholder="npr. Zeljezni vukovi" value={name} onChangeText={setName} testID="guild-name-input" />
-        <TextField label="Tag (2-6 slova/brojeva)" placeholder="npr. VUKOVI" value={tag} onChangeText={setTag} testID="guild-tag-input" autoCapitalize="characters" />
-        <Button label="Osnuj ceh" onPress={() => void handleCreate()} loading={submitting === "create"} testID="create-guild-button" />
+        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("guild.createGuildHeader")}</Text>
+        <TextField label={t("guild.nameLabel")} placeholder={t("guild.namePlaceholder")} value={name} onChangeText={setName} testID="guild-name-input" />
+        <TextField
+          label={t("guild.tagLabel")}
+          placeholder={t("guild.tagPlaceholder")}
+          value={tag}
+          onChangeText={setTag}
+          testID="guild-tag-input"
+          autoCapitalize="characters"
+        />
+        <Button label={t("guild.createSubmit")} onPress={() => void handleCreate()} loading={submitting === "create"} testID="create-guild-button" />
       </View>
 
       <View className="gap-3 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
-        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">PRIDRUZI SE CEHU</Text>
-        <TextField label="Tag ceha" placeholder="npr. VUKOVI" value={joinTag} onChangeText={setJoinTag} testID="guild-join-tag-input" autoCapitalize="characters" />
-        <Button label="Pridruzi se" variant="secondary" onPress={() => void handleJoin()} loading={submitting === "join"} testID="join-guild-button" />
+        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("guild.joinGuildHeader")}</Text>
+        <TextField
+          label={t("guild.joinTagLabel")}
+          placeholder={t("guild.tagPlaceholder")}
+          value={joinTag}
+          onChangeText={setJoinTag}
+          testID="guild-join-tag-input"
+          autoCapitalize="characters"
+        />
+        <Button label={t("guild.joinSubmit")} variant="secondary" onPress={() => void handleJoin()} loading={submitting === "join"} testID="join-guild-button" />
       </View>
 
       {error ? <Text className="text-danger">{error}</Text> : null}
@@ -111,10 +122,17 @@ function GuildDetailPanel({
   guild: GuildDetailDto;
   onChanged: () => void;
 }) {
+  const { t } = useI18n();
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [donateAmount, setDonateAmount] = useState("");
+
+  const RAID_STATUS_LABEL: Record<GuildRaidDto["status"], string> = {
+    AVAILABLE: t("guild.raidStatusAvailable"),
+    COMPLETED: t("guild.raidStatusCompleted"),
+    EXPIRED: t("guild.raidStatusExpired"),
+  };
 
   async function runAction(key: string, action: () => Promise<unknown>) {
     setBusyAction(key);
@@ -123,7 +141,7 @@ function GuildDetailPanel({
       await action();
       onChanged();
     } catch (err) {
-      setActionError(err instanceof ApiError ? err.message : "Akcija nije uspela.");
+      setActionError(err instanceof ApiError ? err.message : t("guild.actionFailed"));
     } finally {
       setBusyAction(null);
     }
@@ -148,10 +166,10 @@ function GuildDetailPanel({
         </View>
         <ProgressBar progress={guild.progress} colorClassName="bg-premium" testID="guild-level-progress" />
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-          Level {guild.level} · {guild.currentLevelXp} / {guild.requiredXp} XP
+          {t("guild.levelProgress", { level: guild.level, currentLevelXp: guild.currentLevelXp, requiredXp: guild.requiredXp })}
         </Text>
         <Button
-          label="Napusti ceh"
+          label={t("guild.leaveGuild")}
           variant="secondary"
           onPress={() => void runAction("leave", () => apiClient.guilds.leave())}
           loading={busyAction === "leave"}
@@ -161,32 +179,34 @@ function GuildDetailPanel({
 
       <View className="gap-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
         <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">NEDELJNI CEHOVSKI RAID</Text>
+          <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("guild.weeklyRaidHeader")}</Text>
           <Text className="text-xs font-medium text-accent">{RAID_STATUS_LABEL[guild.raid.status]}</Text>
         </View>
         <ProgressBar progress={guild.raid.progress / guild.raid.targetContributions} testID="guild-raid-progress" />
         <View className="flex-row items-center justify-between pt-1">
           <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-            {guild.raid.progress} / {guild.raid.targetContributions} treninga svih clanova
+            {t("guild.raidProgressUnit", { progress: guild.raid.progress, target: guild.raid.targetContributions })}
           </Text>
-          <Text className="text-xs text-reward">+{guild.raid.coinReward} coins u riznicu</Text>
+          <Text className="text-xs text-reward">{t("guild.raidRewardToTreasury", { coins: guild.raid.coinReward })}</Text>
         </View>
       </View>
 
       <View className="gap-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
-        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">CLANOVI ({guild.members.length})</Text>
+        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">
+          {t("guild.membersHeader", { count: guild.members.length })}
+        </Text>
         {guild.members.map((member) => (
           <View key={member.userId} className="flex-row items-center justify-between gap-2 py-1">
             <View className="flex-1 gap-0.5">
               <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">
                 {member.username}
-                {member.userId === myUserId ? " (ti)" : ""}
+                {member.userId === myUserId ? t("guild.youSuffix") : ""}
               </Text>
               <Text className="text-xs text-neutral-500 dark:text-neutral-600">{member.role}</Text>
             </View>
             {member.userId !== myUserId && isLeader && member.role !== "LEADER" ? (
               <Button
-                label={member.role === "OFFICER" ? "Ucini clanom" : "Ucini oficirom"}
+                label={member.role === "OFFICER" ? t("guild.makeMember") : t("guild.makeOfficer")}
                 variant="secondary"
                 onPress={() =>
                   void runAction(`role-${member.userId}`, () =>
@@ -199,7 +219,7 @@ function GuildDetailPanel({
             ) : null}
             {member.userId !== myUserId && canKick(member) ? (
               <Button
-                label="Izbaci"
+                label={t("guild.kick")}
                 variant="danger"
                 onPress={() => void runAction(`kick-${member.userId}`, () => apiClient.guilds.kickMember(member.userId))}
                 loading={busyAction === `kick-${member.userId}`}
@@ -211,18 +231,18 @@ function GuildDetailPanel({
       </View>
 
       <View className="gap-2 rounded-lg border border-reward/40 p-4">
-        <Text className="text-sm font-semibold text-reward">RIZNICA: {guild.treasuryCoins} coins</Text>
+        <Text className="text-sm font-semibold text-reward">{t("guild.treasuryHeader", { coins: guild.treasuryCoins })}</Text>
         <View className="flex-row items-end gap-2">
           <View className="flex-1">
-            <TextField label="Doniraj coins" value={donateAmount} onChangeText={setDonateAmount} keyboardType="number-pad" testID="guild-donate-input" />
+            <TextField label={t("guild.donateLabel")} value={donateAmount} onChangeText={setDonateAmount} keyboardType="number-pad" testID="guild-donate-input" />
           </View>
           <Button
-            label="Doniraj"
+            label={t("guild.donateSubmit")}
             variant="secondary"
             onPress={() => {
               const coins = Math.round(Number(donateAmount));
               if (!Number.isFinite(coins) || coins <= 0) {
-                setActionError("Unesi validan broj coins-a.");
+                setActionError(t("guild.invalidDonationAmount"));
                 return;
               }
               void runAction("donate", () => apiClient.guilds.donate({ coins })).then(() => setDonateAmount(""));
@@ -233,7 +253,7 @@ function GuildDetailPanel({
         </View>
         {isLeader ? (
           <Button
-            label="Podeli riznicu clanovima"
+            label={t("guild.distributeSubmit")}
             onPress={() => void runAction("distribute", () => apiClient.guilds.distributeTreasury())}
             loading={busyAction === "distribute"}
             testID="guild-distribute-button"
@@ -259,6 +279,7 @@ function GuildChat({
   setMessage: (value: string) => void;
   setActionError: (value: string | null) => void;
 }) {
+  const { t } = useI18n();
   const [messages, setMessages] = useState<GuildMessageDto[] | null>(null);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [sending, setSending] = useState(false);
@@ -268,7 +289,7 @@ function GuildChat({
     apiClient.guilds
       .getMessages()
       .then(setMessages)
-      .catch((err: unknown) => setActionError(err instanceof ApiError ? err.message : "Poruke nisu ucitane."))
+      .catch((err: unknown) => setActionError(err instanceof ApiError ? err.message : t("guild.messagesLoadFailed")))
       .finally(() => setLoadingMessages(false));
   }
 
@@ -285,7 +306,7 @@ function GuildChat({
       setMessage("");
       refetchMessages();
     } catch (err) {
-      setActionError(err instanceof ApiError ? err.message : "Poruka nije poslata.");
+      setActionError(err instanceof ApiError ? err.message : t("guild.messageSendFailed"));
     } finally {
       setSending(false);
     }
@@ -293,13 +314,13 @@ function GuildChat({
 
   return (
     <View className="gap-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
-      <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">PORUKE CEHA</Text>
+      <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("guild.messagesHeader")}</Text>
       {loadingMessages ? (
-        <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+        <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
       ) : (
         <View className="gap-1.5" testID="guild-messages">
           {(messages ?? []).length === 0 ? (
-            <Text className="text-neutral-500 dark:text-neutral-600">Jos uvek nema poruka.</Text>
+            <Text className="text-neutral-500 dark:text-neutral-600">{t("guild.messagesEmpty")}</Text>
           ) : null}
           {(messages ?? []).map((entry) => (
             <Text key={entry.id} className="text-sm text-neutral-50 dark:text-neutral-1000">
@@ -311,9 +332,9 @@ function GuildChat({
       )}
       <View className="flex-row items-end gap-2">
         <View className="flex-1">
-          <TextField label="Poruka" value={message} onChangeText={setMessage} testID="guild-message-input" />
+          <TextField label={t("guild.messageLabel")} value={message} onChangeText={setMessage} testID="guild-message-input" />
         </View>
-        <Button label="Posalji" onPress={() => void handleSend()} loading={sending} testID="guild-send-message-button" />
+        <Button label={t("guild.sendMessage")} onPress={() => void handleSend()} loading={sending} testID="guild-send-message-button" />
       </View>
     </View>
   );
