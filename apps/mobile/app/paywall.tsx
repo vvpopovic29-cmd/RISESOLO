@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { getCurrentOffering, purchasePackage, restorePurchases } from "../src/subscriptions/purchases";
 import { useSubscriptionStatus } from "../src/subscriptions/use-subscription-status";
 import { Button } from "../src/ui/Button";
@@ -15,12 +16,13 @@ import { Screen } from "../src/ui/Screen";
  * Store-a) cim su proizvodi kreirani u App Store Connect/Google Play Console.
  */
 const ESTIMATED_PACKAGES = [
-  { id: "monthly_pro", label: "Mesecno", price: "$6.99 / mesec" },
-  { id: "annual_pro", label: "Godisnje", price: "$49.99 / godinu (~40% popusta)" },
-];
+  { id: "monthly_pro", labelKey: "paywall.estimatedMonthlyLabel", priceKey: "paywall.estimatedMonthlyPrice" },
+  { id: "annual_pro", labelKey: "paywall.estimatedAnnualLabel", priceKey: "paywall.estimatedAnnualPrice" },
+] as const;
 
 export default function PaywallScreen() {
   const { apiClient } = useAuth();
+  const { t, locale } = useI18n();
   const { state: subscriptionState, refetch: refetchSubscription } = useSubscriptionStatus(apiClient);
 
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
@@ -47,7 +49,7 @@ export default function PaywallScreen() {
       return;
     }
     if (!result.userCancelled) {
-      setActionError(result.errorMessage ?? "Kupovina nije uspela.");
+      setActionError(result.errorMessage ?? t("paywall.purchaseFailed"));
     }
   }
 
@@ -59,9 +61,9 @@ export default function PaywallScreen() {
     setRestoring(false);
     if (result.success) {
       refetchSubscription();
-      setActionNotice(result.isPro ? "Pretplata je uspesno vracena." : "Nema aktivnih kupovina za obnovu.");
+      setActionNotice(result.isPro ? t("paywall.restoreSuccess") : t("paywall.restoreNoPurchases"));
     } else {
-      setActionError(result.errorMessage ?? "Obnova kupovina nije uspela.");
+      setActionError(result.errorMessage ?? t("paywall.restoreFailed"));
     }
   }
 
@@ -70,30 +72,34 @@ export default function PaywallScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="paywall-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
       <View className="gap-1">
-        <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">RISESOLO Pro</Text>
+        <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("paywall.title")}</Text>
         <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-          Neograniceni AI trening planovi i buduce premium funkcije.
+          {t("paywall.subtitle")}
         </Text>
       </View>
 
       {isPro ? (
         <View className="gap-2 rounded-lg border border-premium/40 bg-premium/10 p-4" testID="paywall-already-pro">
-          <Text className="font-semibold text-premium">Vec imas aktivnu Pro pretplatu.</Text>
+          <Text className="font-semibold text-premium">{t("paywall.alreadyPro")}</Text>
           {subscriptionState.status === "success" && subscriptionState.data.expiresAt ? (
             <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-              Vazi do {new Date(subscriptionState.data.expiresAt).toLocaleDateString()}
-              {subscriptionState.data.willRenew ? " (automatski se obnavlja)" : " (nece se automatski obnoviti)"}
+              {t("paywall.validUntil", {
+                date: new Date(subscriptionState.data.expiresAt).toLocaleDateString(
+                  locale === "en" ? "en-US" : "sr-Latn-RS",
+                ),
+              })}
+              {subscriptionState.data.willRenew ? t("paywall.autoRenews") : t("paywall.notRenewing")}
             </Text>
           ) : null}
         </View>
       ) : (
         <View className="gap-3">
           {offeringLoading ? (
-            <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam ponude...</Text>
+            <Text className="text-neutral-500 dark:text-neutral-600">{t("paywall.loadingOfferings")}</Text>
           ) : offering && offering.availablePackages.length > 0 ? (
             offering.availablePackages.map((pkg) => (
               <View
@@ -103,7 +109,7 @@ export default function PaywallScreen() {
                 <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{pkg.product.title}</Text>
                 <Text className="text-lg font-bold text-reward">{pkg.product.priceString}</Text>
                 <Button
-                  label="Pretplati se"
+                  label={t("paywall.subscribe")}
                   onPress={() => void handlePurchase(pkg)}
                   loading={purchasingId === pkg.identifier}
                   testID={`purchase-${pkg.identifier}`}
@@ -116,12 +122,12 @@ export default function PaywallScreen() {
               className="gap-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400"
             >
               <Text className="text-sm text-neutral-500 dark:text-neutral-600">
-                Ponude jos nisu dostupne (Store/RevenueCat konfiguracija u toku). Orijentaciona cena:
+                {t("paywall.offeringsUnavailable")}
               </Text>
               {ESTIMATED_PACKAGES.map((pkg) => (
                 <View key={pkg.id} className="flex-row items-center justify-between">
-                  <Text className="text-neutral-50 dark:text-neutral-1000">{pkg.label}</Text>
-                  <Text className="font-semibold text-reward">{pkg.price}</Text>
+                  <Text className="text-neutral-50 dark:text-neutral-1000">{t(pkg.labelKey)}</Text>
+                  <Text className="font-semibold text-reward">{t(pkg.priceKey)}</Text>
                 </View>
               ))}
             </View>
@@ -131,7 +137,7 @@ export default function PaywallScreen() {
           {actionNotice ? <Text className="text-success">{actionNotice}</Text> : null}
 
           <Button
-            label="Vrati kupovine (Restore Purchases)"
+            label={t("paywall.restorePurchases")}
             variant="secondary"
             onPress={() => void handleRestore()}
             loading={restoring}
@@ -142,16 +148,14 @@ export default function PaywallScreen() {
 
       <View className="gap-1.5 border-t border-neutral-700 pt-4 dark:border-neutral-400">
         <Text className="text-xs text-neutral-500 dark:text-neutral-600">
-          Pretplata se automatski obnavlja po ceni vazecoj u trenutku obnove, osim ako se ne otkaze najmanje 24 sata
-          pre isteka tekuceg perioda. Otkazivanje se radi u podesavanjima naloga na App Store-u (iOS) ili Google
-          Play-u (Android) - RISESOLO nema pristup tvojim placanjima.
+          {t("paywall.legalDisclaimer")}
         </Text>
         <View className="flex-row gap-4">
           <Pressable onPress={() => router.push("/legal/terms")} testID="paywall-terms-link">
-            <Text className="text-xs text-accent underline">Uslovi koriscenja</Text>
+            <Text className="text-xs text-accent underline">{t("paywall.termsLink")}</Text>
           </Pressable>
           <Pressable onPress={() => router.push("/legal/privacy")} testID="paywall-privacy-link">
-            <Text className="text-xs text-accent underline">Politika privatnosti</Text>
+            <Text className="text-xs text-accent underline">{t("paywall.privacyLink")}</Text>
           </Pressable>
         </View>
       </View>

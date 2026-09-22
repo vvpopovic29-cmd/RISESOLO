@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { ApiError } from "@risesolo/api-client";
 import type { TrainingPlanDetailDto } from "@risesolo/validation";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { useTrainingPlans } from "../src/training/use-training-plans";
 import { Button } from "../src/ui/Button";
 import { ChoiceGroup } from "../src/ui/ChoiceGroup";
@@ -15,6 +16,7 @@ const DAYS_PER_WEEK_OPTIONS = ["2", "3", "4", "5", "6"].map((value) => ({ value,
 
 export default function TrainingPlanScreen() {
   const { apiClient } = useAuth();
+  const { t } = useI18n();
   const { state: plansState, refetch: refetchPlans } = useTrainingPlans(apiClient);
 
   const [daysPerWeek, setDaysPerWeek] = useState("3");
@@ -36,7 +38,7 @@ export default function TrainingPlanScreen() {
       const plan = await apiClient.trainingPlans.getById(id);
       setDetail(plan);
     } catch (error) {
-      setDetailError(error instanceof ApiError ? error.message : "Plan nije pronadjen.");
+      setDetailError(error instanceof ApiError ? error.message : t("trainingPlan.notFound"));
     } finally {
       setDetailLoading(false);
     }
@@ -64,7 +66,7 @@ export default function TrainingPlanScreen() {
       if (error instanceof ApiError && error.status === 402) {
         setLimitReached(true);
       } else {
-        setGenerateError(error instanceof ApiError ? error.message : "Generisanje plana nije uspelo.");
+        setGenerateError(error instanceof ApiError ? error.message : t("trainingPlan.generateFailed"));
       }
     } finally {
       setGenerating(false);
@@ -74,7 +76,7 @@ export default function TrainingPlanScreen() {
   if (detailLoading) {
     return (
       <Screen>
-        <Text className="text-center text-neutral-500 dark:text-neutral-600">Ucitavam plan...</Text>
+        <Text className="text-center text-neutral-500 dark:text-neutral-600">{t("trainingPlan.loadingPlan")}</Text>
       </Screen>
     );
   }
@@ -82,8 +84,8 @@ export default function TrainingPlanScreen() {
   if (detailError) {
     return (
       <Screen>
-        <ErrorState message={detailError} onRetry={() => detailPlanId && void loadDetail(detailPlanId)} />
-        <Button label="Nazad na planove" variant="secondary" onPress={closeDetail} />
+        <ErrorState message={detailError} onRetry={() => detailPlanId && void loadDetail(detailPlanId)} retryLabel={t("common.retry")} />
+        <Button label={t("trainingPlan.backToPlansButton")} variant="secondary" onPress={closeDetail} />
       </Screen>
     );
   }
@@ -92,7 +94,7 @@ export default function TrainingPlanScreen() {
     return (
       <Screen>
         <Pressable onPress={closeDetail} testID="training-plan-back">
-          <Text className="text-accent">{"< Nazad na planove"}</Text>
+          <Text className="text-accent">{t("trainingPlan.backToPlansArrow")}</Text>
         </Pressable>
 
         <View className="gap-1">
@@ -106,7 +108,7 @@ export default function TrainingPlanScreen() {
           {detail.content.days.map((day) => (
             <View key={day.day} className="gap-2 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
               <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">
-                DAN {day.day} · {day.focus.toUpperCase()}
+                {t("trainingPlan.dayFocus", { day: day.day, focus: day.focus.toUpperCase() })}
               </Text>
               {day.exercises.map((exercise) => (
                 <View
@@ -131,21 +133,21 @@ export default function TrainingPlanScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="training-plan-close">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">AI trening plan</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("trainingPlan.title")}</Text>
 
       <View className="gap-3 rounded-lg border border-neutral-700 p-4 dark:border-neutral-400">
         <ChoiceGroup
-          label="Treninga nedeljno"
+          label={t("trainingPlan.daysPerWeekLabel")}
           options={DAYS_PER_WEEK_OPTIONS}
           value={daysPerWeek}
           onChange={setDaysPerWeek}
         />
         <TextField
-          label="Cilj (opciono)"
-          placeholder="npr. vise snage u guranju"
+          label={t("trainingPlan.goalLabel")}
+          placeholder={t("trainingPlan.goalPlaceholder")}
           value={goal}
           onChangeText={setGoal}
           testID="training-plan-goal-input"
@@ -153,15 +155,15 @@ export default function TrainingPlanScreen() {
         {generateError ? <Text className="text-danger">{generateError}</Text> : null}
         {limitReached ? (
           <View className="gap-2 rounded-lg border border-premium/40 bg-premium/10 p-3" testID="training-plan-limit-banner">
-            <Text className="text-sm font-semibold text-premium">Dostigao si besplatni limit AI planova</Text>
+            <Text className="text-sm font-semibold text-premium">{t("trainingPlan.limitReachedTitle")}</Text>
             <Text className="text-xs text-neutral-400 dark:text-neutral-700">
-              Nadogradi na RISESOLO Pro za neograniceno generisanje trening planova.
+              {t("trainingPlan.limitReachedBody")}
             </Text>
-            <Button label="Pogledaj RISESOLO Pro" onPress={() => router.push("/paywall")} testID="upgrade-to-pro-button" />
+            <Button label={t("trainingPlan.viewPro")} onPress={() => router.push("/paywall")} testID="upgrade-to-pro-button" />
           </View>
         ) : null}
         <Button
-          label="Generisi plan"
+          label={t("trainingPlan.generatePlan")}
           onPress={() => void handleGenerate()}
           loading={generating}
           testID="generate-training-plan-button"
@@ -169,14 +171,14 @@ export default function TrainingPlanScreen() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">PRETHODNI PLANOVI</Text>
+        <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-700">{t("trainingPlan.previousPlansHeader")}</Text>
         {plansState.status === "loading" ? (
-          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam...</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : plansState.status === "error" ? (
-          <ErrorState message={plansState.message} onRetry={refetchPlans} />
+          <ErrorState message={plansState.message} onRetry={refetchPlans} retryLabel={t("common.retry")} />
         ) : plansState.data.length === 0 ? (
           <Text testID="training-plans-empty" className="text-neutral-500 dark:text-neutral-600">
-            Jos uvek nemas generisan plan.
+            {t("trainingPlan.plansEmpty")}
           </Text>
         ) : (
           plansState.data.map((plan) => (
@@ -186,7 +188,9 @@ export default function TrainingPlanScreen() {
               className="gap-1 rounded-lg border border-neutral-700 p-3 dark:border-neutral-400"
             >
               <Text className="font-semibold text-neutral-50 dark:text-neutral-1000">{plan.title}</Text>
-              <Text className="text-xs text-neutral-500 dark:text-neutral-600">{plan.daysPerWeek}x nedeljno</Text>
+              <Text className="text-xs text-neutral-500 dark:text-neutral-600">
+                {t("trainingPlan.weeklyFrequency", { count: plan.daysPerWeek })}
+              </Text>
             </Pressable>
           ))
         )}
