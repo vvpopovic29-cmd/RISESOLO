@@ -7,6 +7,7 @@
 const en = {
   common: {
     loading: "Loading...",
+    loadingApp: "Loading RISESOLO...",
     back: "< Back",
     retry: "Try again",
   },
@@ -415,6 +416,57 @@ const en = {
       "The subscription renews automatically at the price in effect at renewal, unless cancelled at least 24 hours before the current period ends. Cancel from your account settings on the App Store (iOS) or Google Play (Android) - RISESOLO has no access to your payments.",
     termsLink: "Terms of Use",
     privacyLink: "Privacy Policy",
+  },
+  legal: {
+    lastUpdated: "Last updated: September 21, 2026.",
+    termsTitle: "Terms of Use",
+    termsSection0Title: "0. Service provider",
+    termsSection0Body:
+      "RISESOLO is developed and maintained by Vukasin Popovic, an individual developer based in the Republic of Serbia. Contact: vvpopovic29@gmail.com.",
+    termsSection1Title: "1. Acceptance of terms",
+    termsSection1Body:
+      "By using the RISESOLO app, you accept these Terms of Use. If you do not agree, do not use the app.",
+    termsSection2Title: "2. Subscriptions",
+    termsSection2Body:
+      "RISESOLO Pro is a subscription billed monthly or annually through the App Store (iOS) or Google Play (Android). The subscription AUTOMATICALLY RENEWS at the price in effect at the time of renewal, unless you cancel it at least 24 hours before the current period ends. Renewal is charged within the last 24 hours of the current period. By paying through your App Store/Google Play account, you agree to their payment terms.",
+    termsSection3Title: "3. Cancellation",
+    termsSection3Body:
+      "You can cancel your subscription at any time through your App Store or Google Play account settings - RISESOLO has no access to your payment details and cannot cancel on your behalf. Cancelling prevents future charges but does not refund the current, already-paid period.",
+    termsSection4Title: "4. Content and liability",
+    termsSection4Body:
+      "Training and nutrition recommendations in the app are informational only and do not replace the advice of a doctor or licensed trainer. You use the app at your own risk.",
+    termsSection5Title: "5. Changes",
+    termsSection5Body:
+      "We reserve the right to change these terms; continued use of the app after a change constitutes acceptance of the new terms.",
+    termsSection6Title: "6. Governing law and jurisdiction",
+    termsSection6Body:
+      "These terms are interpreted in accordance with the laws of the Republic of Serbia. Any disputes are resolved before the competent court in the Republic of Serbia, unless the mandatory local law of your jurisdiction (e.g. for consumers in the EU) provides otherwise.",
+    termsSection7Title: "7. Contact",
+    termsSection7Body: "Questions about these terms: vvpopovic29@gmail.com.",
+    privacyTitle: "Privacy Policy",
+    privacySection0Title: "0. Data controller",
+    privacySection0Body:
+      "The controller of your personal data is Vukasin Popovic, an individual developer based in the Republic of Serbia. For any privacy questions, write to vvpopovic29@gmail.com.",
+    privacySection1Title: "1. Data we collect",
+    privacySection1Body:
+      "Email address and username (registration), the workout/nutrition data you enter, and subscription data (status, package type) that RevenueCat forwards to us after a purchase through the App Store/Google Play. We do not collect payment card data - that is handled exclusively by Apple/Google.",
+    privacySection2Title: "2. How we use data",
+    privacySection2Body:
+      "To operate the app (saving your progress, generating AI training plans, unlocking subscribed content) and to maintain/improve the service. We do not sell your data to third parties.",
+    privacySection3Title: "3. Third parties",
+    privacySection3Body:
+      "We use RevenueCat to manage subscriptions and Anthropic (Claude API) to generate AI training plans. These services only process data necessary for their function (RevenueCat: account identifier and subscription status; Anthropic: plan-generation parameters, without personal identifiers).",
+    privacySection4Title: "4. Data retention and deletion",
+    privacySection4Body:
+      "Data is retained while your account is active. You can request account deletion by sending a request to vvpopovic29@gmail.com - data is permanently deleted no later than 30 days after the request is confirmed.",
+    privacySection5Title: "5. Your rights",
+    privacySection5Body:
+      "Depending on your jurisdiction (e.g. GDPR in the EU, CCPA in California), you have the right to access, correct, and delete your data, as well as to object to its processing. These rights can be exercised by sending a request to vvpopovic29@gmail.com.",
+    privacySection6Title: "6. Governing law",
+    privacySection6Body:
+      "Data processing is primarily governed by the laws of the Republic of Serbia, with compliance with the GDPR for EU users and the CCPA for California users, to the extent those regulations apply.",
+    privacySection7Title: "7. Contact",
+    privacySection7Body: "Privacy questions: vvpopovic29@gmail.com.",
   },
 } satisfies Record<string, Record<string, string>>;
 

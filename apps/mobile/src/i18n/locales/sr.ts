@@ -3,6 +3,7 @@ import type { Messages } from "./en";
 const sr = {
   common: {
     loading: "Ucitavam...",
+    loadingApp: "Ucitavam RISESOLO...",
     back: "< Nazad",
     retry: "Pokusaj ponovo",
   },
@@ -411,6 +412,57 @@ const sr = {
       "Pretplata se automatski obnavlja po ceni vazecoj u trenutku obnove, osim ako se ne otkaze najmanje 24 sata pre isteka tekuceg perioda. Otkazivanje se radi u podesavanjima naloga na App Store-u (iOS) ili Google Play-u (Android) - RISESOLO nema pristup tvojim placanjima.",
     termsLink: "Uslovi koriscenja",
     privacyLink: "Politika privatnosti",
+  },
+  legal: {
+    lastUpdated: "Poslednje azurirano: 21. septembar 2026.",
+    termsTitle: "Uslovi koriscenja",
+    termsSection0Title: "0. Pruzalac usluge",
+    termsSection0Body:
+      "RISESOLO aplikaciju razvija i odrzava Vukasin Popovic, individualni developer sa sedistem u Republici Srbiji. Kontakt: vvpopovic29@gmail.com.",
+    termsSection1Title: "1. Prihvatanje uslova",
+    termsSection1Body:
+      "Koriscenjem RISESOLO aplikacije prihvatas ove Uslove koriscenja. Ako se ne slazes, ne koristi aplikaciju.",
+    termsSection2Title: "2. Pretplate",
+    termsSection2Body:
+      "RISESOLO Pro je pretplata koja se naplacuje mesecno ili godisnje preko App Store-a (iOS) ili Google Play-a (Android). Pretplata se AUTOMATSKI OBNAVLJA po ceni vazecoj u trenutku obnove, osim ako je ne otkazes najmanje 24 sata pre isteka tekuceg perioda. Naplata za obnovu se vrsi u poslednjih 24 sata tekuceg perioda. Placanjem preko App Store/Google Play naloga, saglasan/na si sa njihovim uslovima placanja.",
+    termsSection3Title: "3. Otkazivanje",
+    termsSection3Body:
+      "Pretplatu mozes otkazati u bilo kom trenutku preko podesavanja svog App Store ili Google Play naloga - RISESOLO nema pristup tvojim platnim podacima niti moze direktno da izvrsi otkazivanje umesto tebe. Otkazivanje sprecava buducu naplatu, ali ne vraca novac za tekuci vec placeni period.",
+    termsSection4Title: "4. Sadrzaj i odgovornost",
+    termsSection4Body:
+      "Trening i ishrana preporuke u aplikaciji su informativnog karaktera i ne zamenjuju savet lekara ili licenciranog trenera. Koristis aplikaciju na sopstvenu odgovornost.",
+    termsSection5Title: "5. Izmene",
+    termsSection5Body:
+      "Zadrzavamo pravo da izmenimo ove uslove; nastavak koriscenja aplikacije nakon izmene predstavlja prihvatanje novih uslova.",
+    termsSection6Title: "6. Merodavno pravo i nadleznost",
+    termsSection6Body:
+      "Ovi uslovi se tumace u skladu sa zakonima Republike Srbije. Eventualni sporovi resavaju se pred nadleznim sudom u Republici Srbiji, osim ako obavezujuce lokalno pravo tvoje jurisdikcije (npr. za potrosace u EU) ne propisuje drugacije.",
+    termsSection7Title: "7. Kontakt",
+    termsSection7Body: "Pitanja u vezi sa ovim uslovima: vvpopovic29@gmail.com.",
+    privacyTitle: "Politika privatnosti",
+    privacySection0Title: "0. Kontrolor podataka",
+    privacySection0Body:
+      "Kontrolor tvojih licnih podataka je Vukasin Popovic, individualni developer sa sedistem u Republici Srbiji. Za sva pitanja u vezi sa privatnoscu pisi na vvpopovic29@gmail.com.",
+    privacySection1Title: "1. Podaci koje prikupljamo",
+    privacySection1Body:
+      "Email adresa i korisnicko ime (registracija), podaci o treninzima/ishrani koje unosis, i podaci o pretplati (status, tip paketa) koje nam RevenueCat prosledjuje nakon kupovine preko App Store-a/Google Play-a. Ne prikupljamo podatke o placnim karticama - to obradjuje iskljucivo Apple/Google.",
+    privacySection2Title: "2. Kako koristimo podatke",
+    privacySection2Body:
+      "Za funkcionisanje aplikacije (cuvanje progresa, generisanje AI trening planova, otkljucavanje pretplacenog sadrzaja) i za odrzavanje/unapredjenje servisa. Ne prodajemo tvoje podatke trecim licima.",
+    privacySection3Title: "3. Trece strane",
+    privacySection3Body:
+      "Koristimo RevenueCat za upravljanje pretplatama i Anthropic (Claude API) za generisanje AI trening planova. Ovi servisi obradjuju samo podatke neophodne za svoju funkciju (RevenueCat: identifikator naloga i status pretplate; Anthropic: parametri za generisanje plana, bez licnih identifikatora).",
+    privacySection4Title: "4. Cuvanje i brisanje podataka",
+    privacySection4Body:
+      "Podaci se cuvaju dok je nalog aktivan. Brisanje naloga mozes zatraziti slanjem zahteva na vvpopovic29@gmail.com - podaci se trajno brisu najkasnije 30 dana nakon potvrdjenog zahteva.",
+    privacySection5Title: "5. Tvoja prava",
+    privacySection5Body:
+      "U zavisnosti od jurisdikcije (npr. GDPR u EU, CCPA u Kaliforniji), imas pravo na pristup, ispravku i brisanje svojih podataka, kao i na prigovor na obradu. Ova prava ostvaruje se slanjem zahteva na vvpopovic29@gmail.com.",
+    privacySection6Title: "6. Merodavno pravo",
+    privacySection6Body:
+      "Obrada podataka se prevashodno rukovodi zakonima Republike Srbije, uz postovanje GDPR-a za korisnike iz EU i CCPA za korisnike iz Kalifornije, u meri u kojoj se ti propisi primenjuju.",
+    privacySection7Title: "7. Kontakt",
+    privacySection7Body: "Pitanja u vezi sa privatnoscu: vvpopovic29@gmail.com.",
   },
 } satisfies Messages;
 

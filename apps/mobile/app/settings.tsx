@@ -38,7 +38,7 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="settings-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
       <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("settings.title")}</Text>
