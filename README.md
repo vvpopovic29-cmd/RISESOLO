@@ -468,6 +468,14 @@ Bezbednosno/operativno ojacanje pred produkciju (odvojeno od poslovnih pravila):
   kao tiebreaker posle `totalXp: "desc"` (deterministicno umesto
   Postgres-ovog nedefinisanog redosleda za ceh-ove sa istim totalXp,
   najcesce sveze osnovani na 0) - vidi `GuildsService.listGuilds`.
+- **OpenAPI/Swagger dokumentacija** (`apps/api/src/openapi/`) - generisana
+  direktno iz istih Zod ugovora (`@risesolo/validation`) koje koristi
+  `ZodValidationPipe` na serveru i `packages/api-client` na klijentu
+  (`@asteasolutions/zod-to-openapi`), tako da su šeme u dokumentaciji tačan
+  odraz stvarnih request/response tela - ne rucno odrzavani duplikat. Svih
+  71 endpoint-a (18 kontrolera) je registrovano; Swagger UI je dostupan na
+  `/docs` (i sirov JSON na `/docs-json`) SAMO kada `NODE_ENV !== "production"`
+  (namerno iskljuceno na live serveru da ne siri attack surface).
 
 ## Lokalizacija (EN + SR)
 
