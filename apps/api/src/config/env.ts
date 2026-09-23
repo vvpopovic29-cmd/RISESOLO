@@ -21,6 +21,11 @@ export const apiEnvSchema = z.object({
   // stizu do Sentry dashboard-a. Isti "placeholder-friendly" princip kao
   // ANTHROPIC_API_KEY/REVENUECAT_WEBHOOK_AUTH_HEADER.
   SENTRY_DSN: z.string().min(1).optional(),
+  // Opciono - zarezom-odvojena lista dozvoljenih CORS origin-a (vidi
+  // src/common/cors.ts resolveCorsOrigin). Bez ovoga CORS dozvoljava sve
+  // origin-e (isti "placeholder-friendly" princip) - bezbedno za lokalni
+  // razvoj i native mobile klijente, ali treba podesiti pred produkciju.
+  CORS_ORIGIN: z.string().min(1).optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
