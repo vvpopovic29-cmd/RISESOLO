@@ -6,6 +6,7 @@ import type {
   PlayerLeaderboardEntryDto,
   PlayerLeaderboardResponseDto,
 } from "@risesolo/validation";
+import { CacheService } from "../cache/cache.service";
 import { PrismaService } from "../prisma/prisma.service";
 
 interface GuildTotals {
@@ -15,18 +16,40 @@ interface GuildTotals {
   totalXp: number;
 }
 
+const LEADERBOARD_CACHE_TTL_SECONDS = 30;
+
 /**
- * Live upit (bez keširanja - vidi README "Poznata ograničenja", isti razlog
- * kao odsustvo Redis-a). Na MVP skali (stotine-hiljade redova) `ORDER BY
- * total_xp DESC LIMIT N` je dovoljno brz preko postojeceg indeksa na PK;
- * `position` van top liste se racuna preko `count(totalXp > moj)`, sto je
- * "dense-ish" rangiranje - izjednaceni total_xp deli istu poziciju.
+ * Top-N `entries` (deljene, ne-per-user) se kratko kesiraju preko CacheService
+ * (vidi README "Rate Limiting & Monitoring") - `me`/`myGuild` ostaju live jer
+ * su jeftini PK lookup-i i inherentno ne-deljivi izmedju korisnika. Na MVP
+ * skali (stotine-hiljade redova) `ORDER BY total_xp DESC LIMIT N` je i bez
+ * kesa dovoljno brz preko postojeceg indeksa na PK; `position` van top liste
+ * se racuna preko `count(totalXp > moj)`, sto je "dense-ish" rangiranje -
+ * izjednaceni total_xp deli istu poziciju.
  */
 @Injectable()
 export class LeaderboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cacheService: CacheService,
+  ) {}
 
   async getPlayerLeaderboard(userId: string, limit: number): Promise<PlayerLeaderboardResponseDto> {
+    const entries = await this.getTopPlayerEntries(limit);
+
+    const existing = entries.find((entry) => entry.userId === userId);
+    const me = existing ?? (await this.buildOwnPlayerEntry(userId));
+
+    return { entries, me };
+  }
+
+  private async getTopPlayerEntries(limit: number): Promise<PlayerLeaderboardEntryDto[]> {
+    const cacheKey = `leaderboard:players:${limit}`;
+    const cached = await this.cacheService.getJson<PlayerLeaderboardEntryDto[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const topRows = await this.prisma.progression.findMany({
       orderBy: { totalXp: "desc" },
       take: limit,
@@ -40,10 +63,8 @@ export class LeaderboardService {
       }
     });
 
-    const existing = entries.find((entry) => entry.userId === userId);
-    const me = existing ?? (await this.buildOwnPlayerEntry(userId));
-
-    return { entries, me };
+    await this.cacheService.setJson(cacheKey, entries, LEADERBOARD_CACHE_TTL_SECONDS);
+    return entries;
   }
 
   private async buildOwnPlayerEntry(userId: string): Promise<PlayerLeaderboardEntryDto> {
@@ -60,13 +81,7 @@ export class LeaderboardService {
   }
 
   async getGuildLeaderboard(userId: string, limit: number): Promise<GuildLeaderboardResponseDto> {
-    const topGuilds = await this.prisma.guild.findMany({
-      orderBy: { totalXp: "desc" },
-      take: limit,
-      include: { _count: { select: { members: true } } },
-    });
-
-    const entries = topGuilds.map((guild, index) => toGuildEntry(guild, guild._count.members, index + 1));
+    const entries = await this.getTopGuildEntries(limit);
 
     const membership = await this.prisma.guildMembership.findUnique({ where: { userId } });
     if (!membership) {
@@ -77,6 +92,24 @@ export class LeaderboardService {
     const myGuild = existing ?? (await this.buildOwnGuildEntry(membership.guildId));
 
     return { entries, myGuild };
+  }
+
+  private async getTopGuildEntries(limit: number): Promise<GuildLeaderboardEntryDto[]> {
+    const cacheKey = `leaderboard:guilds:${limit}`;
+    const cached = await this.cacheService.getJson<GuildLeaderboardEntryDto[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const topGuilds = await this.prisma.guild.findMany({
+      orderBy: { totalXp: "desc" },
+      take: limit,
+      include: { _count: { select: { members: true } } },
+    });
+    const entries = topGuilds.map((guild, index) => toGuildEntry(guild, guild._count.members, index + 1));
+
+    await this.cacheService.setJson(cacheKey, entries, LEADERBOARD_CACHE_TTL_SECONDS);
+    return entries;
   }
 
   private async buildOwnGuildEntry(guildId: string): Promise<GuildLeaderboardEntryDto> {

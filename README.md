@@ -312,17 +312,20 @@ dogadjaja:
 - **Zahtev za prijateljstvo prihvacen** - posiljaocu, sa korisnickim imenom
   onoga ko je prihvatio (`FriendsService.acceptRequest`).
 
-Namerno NEMA scheduled/cron podsetnika (npr. "nisi trenirao danas") - isto
-ogranicenje kao Redis/BullMQ (vidi "Poznata ograničenja" ispod), jer bi to
-zahtevalo pravi scheduler koji jos nije ozicen. Svi trigeri su event-driven
-(salju se odmah kad se dogadjaj desi na serveru), nikad na tajmer.
+Namerno NEMA scheduled/cron podsetnika (npr. "nisi trenirao danas") - to bi
+zahtevalo pravi scheduler koji jos nije ozicen (vidi "Poznata ograničenja"
+ispod). Svi trigeri su event-driven (salju se odmah kad se dogadjaj desi na
+serveru), nikad na tajmer.
 
 Arhitektura (server-authoritative, isti princip kao ostatak app-a):
 - `apps/api/src/notifications` - `PushToken` model (jedan red po fizickom
   uredjaju, `token` je globalno unique), `NotificationsService.sendToUser`/
-  `sendToUsers` (best-effort - mrezni poziv ka Expo servisu NIKAD ne baca
-  gresku na gore niti se poziva unutar DB transakcije, vidi komentare u
-  `notifications.service.ts`).
+  `sendToUsers` stavljaju poruku u BullMQ red (`push-notifications`, Redis-backed
+  - vidi "Rate Limiting & Monitoring" ispod) umesto direktnog mreznog poziva;
+  `PushNotificationsProcessor` stvarno salje ka Expo servisu i automatski
+  ponavlja pokusaj (retry/backoff) pri privremenom kvaru. Stavljanje u red je
+  i dalje best-effort (nikad ne baca gresku na gore niti se poziva unutar DB
+  transakcije, vidi komentare u `notifications.service.ts`).
 - `apps/mobile/src/notifications/push-notifications.ts` - trazi dozvolu i
   registruje token preko `expo-notifications`, guard-ovano da nikad ne radi
   na webu niti bez EAS `projectId` (vidi ispod). Tap na notifikaciju
@@ -375,10 +378,12 @@ Globalni rang igraca (po `total_xp`) i cehova (po `Guild.total_xp`) -
 `GET /leaderboard/players` i `GET /leaderboard/guilds` (opcioni `?limit=`,
 podrazumevano 20, max 100).
 
-- **Live upit, bez keširanja** (isti razlog kao odsustvo Redis-a - vidi
-  "Poznata ograničenja" ispod): `ORDER BY total_xp DESC LIMIT N` nad
-  `Progression`/`Guild`, dovoljno brzo na MVP skali. Nema periodicnog
-  snapshot-a niti materijalizovanog pogleda.
+- **Top-N `entries` se kratko kesiraju preko Redis-a** (~30s TTL,
+  `CacheService` - vidi "Rate Limiting & Monitoring" ispod); `me`/`myGuild` su
+  uvek live jer su jeftini PK lookup-i i ne mogu se deliti izmedju korisnika.
+  Osnovni upit (`ORDER BY total_xp DESC LIMIT N` nad `Progression`/`Guild`) je
+  i bez kesa dovoljno brz na MVP skali - kes je optimizacija, ne neophodnost.
+  Nema periodicnog snapshot-a niti materijalizovanog pogleda.
 - **`position`** van top liste racuna preko `count(total_xp > moj) + 1`
   ("dense-ish" rangiranje - izjednacen `total_xp` deli istu poziciju).
 - **`me`/`myGuild`** su UVEK prisutni u odgovoru (cak i van top `limit`
@@ -439,12 +444,29 @@ Kozmetika kupljena za coins - prva licna potrosnja coins-a (dosad je jedini
 Bezbednosno/operativno ojacanje pred produkciju (odvojeno od poslovnih pravila):
 
 - **Rate limiting** (`@nestjs/throttler`) - globalni default 60 zahteva/minut
-  po IP (`app.module.ts`, `ThrottlerGuard` kao `APP_GUARD`), sa strozim
-  limitom od 5/minut na `POST /auth/register`/`POST /auth/login`
+  po IP (`app.module.ts`, `ResilientThrottlerGuard` kao `APP_GUARD`), sa
+  strozim limitom od 5/minut na `POST /auth/register`/`POST /auth/login`
   (`apps/api/src/auth/auth.controller.ts` `AUTH_THROTTLE`) - meta
   brute-force/spam napada. U testovima (`NODE_ENV=test`, Jest ga automatski
   postavlja) je limit prakticno neogranicen da ne bi lazno rusio e2e paket -
-  vidi `apps/api/src/common/throttle.ts`.
+  vidi `apps/api/src/common/throttle.ts`. Storage je Redis-backed
+  (`@nest-lab/throttler-storage-redis`, deljen izmedju vise API instanci umesto
+  in-memory po procesu); `ResilientThrottlerGuard`
+  (`apps/api/src/common/resilient-throttler.guard.ts`) fail-open-uje kad
+  storage baci gresku razlicitu od `ThrottlerException` - Redis nedostupnost
+  propusta zahtev bez limita umesto da obori API (isti "placeholder-friendly"
+  princip kao ostatak infrastrukture ispod).
+- **Push notifikacije preko BullMQ reda** (`push-notifications` red, Redis-backed
+  - vidi "Push Notifications" iznad) - `NotificationsService` stavlja poruku u
+  red umesto direktnog Expo poziva; `PushNotificationsProcessor`
+  (`apps/api/src/notifications/push-notifications.processor.ts`) je salje i
+  automatski ponavlja (3 pokusaja, eksponencijalni backoff) pri privremenom
+  mreznom/Expo kvaru - robusnije od stare fire-and-forget implementacije.
+- **Read-kes za deljene liste** (`CacheService`, `apps/api/src/cache/`) -
+  kratkotrajni (~30s TTL) Redis kes za `GET /guilds` i top-N delove
+  leaderboard-a (vidi "Leaderboards" iznad) - iste, ne-per-user rezultate za
+  sve korisnike. Best-effort: nedostupnost Redis-a vraca kes na live upit ka
+  bazi umesto greske (isti princip kao rate limiting/push notifikacije iznad).
 - **Sentry monitoring** (opciono, `@sentry/node`/`@sentry/react-native`) -
   isti "placeholder-friendly" princip kao AI/RevenueCat: bez `SENTRY_DSN`
   (`apps/api`)/`EXPO_PUBLIC_SENTRY_DSN` (`apps/mobile`) SDK se nikad ne
@@ -520,8 +542,9 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 
 ## Poznata ograničenja (trenutno stanje)
 
-- Redis/BullMQ/Socket.IO nisu ožičeni - `REDIS_URL` postoji samo u env semi
-  radi predvidljivog oblika za buduće faze (cache/queue/real-time).
+- Socket.IO/real-time nije ožičeno - Redis/BullMQ SU ožičeni (rate limit
+  storage, push notifikacija red, read-kes za guild/leaderboard - vidi "Rate
+  Limiting & Monitoring" iznad), ali za sada bez WebSocket/real-time sloja.
 - Nema pune OpenAPI JSON generacije (Swagger) - DTO usklađenost se obezbeđuje
   deljenom Zod semom; uvodi se kada broj endpoint-a to opravda.
 - `packages/domain` ima kernel + `gamification` modul implementiran; ostali
@@ -561,5 +584,5 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   servisa, trigeri) je implementiran i testiran, ali stvarna registracija
   tokena zahteva EAS `projectId` (`eas init`, vidi "Push Notifications"
   iznad) i standalone build za Android FCM kredencijale - do tada je
-  registracija no-op. Nema scheduled/cron podsetnika (isto ogranicenje kao
-  Redis/BullMQ ispod) - samo event-driven trigeri.
+  registracija no-op. Nema scheduled/cron podsetnika (zahteva pravi scheduler
+  koji jos nije ozicen) - samo event-driven trigeri.

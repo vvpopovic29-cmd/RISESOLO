@@ -1,6 +1,14 @@
 import { calculateLevel, calculateRank } from "@risesolo/domain";
+import type { CacheService } from "../cache/cache.service";
 import type { PrismaService } from "../prisma/prisma.service";
 import { LeaderboardService } from "./leaderboard.service";
+
+function makeCache(): CacheService {
+  return {
+    getJson: jest.fn().mockResolvedValue(null),
+    setJson: jest.fn().mockResolvedValue(undefined),
+  } as unknown as CacheService;
+}
 
 interface ProgressionRow {
   userId: string;
@@ -56,7 +64,7 @@ describe("LeaderboardService", () => {
         { userId: "u2", totalXp: 3000, username: "drugi" },
         { userId: "u3", totalXp: 1000, username: "treci" },
       ]);
-      const service = new LeaderboardService(prisma);
+      const service = new LeaderboardService(prisma, makeCache());
 
       const result = await service.getPlayerLeaderboard("u1", 2);
 
@@ -67,7 +75,7 @@ describe("LeaderboardService", () => {
 
     it("racuna level/rank preko domain funkcija", async () => {
       const prisma = makePrisma([{ userId: "u1", totalXp: 5000, username: "prvi" }]);
-      const service = new LeaderboardService(prisma);
+      const service = new LeaderboardService(prisma, makeCache());
 
       const result = await service.getPlayerLeaderboard("u1", 10);
 
@@ -80,7 +88,7 @@ describe("LeaderboardService", () => {
         { userId: "u1", totalXp: 5000, username: "prvi" },
         { userId: "u2", totalXp: 3000, username: "drugi" },
       ]);
-      const service = new LeaderboardService(prisma);
+      const service = new LeaderboardService(prisma, makeCache());
 
       const result = await service.getPlayerLeaderboard("u2", 10);
 
@@ -93,7 +101,7 @@ describe("LeaderboardService", () => {
         { userId: "u2", totalXp: 3000, username: "drugi" },
         { userId: "u3", totalXp: 1000, username: "treci" },
       ]);
-      const service = new LeaderboardService(prisma);
+      const service = new LeaderboardService(prisma, makeCache());
 
       const result = await service.getPlayerLeaderboard("u3", 1);
 
@@ -110,7 +118,7 @@ describe("LeaderboardService", () => {
         { id: "g1", name: "Alpha", tag: "ALP", totalXp: 9000, _count: { members: 5 } },
         { id: "g2", name: "Beta", tag: "BET", totalXp: 4000, _count: { members: 3 } },
       ]);
-      const service = new LeaderboardService(prisma);
+      const service = new LeaderboardService(prisma, makeCache());
 
       const result = await service.getGuildLeaderboard("u1", 10);
 
@@ -123,7 +131,7 @@ describe("LeaderboardService", () => {
     it("myGuild je null kada korisnik nije clan nijednog ceha", async () => {
       const prisma = makePrisma([]);
       (prisma.guild.findMany as jest.Mock).mockResolvedValue([]);
-      const service = new LeaderboardService(prisma);
+      const service = new LeaderboardService(prisma, makeCache());
 
       const result = await service.getGuildLeaderboard("u1", 10);
 
@@ -144,7 +152,7 @@ describe("LeaderboardService", () => {
         _count: { members: 3 },
       });
       (prisma.guild.count as jest.Mock).mockResolvedValue(1);
-      const service = new LeaderboardService(prisma);
+      const service = new LeaderboardService(prisma, makeCache());
 
       const result = await service.getGuildLeaderboard("u1", 1);
 
