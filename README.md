@@ -455,6 +455,15 @@ Bezbednosno/operativno ojacanje pred produkciju (odvojeno od poslovnih pravila):
   `src/monitoring/sentry.ts` inicijalizuje SDK SAMO na iOS/Android (nikad na
   webu, isti princip kao `PurchasesService`) - stvarna native registracija
   ionako zahteva EAS build (vidi "EAS Build" iznad).
+- **HTTP security header-i** (`helmet`) - ozicen globalno u `main.ts`
+  (`app.use(helmet())`), postavlja standardne bezbednosne header-e
+  (`X-Content-Type-Options`, `X-Frame-Options`, restriktivan
+  `Content-Security-Policy` default, itd.) na svaki odgovor.
+- **CORS** (`app.enableCors()`) - kontrolisan preko opcionog `CORS_ORIGIN`
+  (`apps/api/src/common/cors.ts` `resolveCorsOrigin`). Bez njega dozvoljava
+  sve origin-e (isti "placeholder-friendly" princip, bezbedno za lokalni
+  razvoj i native mobile klijente); pred produkciju podesi na
+  zarezom-odvojenu listu dozvoljenih origin-a ako postoji web klijent.
 - **Guild lista** (`GET /guilds`) - `orderBy` sada ima `createdAt: "desc"`
   kao tiebreaker posle `totalXp: "desc"` (deterministicno umesto
   Postgres-ovog nedefinisanog redosleda za ceh-ove sa istim totalXp,

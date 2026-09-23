@@ -36,6 +36,7 @@
     "@risesolo/validation": "workspace:*",
     "@sentry/node": "^10.75.0",
     "bcryptjs": "^2.4.3",
+    "helmet": "^8.3.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
