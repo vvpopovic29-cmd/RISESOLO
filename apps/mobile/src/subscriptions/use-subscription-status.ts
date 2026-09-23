@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { SubscriptionStatusDto } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 
 export type SubscriptionStatusResult =
   | { status: "loading" }
@@ -17,16 +18,17 @@ export type SubscriptionStatusResult =
 export function useSubscriptionStatus(apiClient: ApiClient): { state: SubscriptionStatusResult; refetch: () => void } {
   const [state, setState] = useState<SubscriptionStatusResult>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     setState({ status: "loading" });
     apiClient.subscriptions
       .getStatus()
       .then((data) => setState({ status: "success", data }))
       .catch((error: unknown) => {
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
-  }, [apiClient]);
+  }, [apiClient, t]);
 
   useEffect(() => {
     refetch();

@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { AllocateStatPointsRequest, PlayerStatsDto } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 import { Button } from "../ui/Button";
 
-const STAT_LABELS: ReadonlyArray<{ key: keyof AllocateStatPointsRequest; label: string }> = [
-  { key: "strength", label: "Snaga" },
-  { key: "agility", label: "Agilnost" },
-  { key: "endurance", label: "Izdrzljivost" },
-  { key: "vitality", label: "Vitalnost" },
-  { key: "intelligence", label: "Inteligencija" },
+const STAT_LABEL_KEYS: ReadonlyArray<{
+  key: keyof AllocateStatPointsRequest;
+  labelKey: "home.statStrength" | "home.statAgility" | "home.statEndurance" | "home.statVitality" | "home.statIntelligence";
+}> = [
+  { key: "strength", labelKey: "home.statStrength" },
+  { key: "agility", labelKey: "home.statAgility" },
+  { key: "endurance", labelKey: "home.statEndurance" },
+  { key: "vitality", labelKey: "home.statVitality" },
+  { key: "intelligence", labelKey: "home.statIntelligence" },
 ];
 
 /**
@@ -26,6 +30,7 @@ export function StatAllocator({
   onSubmit: (allocation: AllocateStatPointsRequest) => void;
   submitting: boolean;
 }) {
+  const { t } = useI18n();
   const [pending, setPending] = useState<Record<string, number>>({});
   const totalPending = Object.values(pending).reduce((sum, value) => sum + value, 0);
   const remaining = stats.statPoints - totalPending;
@@ -40,10 +45,12 @@ export function StatAllocator({
 
   return (
     <View className="gap-3 rounded-lg border border-reward bg-reward/10 p-4">
-      <Text className="font-semibold text-reward">+{stats.statPoints} poena za raspodelu (preostalo: {remaining})</Text>
-      {STAT_LABELS.map(({ key, label }) => (
+      <Text className="font-semibold text-reward">
+        {t("home.statPointsAvailable", { points: stats.statPoints, remaining })}
+      </Text>
+      {STAT_LABEL_KEYS.map(({ key, labelKey }) => (
         <View key={key} className="flex-row items-center justify-between">
-          <Text className="text-neutral-50 dark:text-neutral-1000">{label}</Text>
+          <Text className="text-neutral-50 dark:text-neutral-1000">{t(labelKey)}</Text>
           <View className="flex-row items-center gap-3">
             <Pressable
               onPress={() => adjust(key, -1)}
@@ -65,7 +72,7 @@ export function StatAllocator({
         </View>
       ))}
       <Button
-        label="Potvrdi raspodelu"
+        label={t("home.confirmAllocation")}
         onPress={() => onSubmit(pending)}
         disabled={totalPending === 0}
         loading={submitting}

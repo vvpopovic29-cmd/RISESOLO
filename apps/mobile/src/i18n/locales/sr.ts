@@ -6,6 +6,12 @@ const sr = {
     loadingApp: "Ucitavam RISESOLO...",
     back: "< Nazad",
     retry: "Pokusaj ponovo",
+    unknownError: "Nepoznata greska",
+  },
+  health: {
+    checking: "Proveravam API konekciju...",
+    available: "API je dostupan",
+    unavailable: "API nije dostupan: {message}",
   },
   auth: {
     loginTitle: "RISESOLO",
@@ -102,6 +108,8 @@ const sr = {
     pro: "RISESOLO Pro",
     settings: "Podesavanja",
     allocateFailed: "Raspodela poena nije uspela.",
+    statPointsAvailable: "+{points} poena za raspodelu (preostalo: {remaining})",
+    confirmAllocation: "Potvrdi raspodelu",
     questStatusAvailable: "Dostupan",
     questStatusInProgress: "U toku",
     questStatusCompleted: "Zavrsen",

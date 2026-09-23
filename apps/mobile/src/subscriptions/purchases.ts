@@ -79,7 +79,9 @@ export interface PurchaseResult {
 
 export async function purchasePackage(pkg: PurchasesPackage): Promise<PurchaseResult> {
   if (!configured) {
-    return { success: false, isPro: false, errorMessage: "Pretplate trenutno nisu dostupne.", userCancelled: false };
+    // `errorMessage: null` - ekran (paywall.tsx) prikazuje svoju prevedenu
+    // t("paywall.purchaseFailed") poruku kad ovde nema konkretne SDK greske.
+    return { success: false, isPro: false, errorMessage: null, userCancelled: false };
   }
   try {
     const { customerInfo } = await Purchases.purchasePackage(pkg);
@@ -92,7 +94,7 @@ export async function purchasePackage(pkg: PurchasesPackage): Promise<PurchaseRe
     return {
       success: false,
       isPro: false,
-      errorMessage: purchasesError.message ?? "Kupovina nije uspela.",
+      errorMessage: purchasesError.message ?? null,
       userCancelled: false,
     };
   }
@@ -106,14 +108,16 @@ export interface RestoreResult {
 
 export async function restorePurchases(): Promise<RestoreResult> {
   if (!configured) {
-    return { success: false, isPro: false, errorMessage: "Pretplate trenutno nisu dostupne." };
+    // `errorMessage: null` - ekran (paywall.tsx) prikazuje svoju prevedenu
+    // t("paywall.restoreFailed") poruku kad ovde nema konkretne SDK greske.
+    return { success: false, isPro: false, errorMessage: null };
   }
   try {
     const customerInfo = await Purchases.restorePurchases();
     return { success: true, isPro: hasProEntitlement(customerInfo), errorMessage: null };
   } catch (error) {
     const purchasesError = error as { message?: string };
-    return { success: false, isPro: false, errorMessage: purchasesError.message ?? "Obnova kupovina nije uspela." };
+    return { success: false, isPro: false, errorMessage: purchasesError.message ?? null };
   }
 }
 

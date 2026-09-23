@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import type { ApiClient } from "@risesolo/api-client";
 import { ApiError } from "@risesolo/api-client";
 import { useActiveSession } from "./use-active-session";
+import { I18nProvider } from "../i18n";
 
 function makeApiClient(getActiveSession: ApiClient["workouts"]["getActiveSession"]): ApiClient {
   return { workouts: { getActiveSession } } as unknown as ApiClient;
@@ -18,7 +19,11 @@ function Probe({ apiClient }: { apiClient: ApiClient }) {
 describe("useActiveSession", () => {
   it("prikazuje 'none' kada korisnik nema pauziran trening", async () => {
     const apiClient = makeApiClient(() => Promise.resolve({ session: null, sets: [] }));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("none")).toBeTruthy());
   });
@@ -30,14 +35,22 @@ describe("useActiveSession", () => {
         sets: [],
       }),
     );
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("active:session-1")).toBeTruthy());
   });
 
   it("prelazi u error stanje kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Zahtev nije uspeo")));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("error:Zahtev nije uspeo")).toBeTruthy());
   });

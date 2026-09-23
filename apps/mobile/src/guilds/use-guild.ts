@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { GuildDetailDto } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 
 export type GuildResult =
   | { status: "loading" }
@@ -15,6 +16,7 @@ export type GuildResult =
 export function useGuild(apiClient: ApiClient): { state: GuildResult; refetch: () => void } {
   const [state, setState] = useState<GuildResult>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     setState({ status: "loading" });
     apiClient.guilds
@@ -25,10 +27,10 @@ export function useGuild(apiClient: ApiClient): { state: GuildResult; refetch: (
           setState({ status: "none" });
           return;
         }
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
-  }, [apiClient]);
+  }, [apiClient, t]);
 
   useEffect(() => {
     refetch();

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { PlayerLeaderboardResponseDto } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 
 export type PlayerLeaderboardResult =
   | { status: "loading" }
@@ -14,16 +15,17 @@ export function usePlayerLeaderboard(
 ): { state: PlayerLeaderboardResult; refetch: () => void } {
   const [state, setState] = useState<PlayerLeaderboardResult>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     setState({ status: "loading" });
     apiClient.leaderboard
       .players(limit)
       .then((data) => setState({ status: "success", data }))
       .catch((error: unknown) => {
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
-  }, [apiClient, limit]);
+  }, [apiClient, limit, t]);
 
   useEffect(() => {
     refetch();

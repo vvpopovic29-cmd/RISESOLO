@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import type { ApiClient } from "@risesolo/api-client";
 import { ApiError } from "@risesolo/api-client";
 import { usePlayerState } from "./use-player-state";
+import { I18nProvider } from "../i18n";
 
 function samplePlayerState() {
   return {
@@ -49,14 +50,22 @@ function Probe({ apiClient }: { apiClient: ApiClient }) {
 describe("usePlayerState", () => {
   it("pocinje u loading stanju pa prelazi u success sa podacima sa servera", async () => {
     const apiClient = makeApiClient(() => Promise.resolve(samplePlayerState()));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("level:2 statPoints:3")).toBeTruthy());
   });
 
   it("prelazi u error stanje sa porukom iz ApiError kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Neautorizovan pristup", 401)));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("error:Neautorizovan pristup")).toBeTruthy());
   });

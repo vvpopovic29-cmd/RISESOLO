@@ -10,6 +10,12 @@ const en = {
     loadingApp: "Loading RISESOLO...",
     back: "< Back",
     retry: "Try again",
+    unknownError: "Unknown error",
+  },
+  health: {
+    checking: "Checking API connection...",
+    available: "API is reachable",
+    unavailable: "API is unreachable: {message}",
   },
   auth: {
     loginTitle: "RISESOLO",
@@ -106,6 +112,8 @@ const en = {
     pro: "RISESOLO Pro",
     settings: "Settings",
     allocateFailed: "Stat allocation failed.",
+    statPointsAvailable: "+{points} stat points to allocate (remaining: {remaining})",
+    confirmAllocation: "Confirm allocation",
     questStatusAvailable: "Available",
     questStatusInProgress: "In progress",
     questStatusCompleted: "Completed",

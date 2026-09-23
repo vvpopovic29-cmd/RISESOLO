@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { SideQuestDto } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 
 export type SideQuestResult =
   | { status: "loading" }
@@ -15,6 +16,7 @@ export type SideQuestResult =
 export function useSideQuest(apiClient: ApiClient, enabled = true): { state: SideQuestResult; refetch: () => void } {
   const [state, setState] = useState<SideQuestResult>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     if (!enabled) return;
     setState({ status: "loading" });
@@ -22,10 +24,10 @@ export function useSideQuest(apiClient: ApiClient, enabled = true): { state: Sid
       .side()
       .then((response) => setState({ status: "success", data: response.quest }))
       .catch((error: unknown) => {
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
-  }, [apiClient, enabled]);
+  }, [apiClient, enabled, t]);
 
   useEffect(() => {
     refetch();

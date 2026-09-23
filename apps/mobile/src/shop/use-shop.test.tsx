@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import type { ApiClient } from "@risesolo/api-client";
 import { ApiError } from "@risesolo/api-client";
 import { useShop } from "./use-shop";
+import { I18nProvider } from "../i18n";
 
 function makeApiClient(list: ApiClient["shop"]["list"]): ApiClient {
   return { shop: { list } } as unknown as ApiClient;
@@ -22,14 +23,22 @@ describe("useShop", () => {
         { id: "FRAME_BRONZE", category: "AVATAR_FRAME" as const, name: "Bronzani okvir", description: "d", price: 100, colorHex: "#CD7F32", owned: false, equipped: false },
       ]),
     );
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("count:1")).toBeTruthy());
   });
 
   it("prelazi u error stanje kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Zahtev nije uspeo")));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("error:Zahtev nije uspeo")).toBeTruthy());
   });

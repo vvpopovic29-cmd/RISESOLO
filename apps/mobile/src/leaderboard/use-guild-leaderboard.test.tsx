@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import type { ApiClient } from "@risesolo/api-client";
 import { ApiError } from "@risesolo/api-client";
 import { useGuildLeaderboard } from "./use-guild-leaderboard";
+import { I18nProvider } from "../i18n";
 
 function makeApiClient(guilds: ApiClient["leaderboard"]["guilds"]): ApiClient {
   return { leaderboard: { guilds } } as unknown as ApiClient;
@@ -23,14 +24,22 @@ describe("useGuildLeaderboard", () => {
         myGuild: null,
       }),
     );
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("entries:1 myGuild:none")).toBeTruthy());
   });
 
   it("prelazi u error stanje kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Zahtev nije uspeo")));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("error:Zahtev nije uspeo")).toBeTruthy());
   });

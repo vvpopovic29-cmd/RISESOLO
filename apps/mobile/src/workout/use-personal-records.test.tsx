@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import type { ApiClient } from "@risesolo/api-client";
 import { ApiError } from "@risesolo/api-client";
 import { usePersonalRecords } from "./use-personal-records";
+import { I18nProvider } from "../i18n";
 
 function makeApiClient(personalRecords: ApiClient["workouts"]["personalRecords"]): ApiClient {
   return { workouts: { personalRecords } } as unknown as ApiClient;
@@ -22,14 +23,22 @@ describe("usePersonalRecords", () => {
         { exerciseId: "e1", exerciseSlug: "push-up", exerciseName: "Push-Up", bestReps: 20, bestDurationSeconds: null },
       ]),
     );
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("count:1")).toBeTruthy());
   });
 
   it("prelazi u error stanje kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Zahtev nije uspeo")));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("error:Zahtev nije uspeo")).toBeTruthy());
   });

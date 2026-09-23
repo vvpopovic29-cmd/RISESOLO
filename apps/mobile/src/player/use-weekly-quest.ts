@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { WeeklyQuestDto } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 
 export type WeeklyQuestResult =
   | { status: "loading" }
@@ -11,6 +12,7 @@ export type WeeklyQuestResult =
 export function useWeeklyQuest(apiClient: ApiClient, enabled = true): { state: WeeklyQuestResult; refetch: () => void } {
   const [state, setState] = useState<WeeklyQuestResult>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     if (!enabled) return;
     setState({ status: "loading" });
@@ -18,10 +20,10 @@ export function useWeeklyQuest(apiClient: ApiClient, enabled = true): { state: W
       .weekly()
       .then((data) => setState({ status: "success", data }))
       .catch((error: unknown) => {
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
-  }, [apiClient, enabled]);
+  }, [apiClient, enabled, t]);
 
   useEffect(() => {
     refetch();
