@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
+import { useI18n } from "../../src/i18n";
 import { Screen } from "../../src/ui/Screen";
 
 /**
@@ -9,48 +10,26 @@ import { Screen } from "../../src/ui/Screen";
  * preporucujemo.
  */
 export default function TermsOfUseScreen() {
+  const { t } = useI18n();
+
   return (
     <Screen>
       <Pressable onPress={() => router.back()} testID="terms-back">
-        <Text className="text-accent">{"< Nazad"}</Text>
+        <Text className="text-accent">{t("common.back")}</Text>
       </Pressable>
 
-      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">Uslovi koriscenja</Text>
-      <Text className="text-xs text-neutral-500 dark:text-neutral-600">Poslednje azurirano: 21. septembar 2026.</Text>
+      <Text className="text-2xl font-bold text-neutral-50 dark:text-neutral-1000">{t("legal.termsTitle")}</Text>
+      <Text className="text-xs text-neutral-500 dark:text-neutral-600">{t("legal.lastUpdated")}</Text>
 
       <View className="gap-4">
-        <Section title="0. Pruzalac usluge">
-          RISESOLO aplikaciju razvija i odrzava Vukasin Popovic, individualni developer sa sedistem u Republici
-          Srbiji. Kontakt: vvpopovic29@gmail.com.
-        </Section>
-        <Section title="1. Prihvatanje uslova">
-          Koriscenjem RISESOLO aplikacije prihvatas ove Uslove koriscenja. Ako se ne slazes, ne koristi aplikaciju.
-        </Section>
-        <Section title="2. Pretplate">
-          RISESOLO Pro je pretplata koja se naplacuje mesecno ili godisnje preko App Store-a (iOS) ili Google Play-a
-          (Android). Pretplata se AUTOMATSKI OBNAVLJA po ceni vazecoj u trenutku obnove, osim ako je ne otkazes
-          najmanje 24 sata pre isteka tekuceg perioda. Naplata za obnovu se vrsi u poslednjih 24 sata tekuceg
-          perioda. Placanjem preko App Store/Google Play naloga, saglasan/na si sa njihovim uslovima placanja.
-        </Section>
-        <Section title="3. Otkazivanje">
-          Pretplatu mozes otkazati u bilo kom trenutku preko podesavanja svog App Store ili Google Play naloga -
-          RISESOLO nema pristup tvojim platnim podacima niti moze direktno da izvrsi otkazivanje umesto tebe.
-          Otkazivanje sprecava buducu naplatu, ali ne vraca novac za tekuci vec placeni period.
-        </Section>
-        <Section title="4. Sadrzaj i odgovornost">
-          Trening i ishrana preporuke u aplikaciji su informativnog karaktera i ne zamenjuju savet lekara ili
-          licenciranog trenera. Koristis aplikaciju na sopstvenu odgovornost.
-        </Section>
-        <Section title="5. Izmene">
-          Zadrzavamo pravo da izmenimo ove uslove; nastavak koriscenja aplikacije nakon izmene predstavlja
-          prihvatanje novih uslova.
-        </Section>
-        <Section title="6. Merodavno pravo i nadleznost">
-          Ovi uslovi se tumace u skladu sa zakonima Republike Srbije. Eventualni sporovi resavaju se pred nadleznim
-          sudom u Republici Srbiji, osim ako obavezujuce lokalno pravo tvoje jurisdikcije (npr. za potrosace u EU)
-          ne propisuje drugacije.
-        </Section>
-        <Section title="7. Kontakt">Pitanja u vezi sa ovim uslovima: vvpopovic29@gmail.com.</Section>
+        <Section title={t("legal.termsSection0Title")}>{t("legal.termsSection0Body")}</Section>
+        <Section title={t("legal.termsSection1Title")}>{t("legal.termsSection1Body")}</Section>
+        <Section title={t("legal.termsSection2Title")}>{t("legal.termsSection2Body")}</Section>
+        <Section title={t("legal.termsSection3Title")}>{t("legal.termsSection3Body")}</Section>
+        <Section title={t("legal.termsSection4Title")}>{t("legal.termsSection4Body")}</Section>
+        <Section title={t("legal.termsSection5Title")}>{t("legal.termsSection5Body")}</Section>
+        <Section title={t("legal.termsSection6Title")}>{t("legal.termsSection6Body")}</Section>
+        <Section title={t("legal.termsSection7Title")}>{t("legal.termsSection7Body")}</Section>
       </View>
     </Screen>
   );

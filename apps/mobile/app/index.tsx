@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import { Redirect } from "expo-router";
 import { useAuth } from "../src/auth/AuthContext";
+import { useI18n } from "../src/i18n";
 import { Screen } from "../src/ui/Screen";
 
 /**
@@ -12,12 +13,13 @@ import { Screen } from "../src/ui/Screen";
  */
 export default function IndexGate() {
   const { state } = useAuth();
+  const { t } = useI18n();
 
   if (state.status === "loading") {
     return (
       <Screen scroll={false}>
         <View className="flex-1 items-center justify-center">
-          <Text className="text-neutral-500 dark:text-neutral-600">Ucitavam RISESOLO...</Text>
+          <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loadingApp")}</Text>
         </View>
       </Screen>
     );
