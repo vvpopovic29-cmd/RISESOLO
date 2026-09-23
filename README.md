@@ -494,10 +494,10 @@ se namerno NE prevodi - ostaje identičan na svim jezicima.
   van obima ove faze - ostaje na srpskom bez obzira na `Profile.locale`.
 - **Mobile UI chrome** (`apps/mobile/src/i18n`) - lagani custom `I18nContext`
   (`useI18n()` hook, `t("namespace.key")`), bez spoljne i18n biblioteke.
-  Trenutno pokriveno: Login/Register/Onboarding/Home/Settings. Ostali ekrani
-  (Nutrition, Shop, Leaderboard, Guild, Friends, Achievements, Inventory,
-  Workout*, Training Plan, Paywall) i dalje prikazuju fiksni srpski tekst -
-  planirano sledeće.
+  Pokriveno: bas svaki ekran u `apps/mobile/app` (uklj. Nutrition, Shop,
+  Leaderboard, Guild, Friends, Achievements, Inventory, Workout*, Training
+  Plan, Paywall, Settings i `app/legal/{terms,privacy}.tsx`) - lokalizacija
+  je zavrsena preko cele mobilne aplikacije.
 
 ## Testiranje
 
@@ -519,14 +519,14 @@ lint, typecheck i test - identično lokalnim komandama iznad.
 - `packages/domain` ima kernel + `gamification` modul implementiran; ostali
   bounded-context moduli (training, nutrition, community, economy, recovery)
   se dodaju u fazi kada se implementira odgovarajuća funkcija.
-- Mobile ekrani (`apps/mobile/app/{login,register,onboarding,home,exercises,workout}.tsx`)
-  su povezani na sve backend endpoint-e preko `@risesolo/api-client` i
-  provereni u pravom browseru (Playwright, `expo export --platform web`) -
-  kompletan tok registracija -> onboarding -> trening -> XP/level-up ->
-  raspodela stat poena -> odjava radi sa pravim podacima sa servera.
-  Nedostaje: pause/resume trening sesije. "Moji treninzi" (workout
-  template-i) su dodati - vidi sekciju ispod, uz napomenu o preostalom
-  ograničenju (nema vodjene sesije kroz SVE vezbe template-a odjednom).
+- Mobile ekrani (svaki ekran u `apps/mobile/app`) su povezani na sve backend
+  endpoint-e preko `@risesolo/api-client` i provereni u pravom browseru
+  (Playwright, `expo export --platform web`) - kompletan tok registracija ->
+  onboarding -> trening (uklj. pauza/nastavak preko "Nastavi" bannera na
+  Home-u) -> XP/level-up -> raspodela stat poena -> odjava radi sa pravim
+  podacima sa servera. "Moji treninzi" (workout template-i) su dodati - vidi
+  sekciju ispod, uz napomenu o preostalom ograničenju (nema vodjene sesije
+  kroz SVE vezbe template-a odjednom).
 - JWT se na nativnim platformama (iOS/Android) cuva u `expo-secure-store`
   (keychain/keystore); na webu (samo za `expo export --platform web`
   build-check, ne primarna meta) pada na `localStorage` jer
@@ -546,9 +546,9 @@ lint, typecheck i test - identično lokalnim komandama iznad.
   offering, webhook URL) nije zavrsena - vidi "Subscriptions/RevenueCat"
   iznad. Bez toga `getCurrentOffering()` vraca `null` i paywall prikazuje
   orijentacionu cenu umesto stvarnih Store paketa.
-- `app/legal/{terms,privacy}.tsx` sadrze placeholder pravni tekst - potrebna
-  je pravna revizija (uklj. GDPR/CCPA usaglasenost po ciljnim trzistima) pre
-  produkcije.
+- `app/legal/{terms,privacy}.tsx` sadrze stvaran pravni tekst (nije
+  placeholder), preveden na EN/SR - i dalje je potrebna pravna revizija
+  (uklj. GDPR/CCPA usaglasenost po ciljnim trzistima) pre produkcije.
 - Push notifikacije: backend (registracija tokena, slanje preko Expo push
   servisa, trigeri) je implementiran i testiran, ali stvarna registracija
   tokena zahteva EAS `projectId` (`eas init`, vidi "Push Notifications"
