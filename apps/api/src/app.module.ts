@@ -4,6 +4,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
+import type { RedisOptions } from "ioredis";
 import Redis from "ioredis";
 import { CacheModule } from "./cache/cache.module";
 import { ResilientThrottlerGuard } from "./common/resilient-throttler.guard";
@@ -47,19 +48,24 @@ const bullConnectionLogger = new Logger("BullMQRedisConnection");
     // Konekcija namerno NIJE default `new Redis(url)` (default retry/offline
     // queue ponasanje moze da drzi zahtev da visi desetinama sekundi pre nego
     // sto konacno baci gresku koju guard hvata) - isti fail-fast princip kao
-    // CacheService (vidi cache/cache.service.ts).
+    // CacheService (vidi cache/cache.service.ts). Prosledjuje se (url, options)
+    // - NE vec-konstruisan Redis klijent - jer `ThrottlerStorageRedisService`
+    // gasi konekciju u `onModuleDestroy` SAMO kada je sam konstruise (interni
+    // `disconnectRequired` flag); vec-konstruisan klijent bi ostao otvoren
+    // posle `app.close()` u svakom e2e test fajlu.
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService<ApiEnv, true>) => ({
-        throttlers: [{ name: "default", ttl: 60_000, limit: isTestEnvironment() ? TEST_THROTTLE_LIMIT : 60 }],
-        storage: new ThrottlerStorageRedisService(
-          new Redis(configService.get("REDIS_URL"), {
-            enableOfflineQueue: false,
-            maxRetriesPerRequest: 1,
-            retryStrategy: (times) => Math.min(times * 500, 5000),
-          }),
-        ),
-      }),
+      useFactory: (configService: ConfigService<ApiEnv, true>) => {
+        const redisOptions: RedisOptions = {
+          enableOfflineQueue: false,
+          maxRetriesPerRequest: 1,
+          retryStrategy: (times) => Math.min(times * 500, 5000),
+        };
+        return {
+          throttlers: [{ name: "default", ttl: 60_000, limit: isTestEnvironment() ? TEST_THROTTLE_LIMIT : 60 }],
+          storage: new ThrottlerStorageRedisService(configService.get("REDIS_URL"), redisOptions),
+        };
+      },
     }),
     // Deljena Redis konekcija za BullMQ (odvojena od throttler storage-a i
     // CacheService-a - vidi cache/cache.service.ts za obrazlozenje zasto).
