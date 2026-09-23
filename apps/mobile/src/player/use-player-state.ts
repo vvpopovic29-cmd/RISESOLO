@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { PlayerStateDto } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 
 export type PlayerStateResult =
   | { status: "loading" }
@@ -19,6 +20,7 @@ export function usePlayerState(
 ): { state: PlayerStateResult; refetch: () => void } {
   const [state, setState] = useState<PlayerStateResult>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     if (!enabled) return;
     setState({ status: "loading" });
@@ -26,10 +28,10 @@ export function usePlayerState(
       .getMe()
       .then((data) => setState({ status: "success", data }))
       .catch((error: unknown) => {
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
-  }, [apiClient, enabled]);
+  }, [apiClient, enabled, t]);
 
   useEffect(() => {
     refetch();

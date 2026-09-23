@@ -191,7 +191,7 @@ export default function HomeScreen() {
   if (playerState.status === "error") {
     return (
       <Screen>
-        <ErrorState message={playerState.message} onRetry={refetchPlayer} testID="home-error" />
+        <ErrorState message={playerState.message} onRetry={refetchPlayer} retryLabel={t("common.retry")} testID="home-error" />
       </Screen>
     );
   }
@@ -299,7 +299,7 @@ export default function HomeScreen() {
         {questState.status === "loading" ? (
           <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : questState.status === "error" ? (
-          <ErrorState message={questState.message} onRetry={refetchQuest} />
+          <ErrorState message={questState.message} onRetry={refetchQuest} retryLabel={t("common.retry")} />
         ) : (
           <>
             <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
@@ -338,7 +338,7 @@ export default function HomeScreen() {
         {bossQuestState.status === "loading" ? (
           <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : bossQuestState.status === "error" ? (
-          <ErrorState message={bossQuestState.message} onRetry={refetchBossQuest} />
+          <ErrorState message={bossQuestState.message} onRetry={refetchBossQuest} retryLabel={t("common.retry")} />
         ) : (
           <>
             <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
@@ -371,7 +371,7 @@ export default function HomeScreen() {
         {weeklyQuestState.status === "loading" ? (
           <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : weeklyQuestState.status === "error" ? (
-          <ErrorState message={weeklyQuestState.message} onRetry={refetchWeeklyQuest} />
+          <ErrorState message={weeklyQuestState.message} onRetry={refetchWeeklyQuest} retryLabel={t("common.retry")} />
         ) : (
           <>
             <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
@@ -411,7 +411,7 @@ export default function HomeScreen() {
         {mainQuestState.status === "loading" ? (
           <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
         ) : mainQuestState.status === "error" ? (
-          <ErrorState message={mainQuestState.message} onRetry={refetchMainQuest} />
+          <ErrorState message={mainQuestState.message} onRetry={refetchMainQuest} retryLabel={t("common.retry")} />
         ) : (
           <>
             <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
@@ -449,7 +449,7 @@ export default function HomeScreen() {
           {sideQuestState.status === "loading" ? (
             <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
           ) : sideQuestState.status === "error" ? (
-            <ErrorState message={sideQuestState.message} onRetry={refetchSideQuest} />
+            <ErrorState message={sideQuestState.message} onRetry={refetchSideQuest} retryLabel={t("common.retry")} />
           ) : sideQuestState.data ? (
             <>
               <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
@@ -496,7 +496,7 @@ export default function HomeScreen() {
           {penaltyQuestState.status === "loading" ? (
             <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
           ) : penaltyQuestState.status === "error" ? (
-            <ErrorState message={penaltyQuestState.message} onRetry={refetchPenaltyQuest} />
+            <ErrorState message={penaltyQuestState.message} onRetry={refetchPenaltyQuest} retryLabel={t("common.retry")} />
           ) : penaltyQuestState.data ? (
             <>
               <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">
@@ -543,7 +543,7 @@ export default function HomeScreen() {
           {aiQuestState.status === "loading" ? (
             <Text className="text-neutral-500 dark:text-neutral-600">{t("common.loading")}</Text>
           ) : aiQuestState.status === "error" ? (
-            <ErrorState message={aiQuestState.message} onRetry={refetchAiQuest} />
+            <ErrorState message={aiQuestState.message} onRetry={refetchAiQuest} retryLabel={t("common.retry")} />
           ) : aiQuestState.data ? (
             <>
               <Text className="text-base font-semibold text-neutral-50 dark:text-neutral-1000">{aiQuestState.data.title}</Text>

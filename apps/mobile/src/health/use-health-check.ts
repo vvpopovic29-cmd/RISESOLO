@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError, createApiClient } from "@risesolo/api-client";
 import type { HealthResponse } from "@risesolo/validation";
 import { getApiBaseUrl } from "../config/env";
+import { useI18n } from "../i18n";
 
 export type HealthCheckState =
   | { status: "loading" }
@@ -16,16 +17,17 @@ export type HealthCheckState =
 export function useHealthCheck(): { state: HealthCheckState; refetch: () => void } {
   const [state, setState] = useState<HealthCheckState>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     setState({ status: "loading" });
     createApiClient({ baseUrl: getApiBaseUrl() })
       .getHealth()
       .then((data) => setState({ status: "success", data }))
       .catch((error: unknown) => {
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     refetch();

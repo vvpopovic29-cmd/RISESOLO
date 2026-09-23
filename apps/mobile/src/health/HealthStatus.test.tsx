@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react-native";
 import { createApiClient } from "@risesolo/api-client";
+import { I18nProvider } from "../i18n";
 import { HealthStatus } from "./HealthStatus";
 
 jest.mock("@risesolo/api-client", () => ({
@@ -17,9 +18,13 @@ describe("HealthStatus", () => {
   it("prikazuje loading stanje pre nego sto se zahtev zavrsi", async () => {
     mockedCreateApiClient.mockReturnValue({ getHealth: () => new Promise(() => {}) });
 
-    await render(<HealthStatus />);
+    await render(
+      <I18nProvider>
+        <HealthStatus />
+      </I18nProvider>,
+    );
 
-    await waitFor(() => expect(screen.getByText(/Proveravam API konekciju/i)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Checking API connection/i)).toBeTruthy());
   });
 
   it("prikazuje success stanje kada je API dostupan", async () => {
@@ -28,9 +33,13 @@ describe("HealthStatus", () => {
         Promise.resolve({ status: "ok", uptimeSeconds: 42, timestamp: new Date().toISOString() }),
     });
 
-    await render(<HealthStatus />);
+    await render(
+      <I18nProvider>
+        <HealthStatus />
+      </I18nProvider>,
+    );
 
-    await waitFor(() => expect(screen.getByText(/API je dostupan/i)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/API is reachable/i)).toBeTruthy());
   });
 
   it("prikazuje error stanje i dugme za ponovni pokusaj kada API poziv ne uspe", async () => {
@@ -38,9 +47,13 @@ describe("HealthStatus", () => {
       getHealth: () => Promise.reject(new Error("mreza nedostupna")),
     });
 
-    await render(<HealthStatus />);
+    await render(
+      <I18nProvider>
+        <HealthStatus />
+      </I18nProvider>,
+    );
 
-    await waitFor(() => expect(screen.getByText(/API nije dostupan/i)).toBeTruthy());
-    expect(screen.getByText(/Pokusaj ponovo/i)).toBeTruthy();
+    await waitFor(() => expect(screen.getByText(/API is unreachable/i)).toBeTruthy());
+    expect(screen.getByText(/Try again/i)).toBeTruthy();
   });
 });

@@ -3,6 +3,7 @@ import { Text } from "react-native";
 import type { ApiClient } from "@risesolo/api-client";
 import { ApiError } from "@risesolo/api-client";
 import { useSideQuest } from "./use-side-quest";
+import { I18nProvider } from "../i18n";
 
 function makeApiClient(side: ApiClient["quests"]["side"]): ApiClient {
   return { quests: { side } } as unknown as ApiClient;
@@ -33,21 +34,33 @@ describe("useSideQuest", () => {
         },
       }),
     );
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("status:AVAILABLE progress:0/1")).toBeTruthy());
   });
 
   it("prikazuje iscrpljeno stanje kada server vrati quest: null", async () => {
     const apiClient = makeApiClient(() => Promise.resolve({ quest: null }));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("exhausted")).toBeTruthy());
   });
 
   it("prelazi u error stanje kada poziv ne uspe", async () => {
     const apiClient = makeApiClient(() => Promise.reject(new ApiError("Zahtev nije uspeo")));
-    await render(<Probe apiClient={apiClient} />);
+    await render(
+      <I18nProvider>
+        <Probe apiClient={apiClient} />
+      </I18nProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("error:Zahtev nije uspeo")).toBeTruthy());
   });

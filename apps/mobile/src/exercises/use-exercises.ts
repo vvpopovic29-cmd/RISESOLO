@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, type ApiClient } from "@risesolo/api-client";
 import type { ExerciseDto, ListExercisesQuery } from "@risesolo/validation";
+import { useI18n } from "../i18n";
 
 export type ExercisesResult =
   | { status: "loading" }
@@ -13,17 +14,18 @@ export function useExercises(
 ): { state: ExercisesResult; refetch: () => void } {
   const [state, setState] = useState<ExercisesResult>({ status: "loading" });
 
+  const { t } = useI18n();
   const refetch = useCallback(() => {
     setState({ status: "loading" });
     apiClient.exercises
       .list(query)
       .then((data) => setState({ status: "success", data }))
       .catch((error: unknown) => {
-        const message = error instanceof ApiError ? error.message : "Nepoznata greska";
+        const message = error instanceof ApiError ? error.message : t("common.unknownError");
         setState({ status: "error", message });
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiClient, query.category, query.type, query.difficulty]);
+  }, [apiClient, query.category, query.type, query.difficulty, t]);
 
   useEffect(() => {
     refetch();
