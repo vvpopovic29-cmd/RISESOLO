@@ -12,6 +12,10 @@ concurrency:
 jobs:
   install-lint-typecheck-test:
     runs-on: ubuntu-latest
+    # Bez ovoga podrazumevani GitHub Actions limit je 6h - ako se posao nekad
+    # zaglavi (npr. nedostupan servis-kontejner), umesto sata cekanja na
+    # jasnu grešku, prekida se brzo i vidljivo.
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
