@@ -1,8 +1,10 @@
+import { InjectQueue } from "@nestjs/bullmq";
 import { Injectable, Logger } from "@nestjs/common";
 import type { RegisterPushTokenRequest } from "@risesolo/validation";
+import type { Queue } from "bullmq";
 import { PrismaService } from "../prisma/prisma.service";
-
-const EXPO_PUSH_API_URL = "https://exp.host/--/api/v2/push/send";
+import type { ExpoPushMessage } from "./push-notifications.queue";
+import { PUSH_NOTIFICATIONS_QUEUE } from "./push-notifications.queue";
 
 export interface PushNotificationContent {
   title: string;
@@ -11,26 +13,27 @@ export interface PushNotificationContent {
   data?: Record<string, string>;
 }
 
-interface ExpoPushMessage extends PushNotificationContent {
-  to: string;
-}
-
 /**
  * Push notifikacije preko Expo push servisa (https://exp.host) - besplatan,
  * ne zahteva sopstvene FCM/APNs kredencijale za slanje (EAS upravlja tim
  * delom kada se pravi standalone build - vidi README "Push Notifications").
+ * Stvarno slanje je izmesteno u BullMQ red (vidi
+ * push-notifications.processor.ts) - ovaj servis samo stavlja poruke u red,
+ * sto omogucava automatski retry pri privremenom Expo/mreznom kvaru.
  *
- * Namerno best-effort: mrezni poziv ka Expo-u NIKAD ne sme da obori
- * glavni request (npr. zavrsetak treninga) - pozivaoci koriste
+ * Namerno best-effort na nivou stavljanja u red: pozivaoci koriste
  * `.catch(() => undefined)` i zovu OVO POSLE glavne transakcije, nikad
- * unutar nje (spoljni mrezni poziv unutar `$transaction` bi drzao
- * konekciju otvorenu bez potrebe i ne sme da izazove rollback XP-a).
+ * unutar nje (poziv ka Redis-u unutar `$transaction` bi drzao konekciju
+ * otvorenu bez potrebe i ne sme da izazove rollback XP-a).
  */
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue(PUSH_NOTIFICATIONS_QUEUE) private readonly pushQueue: Queue<ExpoPushMessage[]>,
+  ) {}
 
   /**
    * `token` je globalno unique (jedan fizicki uredjaj) - `upsert` prebacuje
@@ -70,13 +73,9 @@ export class NotificationsService {
 
   private async sendExpoPush(messages: ExpoPushMessage[]): Promise<void> {
     try {
-      await fetch(EXPO_PUSH_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(messages),
-      });
+      await this.pushQueue.add("send", messages);
     } catch (error) {
-      this.logger.warn(`Slanje push notifikacije nije uspelo: ${error instanceof Error ? error.message : error}`);
+      this.logger.warn(`Stavljanje push notifikacije u red nije uspelo: ${error instanceof Error ? error.message : error}`);
     }
   }
 }

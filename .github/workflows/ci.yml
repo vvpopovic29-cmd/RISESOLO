@@ -12,6 +12,10 @@ concurrency:
 jobs:
   install-lint-typecheck-test:
     runs-on: ubuntu-latest
+    # Bez ovoga podrazumevani GitHub Actions limit je 6h - ako se posao nekad
+    # zaglavi (npr. nedostupan servis-kontejner), umesto sata cekanja na
+    # jasnu grešku, prekida se brzo i vidljivo.
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
@@ -26,12 +30,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       # apps/api testovi (unit + e2e) zahtevaju validan environment (Zod sema
-      # u apps/api/src/config/env.ts) i pravu Postgres bazu (core-gameplay-loop
-      # e2e test radi prave upite, ne mock). REDIS_URL ne mora da bude
-      # dostiziv servis - jos se ne koristi u kodu (vidi README "Poznata
-      # ogranicenja"), sema samo proverava da je to validan URL string.
+      # u apps/api/src/config/env.ts), pravu Postgres bazu (core-gameplay-loop
+      # e2e test radi prave upite, ne mock) i pravi Redis (rate limit storage,
+      # BullMQ push red, CacheService - vidi README "Rate Limiting & Monitoring").
       DATABASE_URL: postgresql://risesolo:risesolo@localhost:5432/risesolo
       REDIS_URL: redis://localhost:6379
       JWT_SECRET: ci-test-secret-do-not-use-in-production

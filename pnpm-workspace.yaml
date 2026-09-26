@@ -7,4 +7,5 @@ allowBuilds:
   "@prisma/engines": true
   '@scarf/scarf': false
   '@sentry/cli': false
+  msgpackr-extract: true
   "prisma": true

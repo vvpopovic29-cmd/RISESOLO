@@ -29,6 +29,7 @@ import type {
 } from "@risesolo/validation";
 import type { GuildMembership, GuildRaid, Prisma } from "@prisma/client";
 import { AchievementsService } from "../achievements/achievements.service";
+import { CacheService } from "../cache/cache.service";
 import { startOfIsoWeek } from "../common/date";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -39,12 +40,16 @@ interface MembershipWithUsername extends GuildMembership {
   user: { profile: { username: string } | null };
 }
 
+const GUILD_LIST_CACHE_KEY = "guilds:list";
+const GUILD_LIST_CACHE_TTL_SECONDS = 30;
+
 @Injectable()
 export class GuildsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly achievementsService: AchievementsService,
+    private readonly cacheService: CacheService,
   ) {}
 
   // -- Guild Management -------------------------------------------------
@@ -178,20 +183,33 @@ export class GuildsService {
    * ih ima vise od 50 u sistemu. Sa tiebreaker-om, najskorije osnovan ceh je
    * uvek prvi u svom totalXp nivou - deterministicno i vidljivije za nove
    * cehove dok ne pocnu da grade XP.
+   *
+   * Rezultat je isti za sve korisnike (nije per-user), pa se kesira kratko
+   * preko CacheService (vidi README "Rate Limiting & Monitoring") - samo
+   * TTL, bez eksplicitne invalidacije pri kreiranju/gasenju ceha, jer je
+   * kratak TTL dovoljan za ovu skalu i ne zahteva diranje svake mutacije.
    */
   async listGuilds(): Promise<GuildSummaryDto[]> {
+    const cached = await this.cacheService.getJson<GuildSummaryDto[]>(GUILD_LIST_CACHE_KEY);
+    if (cached) {
+      return cached;
+    }
+
     const guilds = await this.prisma.guild.findMany({
       include: { _count: { select: { members: true } } },
       orderBy: [{ totalXp: "desc" }, { createdAt: "desc" }],
       take: 50,
     });
-    return guilds.map((guild) => ({
+    const summaries = guilds.map((guild) => ({
       id: guild.id,
       name: guild.name,
       tag: guild.tag,
       level: calculateLevel(guild.totalXp),
       memberCount: guild._count.members,
     }));
+
+    await this.cacheService.setJson(GUILD_LIST_CACHE_KEY, summaries, GUILD_LIST_CACHE_TTL_SECONDS);
+    return summaries;
   }
 
   // -- Guild Progression + Quests & Raids --------------------------------
