@@ -53,16 +53,20 @@ export class WorkoutsService {
 
     // Najvise jedna aktivna sesija po korisniku - sprecava "sirenje" napustenih
     // treninga i cini GET /workouts/sessions/active jednoznacnim (vidi index
-    // [userId, status] u schema.prisma, ovde konacno iskoriscen).
-    const existingActive = await this.prisma.workoutSession.findFirst({
-      where: { userId, status: "IN_PROGRESS" },
-    });
-    if (existingActive) {
-      throw new ConflictException("Vec imas trening u toku. Nastavi ga ili odustani pre pokretanja novog.");
-    }
-
-    const session = await this.prisma.workoutSession.create({
-      data: { userId, workoutId: dto.workoutId ?? null },
+    // [userId, status] u schema.prisma, ovde konacno iskoriscen). Provera i upis
+    // idu u jednoj transakciji pod zakljucanim redom progresije korisnika, da dva
+    // paralelna zahteva (dupli tap) ne mogu oba da prodju proveru.
+    const session = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT user_id FROM progression WHERE user_id = ${userId} FOR UPDATE`;
+      const existingActive = await tx.workoutSession.findFirst({
+        where: { userId, status: "IN_PROGRESS" },
+      });
+      if (existingActive) {
+        throw new ConflictException("Vec imas trening u toku. Nastavi ga ili odustani pre pokretanja novog.");
+      }
+      return tx.workoutSession.create({
+        data: { userId, workoutId: dto.workoutId ?? null },
+      });
     });
     return toSessionDto(session);
   }

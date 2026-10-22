@@ -8,12 +8,11 @@ import { AppModule } from "../src/app.module";
  * Inventory (B2) - Event Items, cetvrti izvor posle Hidden/Workshop/Guild.
  * Za razliku od Workshop Item-a (nivo+coins gate), Event Item se prisvaja
  * BESPLATNO ali SAMO unutar godisnjeg kalendarskog prozora (mesec+dan, vidi
- * @risesolo/domain event-item.ts). Testovi se namerno oslanjaju na STVARAN
- * tekuci datum (isti princip kao ostala mesta u kodu koja koriste `new
- * Date()` bez injektovanog "clock"-a, npr. ISO nedelja za Boss Quest) -
- * AUTUMN_HARVEST (1-30. septembar) je aktivan tokom cele godine razvoja ovog
- * MVP-a (2026), WINTER_WARRIOR (decembar) i SUMMER_SHRED (jun) NIKAD nisu
- * aktivni istog trenutka kad je AUTUMN_HARVEST aktivan.
+ * @risesolo/domain event-item.ts). Prozori zavise od kalendara, pa se `Date`
+ * u ovom fajlu zamrzava na 15. septembar 2026 (AUTUMN_HARVEST aktivan,
+ * WINTER_WARRIOR i SUMMER_SHRED neaktivni) - bez toga test pada cim istekne
+ * septembar. Ostali timer-i (setTimeout, setImmediate...) ostaju stvarni, da
+ * HTTP i Prisma rade normalno.
  */
 describe("Inventory - Event Items (e2e)", () => {
   let app: INestApplication;
@@ -23,6 +22,25 @@ describe("Inventory - Event Items (e2e)", () => {
   let userSeq = 0;
 
   beforeAll(async () => {
+    jest.useFakeTimers({
+      now: new Date("2026-09-15T12:00:00Z"),
+      doNotFake: [
+        "hrtime",
+        "nextTick",
+        "performance",
+        "queueMicrotask",
+        "requestAnimationFrame",
+        "cancelAnimationFrame",
+        "requestIdleCallback",
+        "cancelIdleCallback",
+        "setImmediate",
+        "clearImmediate",
+        "setInterval",
+        "clearInterval",
+        "setTimeout",
+        "clearTimeout",
+      ],
+    });
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -32,6 +50,7 @@ describe("Inventory - Event Items (e2e)", () => {
   });
 
   afterAll(async () => {
+    jest.useRealTimers();
     if (createdUserIds.length > 0) {
       await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
     }

@@ -535,6 +535,24 @@ se namerno NE prevodi - ostaje identičan na svim jezicima.
 - `apps/api` - Jest (jedinični `*.spec.ts` + e2e `*.e2e-spec.ts` preko Supertest).
 - `apps/mobile` - `jest-expo` preset + `@testing-library/react-native`.
 
+### Test paket za napredni MVP
+
+Pored modulskih testova, postoje slojevi koji štite spojeve između modula:
+
+| Sloj | Gde | Šta proverava |
+| --- | --- | --- |
+| Integritet biblioteke vežbi | `apps/api/src/exercises/exercise-library.spec.ts` | `prisma/seed-data/exercise-library.json`: jedinstveni kebab-case slug, validni enum-i, neprazna uputstva/form cue-ovi/safety napomene, reps XOR hold propisivanje, skill lanci bez rupa i opadajuće težine |
+| Exercises API e2e | `apps/api/test/exercises.e2e-spec.ts` | auth, filteri (tip/kategorija/težina), 400 na nepoznat enum, 404 na nepoznat slug, svaki red prolazi `exerciseSchema` |
+| "Napredni MVP" journey | `apps/api/test/advanced-mvp-journey.e2e-spec.ts` | katalog → template → trening (reps + hold) → istorija/rekordi → progresija → leaderboard → guild XP → push token → shop; izolacija podataka između korisnika |
+| Konkurentnost i invarijante | `apps/api/test/concurrency-invariants.e2e-spec.ts` | paralelna registracija (tačno jedan 201, ostali 409), paralelni start sesije (jedna `IN_PROGRESS`), paralelni complete ne dodeljuje XP dvaput, `totalXp == Σ XpEvent` |
+| i18n paritet | `apps/mobile/src/i18n/locales/locales.test.ts` | `en`/`sr` imaju iste ključeve i iste `{placeholdere}`, nema praznih prevoda |
+| UI komponente | `apps/mobile/src/ui/*.test.tsx`, `achievements/achievement-display.test.ts` | `Button`, `ErrorState`, `TextField`; svaki achievement ima naslov/opis/ikonu u oba jezika |
+
+E2E testovi traže pokrenute Postgres (migrirana + seed-ovana baza) i Redis, sa istim
+promenljivama kao u CI (`DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`).
+Workspace paketi (`packages/*`) moraju biti buildovani (`pnpm build`) pre pokretanja
+`apps/api` testova.
+
 ## CI
 
 `.github/workflows/ci.yml` pokreće na svaki push/PR: install (`pnpm install --frozen-lockfile`),
