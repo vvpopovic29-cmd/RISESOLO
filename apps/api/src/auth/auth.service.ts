@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import { Prisma } from "@prisma/client";
 import { BASE_PLAYER_STATS } from "@risesolo/domain";
 import type { AuthResponse, LoginRequest, RegisterRequest } from "@risesolo/validation";
 import * as bcrypt from "bcryptjs";
@@ -31,21 +32,32 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
 
-    const user = await this.prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: { email: dto.email, passwordHash },
+    let user;
+    try {
+      user = await this.prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+          data: { email: dto.email, passwordHash },
+        });
+        await tx.profile.create({
+          data: { userId: createdUser.id, username: dto.username },
+        });
+        await tx.playerStats.create({
+          data: { userId: createdUser.id, ...BASE_PLAYER_STATS },
+        });
+        await tx.progression.create({
+          data: { userId: createdUser.id },
+        });
+        return createdUser;
       });
-      await tx.profile.create({
-        data: { userId: createdUser.id, username: dto.username },
-      });
-      await tx.playerStats.create({
-        data: { userId: createdUser.id, ...BASE_PLAYER_STATS },
-      });
-      await tx.progression.create({
-        data: { userId: createdUser.id },
-      });
-      return createdUser;
-    });
+    } catch (error) {
+      // Paralelna registracija sa istim email-om/username-om prodje proveru iznad pre nego sto
+      // jedna od njih upise red - unique constraint je poslednja linija odbrane, mapiramo ga na 409.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        const target = String(error.meta?.target ?? "");
+        throw new ConflictException(target.includes("username") ? "Korisnicko ime je zauzeto" : "Email je vec registrovan");
+      }
+      throw error;
+    }
 
     return this.buildAuthResponse(user.id, user.email, dto.username);
   }
