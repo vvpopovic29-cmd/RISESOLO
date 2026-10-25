@@ -18,6 +18,14 @@ neizbezne nekonzistentnosti), metapodaci se izvode pravilima:
   progresiji (calisthenics tier liste i skill stabla), koristi se za
   "sledeca/prethodna vezba u progresiji".
 
+> **Napomena:** sadrzaj 206 ne-skill vezbi (`instructions`, `form_cues`, `safety_notes`,
+> `primary_muscles`/`secondary_muscles`, `difficulty`, a kod vezbi sa istim tipom
+> propisivanja i `sets`/`reps`/`rest_seconds`) je naknadno zamenjen sadrzajem iz
+> uploadovane "risesolo-exercise-library" biblioteke (engleski tekst). Slug-ovi,
+> `movement_pattern`, `equipment`, `progression` i 41 skill korak su ostali isti.
+> Regenerisanje skriptom ispod VRACA stari (srpski, template) sadrzaj i pregazilo bi
+> tu izmenu - ne pokretati je bez ponovnog spajanja.
+
 Da se regenerise (npr. posle izmene taksonomije u skripti):
 
 ```bash
